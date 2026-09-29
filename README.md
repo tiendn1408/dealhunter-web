@@ -4,19 +4,19 @@ Giao diện web người dùng của hệ thống **Deal Hunter** — Theo dõi 
 
 ---
 
-## 🎯 Tính Năng Phase 1 (Core Price Tracking)
+## Tinh Nang Phase 1 (Core Price Tracking)
 
-- 🔍 **Dán Link & Tự Động Nhận Diện**: Tự động nhận biết sàn TMĐT, lấy thông tin và giá sản phẩm ngay lập tức.
-- ⚡ **Tiến Trình 3 Bước Trực Quan**: Phản hồi tức thì khi phân tích link và lập lịch quét định kỳ.
-- 📊 **Biểu Đồ Vùng Lịch Sử Giá (AreaChart)**: Trực quan hóa biến động giá thực tế (bao gồm tiền hàng + phí ship) với gradient mượt mà và đường đánh dấu đáy giá lịch sử.
-- 📈 **Thẻ Sản Phẩm & Mini Sparkline**: Xem ngay đường xu hướng giá 30 ngày, huy hiệu % giảm giá (`↓ 8.7%`) ngay trên danh sách theo dõi.
-- ⏱️ **Lưới Thống Kê 4 Chỉ Số**: Giá thấp nhất (đáy), giá trung bình, giá cao nhất (đỉnh), và khoảng cách so với đáy.
-- ⏸️ **Tạm Dừng / Tiếp Tục Quét**: Quản lý trạng thái theo dõi trực tiếp từ danh sách hoặc màn hình chi tiết với Optimistic UI.
-- 📱 **Mobile-First Responsive**: Tích hợp **Bottom Navigation Bar** cố định chuẩn ứng dụng di động.
+- **Dan Link & Tu Dong Nhan Dien**: Tu dong nhan biet san TMDT, lay thong tin va gia san pham ngay lap tuc.
+- **Tien Trinh 3 Buoc Truc Quan**: Phan hoi tuc thi khi phan tich link va lap lich quet dinh ky.
+- **Bieu Do Vung Lich Su Gia (AreaChart)**: Truc quan hoa bien dong gia thuc te (bao gom tien hang + phi ship) voi gradient muot ma va duong danh dau day gia lich su.
+- **The San Pham & Mini Sparkline**: Xem ngay duong xu huong gia 30 ngay, huy hieu % giam gia (`↓ 8.7%`) ngay tren danh sach theo doi.
+- **Luoi Thong Ke 4 Chi So**: Gia thap nhat (day), gia trung binh, gia cao nhat (dinh), va khoang cach so voi day.
+- **Tam Dung / Tiep Tuc Quet**: Quan ly trang thai theo doi truc tiep tu danh sach hoac man hinh chi tiet voi Optimistic UI.
+- **Mobile-First Responsive**: Tich hop **Bottom Navigation Bar** co dinh chuan ung dung di dong.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: [Next.js 14](https://nextjs.org/) (App Router, React Server Components & Client Components)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
@@ -27,68 +27,68 @@ Giao diện web người dùng của hệ thống **Deal Hunter** — Theo dõi 
 
 ---
 
-## 🚀 Khởi Chạy Nhanh (Local Development)
+## Khoi Chay Nhanh (Local Development)
 
-### 1. Cài đặt thư viện:
+### 1. Cai dat thu vien:
 ```bash
 npm install
 ```
 
-### 2. Cấu hình môi trường:
-Tạo file `.env.local` nếu backend chạy ở port khác `8080`:
+### 2. Cau hinh moi truong:
+Tao file `.env.local` neu backend chay o port khac `8080`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 ```
 
-### 3. Chạy môi trường phát triển:
+### 3. Chay moi truong phat trien:
 ```bash
 npm run dev
 ```
-Truy cập ứng dụng tại: [http://localhost:3000](http://localhost:3000)
+Truy cap ung dung tai: [http://localhost:3000](http://localhost:3000)
 
-### 4. Kiểm tra Build:
+### 4. Kiem tra Build:
 ```bash
 npm run build
 ```
 
 ---
 
-## 📂 Cấu Trúc Thư Mục
+## Cau Truc Thu Muc
 
 ```
 deal-hunter-web/
 ├── app/                        # Next.js App Router (Pages)
 │   ├── layout.tsx              # Root Layout (Navbar & Mobile Bottom Nav)
-│   ├── page.tsx                # Trang chủ: Dán link & Quét giá
+│   ├── page.tsx                # Trang chu: Dan link & Quet gia
 │   ├── tracking/
-│   │   ├── page.tsx            # Danh sách sản phẩm đang theo dõi
-│   │   └── [id]/page.tsx       # Chi tiết sản phẩm & Biểu đồ biến động giá
+│   │   ├── page.tsx            # Danh sach san pham dang theo doi
+│   │   └── [id]/page.tsx       # Chi tiet san pham & Bieu do bien dong gia
 │   └── settings/
-│       └── page.tsx            # Cài đặt chu kỳ quét & Roadmap Phase 2
+│       └── page.tsx            # Cai dat chu ky quet & Roadmap Phase 2
 │
 ├── components/
-│   ├── Navbar.tsx              # Header desktop + Bottom navigation bar di động
-│   └── ui/                     # UI components tái sử dụng
-│       ├── Badge.tsx           # Huy hiệu sàn TMĐT & Trạng thái quét
-│       ├── PriceChangePill.tsx # Huy hiệu % biến động giá (tăng/giảm)
-│       ├── Sparkline.tsx       # Đường biểu diễn xu hướng giá mini (SVG)
+│   ├── Navbar.tsx              # Header desktop + Bottom navigation bar di dong
+│   └── ui/                     # UI components tai su dung
+│       ├── Badge.tsx           # Huy hieu san TMDT & Trang thai quet
+│       ├── PriceChangePill.tsx # Huy hieu % bien dong gia (tang/giam)
+│       ├── Sparkline.tsx       # Duong bieu dien xu huong gia mini (SVG)
 │       ├── LoadingSkeleton.tsx # Shimmer loading animation
-│       └── EmptyState.tsx      # Màn hình rỗng thân thiện B2C
+│       └── EmptyState.tsx      # Man hinh rong than thien B2C
 │
 ├── lib/
-│   ├── api.ts                  # API client kết nối Backend Go
-│   └── formatting.ts           # Format tiền VND, thời gian tương đối, thống kê giá
+│   ├── api.ts                  # API client ket noi Backend Go
+│   └── formatting.ts           # Format tien VND, thoi gian tuong doi, thong ke gia
 │
-└── docs/                       # Tài liệu thiết kế & kế hoạch
-    ├── README.md               # Mục lục điều hướng tài liệu
-    ├── ui-ux-plan.md           # Thiết kế UX/UI toàn diện (gốc BA/PM)
-    ├── architecture/overview.md # Kiến trúc frontend & Data flow
-    └── plans/phase-1-core-tracking.md # Kế hoạch chi tiết Phase 1
+└── docs/                       # Tai lieu thiet ke & ke hoach
+    ├── README.md               # Muc luc dieu huong tai lieu
+    ├── ui-ux-plan.md           # Thiet ke UX/UI toan dien (goc BA/PM)
+    ├── architecture/overview.md # Kien truc frontend & Data flow
+    └── plans/phase-1-core-tracking.md # Ke hoach chi tiet Phase 1
 ```
 
 ---
 
-## 🔗 Liên Kết Backend
+## Lien Ket Backend
 
 Dự án này kết nối với Go backend tại `deal_hunter`:
 - `POST /api/v1/tracked-products`: Bắt đầu theo dõi URL

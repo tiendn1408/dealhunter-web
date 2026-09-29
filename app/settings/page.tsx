@@ -1,132 +1,260 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getUserId } from "@/lib/api";
 import {
   Settings,
-  Clock,
   User,
-  BellRing,
+  Bookmark,
+  Bell,
+  MessageSquare,
+  LineChart,
+  HelpCircle,
+  FileText,
+  LogOut,
+  ChevronRight,
+  Clock,
   CheckCircle2,
   Sparkles,
-  ExternalLink,
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const [interval, setInterval] = useState("1800");
   const [userId, setUserId] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [interval, setInterval] = useState("1800");
+  const [showIntervalModal, setShowIntervalModal] = useState(false);
+  const [savedNotice, setSavedNotice] = useState(false);
 
   useEffect(() => {
     setUserId(getUserId());
-    const savedInterval = localStorage.getItem("dealhunter_poll_interval");
-    if (savedInterval) setInterval(savedInterval);
+    const saved = localStorage.getItem("dealhunter_poll_interval");
+    if (saved) setInterval(saved);
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem("dealhunter_poll_interval", interval);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSaveInterval = (val: string) => {
+    setInterval(val);
+    localStorage.setItem("dealhunter_poll_interval", val);
+    setShowIntervalModal(false);
+    setSavedNotice(true);
+    setTimeout(() => setSavedNotice(false), 2500);
+  };
+
+  const handleResetUser = () => {
+    if (confirm("Bạn có muốn đặt lại mã định danh người dùng trên thiết bị này?")) {
+      localStorage.removeItem("dealhunter_user_id");
+      localStorage.removeItem("dealhunter_products_meta");
+      window.location.reload();
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto py-6 sm:py-8 space-y-6">
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Cài đặt Hệ thống
+    <div className="max-w-xl mx-auto py-6 sm:py-10 space-y-6">
+      {/* Header matching Screen 10 */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
+          Cá nhân
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Tùy chỉnh thông số quét định kỳ và định danh người dùng trên thiết bị này.
-        </p>
+        <button
+          type="button"
+          onClick={() => setShowIntervalModal(true)}
+          className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
+          title="Tùy chỉnh hệ thống"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Main Settings Form */}
-      <form
-        onSubmit={handleSave}
-        className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6"
-      >
-        {/* Polling Interval Setting */}
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-4 h-4 text-indigo-600" />
-            <label className="text-sm font-bold text-slate-900">
-              Chu kỳ tự động quét giá (Polling Interval)
-            </label>
-          </div>
-          <p className="text-xs text-slate-500 mb-3">
-            Tần suất worker chạy ngầm kiểm tra và ghi lại giá mới nhất từ các sàn thương mại điện tử.
-          </p>
-          <select
-            value={interval}
-            onChange={(e) => setInterval(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-medium"
-          >
-            <option value="1800">Mỗi 30 phút (Khuyến nghị - Mặc định)</option>
-            <option value="3600">Mỗi 1 giờ</option>
-            <option value="7200">Mỗi 2 giờ</option>
-            <option value="21600">Mỗi 6 giờ</option>
-          </select>
+      {savedNotice && (
+        <div className="p-3.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span>Đã cập nhật chu kỳ quét thành công!</span>
         </div>
+      )}
 
-        {/* User Identity Setting */}
-        <div className="pt-5 border-t border-slate-100">
-          <div className="flex items-center gap-2 mb-1">
-            <User className="w-4 h-4 text-indigo-600" />
-            <label className="text-sm font-bold text-slate-900">
-              Mã định danh người dùng (User ID)
-            </label>
-          </div>
-          <p className="text-xs text-slate-500 mb-3">
-            Mã định danh lưu trữ tại trình duyệt giúp hệ thống phân biệt danh sách theo dõi của bạn.
-          </p>
-          <input
-            type="text"
-            readOnly
-            value={userId}
-            className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-600 select-all"
-          />
+      {/* User Profile Card matching Screen 10 */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-2xs flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-pine-900 text-white flex items-center justify-center font-bold text-xl shadow-xs">
+          T
         </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base sm:text-lg font-bold text-pine-900 truncate">
+            Người dùng Deal Hunter
+          </h2>
+          <p className="text-xs text-slate-400 font-mono truncate mt-0.5">
+            ID: {userId.slice(0, 16)}...
+          </p>
+        </div>
+      </div>
 
-        {/* Save button & feedback */}
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs sm:text-sm transition-all shadow-xs"
-          >
-            Lưu thay đổi
-          </button>
-          {saved && (
-            <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5 animate-fadeIn">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Đã lưu cài đặt thành công!</span>
+      {/* Menu List matching Screen 10 */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-2xs divide-y divide-slate-100">
+        {/* Đang theo dõi */}
+        <Link
+          href="/tracking"
+          className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center">
+              <Bookmark className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold text-slate-800">
+              Đang theo dõi
             </span>
-          )}
-        </div>
-      </form>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Xem danh sách</span>
+            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+          </div>
+        </Link>
 
-      {/* Phase 2 Preview Card */}
-      <div className="bg-gradient-to-br from-indigo-50/70 via-purple-50/50 to-white border border-indigo-100 rounded-3xl p-6 shadow-xs">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-4 h-4 text-indigo-600" />
-          <h3 className="text-sm font-bold text-slate-900">
-            Sắp ra mắt trong Phase 2: Cảnh báo Zalo & Bộ máy luật
-          </h3>
-        </div>
-        <p className="text-xs text-slate-600 leading-relaxed mb-4">
-          Trong Phase 2, bạn sẽ có thể kết nối tài khoản Zalo ZNS để tự động nhận thông báo ngay khi giá giảm ≥ X%, chạm ngưỡng giá mong muốn, hoặc đạt mức thấp nhất trong 30 ngày.
-        </p>
+        {/* Cài đặt thông báo & Chu kỳ quét */}
+        <button
+          type="button"
+          onClick={() => setShowIntervalModal(true)}
+          className="w-full flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-slate-800 block">
+                Cài đặt chu kỳ quét
+              </span>
+              <span className="text-[11px] text-slate-400 block">
+                Hiện tại: Mỗi {Math.round(parseInt(interval, 10) / 60)} phút
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+        </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold px-2.5 py-1 bg-white text-indigo-700 rounded-lg border border-indigo-200 shadow-xs">
-            🔔 Zalo ZNS Notification
-          </span>
-          <span className="text-[11px] font-semibold px-2.5 py-1 bg-white text-purple-700 rounded-lg border border-purple-200 shadow-xs">
-            🎯 Rule Evaluation Engine
-          </span>
+        {/* Liên kết Zalo */}
+        <div className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-slate-800 block">
+                Liên kết Zalo
+              </span>
+              <span className="text-[11px] text-slate-400 block">
+                Nhận tin nhắn ZNS khi giá giảm
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+              Phase 2
+            </span>
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </div>
         </div>
+
+        {/* Lịch sử giá */}
+        <Link
+          href="/tracking"
+          className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center">
+              <LineChart className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold text-slate-800">
+              Lịch sử giá đã lưu
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+        </Link>
+
+        {/* Hỗ trợ & góp ý */}
+        <div className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <HelpCircle className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold text-slate-800">
+              Hỗ trợ & góp ý
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300" />
+        </div>
+
+        {/* Điều khoản sử dụng */}
+        <div className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <FileText className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold text-slate-800">
+              Điều khoản sử dụng
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300" />
+        </div>
+
+        {/* Đăng xuất / Đặt lại */}
+        <button
+          type="button"
+          onClick={handleResetUser}
+          className="w-full flex items-center justify-between p-4 sm:p-4.5 hover:bg-rose-50 transition-colors group text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold text-rose-600">
+              Đặt lại mã định danh
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-rose-300 group-hover:text-rose-500 transition-colors" />
+        </button>
       </div>
+
+      {/* Interval Modal */}
+      {showIntervalModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-xl space-y-4 animate-scaleUp">
+            <h3 className="text-lg font-bold text-pine-900">
+              Chọn chu kỳ quét giá
+            </h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Tần suất scheduler kiểm tra và ghi lại giá mới nhất từ các sàn thương mại điện tử.
+            </p>
+
+            <div className="space-y-2 pt-2">
+              {[
+                { val: "1800", label: "Mỗi 30 phút (Khuyến nghị)" },
+                { val: "3600", label: "Mỗi 1 giờ" },
+                { val: "7200", label: "Mỗi 2 giờ" },
+                { val: "21600", label: "Mỗi 6 giờ" },
+              ].map((opt) => (
+                <button
+                  key={opt.val}
+                  type="button"
+                  onClick={() => handleSaveInterval(opt.val)}
+                  className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold border transition-all ${
+                    interval === opt.val
+                      ? "bg-pine-900 text-white border-pine-900 shadow-2xs"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowIntervalModal(false)}
+              className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

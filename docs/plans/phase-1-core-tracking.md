@@ -12,18 +12,18 @@ BE Phase 1 đã có đủ các API sau. FE Phase 1 phải dùng được toàn b
 
 | BE đã có | FE Phase 1 cần |
 |----------|----------------|
-| `POST /tracked-products` | ✅ Home: form paste URL → track |
-| `GET /tracked-products` | ✅ Tracking list page |
-| `GET /tracked-products/:id` | ⚠️ Thiếu — chưa dùng để hiện product name |
-| `GET /tracked-products/:id/prices` | ✅ Product detail page (chart) |
-| `POST /tracked-products/:id/pause` | ✅ Toggle trên tracking list |
-| `POST /tracked-products/:id/resume` | ✅ Toggle trên tracking list |
+| `POST /tracked-products` | [OK] Home: form paste URL -> track |
+| `GET /tracked-products` | [OK] Tracking list page |
+| `GET /tracked-products/:id` | [Luu y] Enrich metadata |
+| `GET /tracked-products/:id/prices` | [OK] Product detail page (chart) |
+| `POST /tracked-products/:id/pause` | [OK] Toggle trên tracking list |
+| `POST /tracked-products/:id/resume` | [OK] Toggle trên tracking list |
 
 ---
 
 ## 2. Hiện Trạng Code (Gap Analysis)
 
-### ✅ Đã có — hoạt động được
+### [OK] Đã có — hoạt động được
 
 | File | Tình trạng |
 |------|-----------|
@@ -32,7 +32,7 @@ BE Phase 1 đã có đủ các API sau. FE Phase 1 phải dùng được toàn b
 | `app/tracking/[id]/page.tsx` | Price chart (Recharts), bảng snapshot |
 | `lib/api.ts` | Đủ 6 API functions khớp với BE |
 
-### ❌ Thiếu — cần làm để Phase 1 hoàn chỉnh
+### [Thieu] Cần làm để Phase 1 hoàn chỉnh
 
 | Vấn đề | Tác động | Việc cần làm |
 |--------|----------|-------------|
@@ -58,7 +58,7 @@ BE Phase 1 đã có đủ các API sau. FE Phase 1 phải dùng được toàn b
 
 **Còn thiếu:**
 - [ ] Badge "Shopee · Lazada · TikTok" (đúng UX plan)
-- [ ] Trạng thái loading step-by-step: "✓ Nhận diện nền tảng → ✓ Đọc thông tin → ● Lấy giá"
+- [ ] Trạng thái loading step-by-step: "[1] Nhan dien nen tang -> [2] Doc thong tin -> [3] Lay gia"
 - [ ] Product Preview screen sau khi fetch xong (hiện tại redirect thẳng → thiếu bước confirm)
 - [ ] Tracking Success screen với 2 CTA: "Xem sản phẩm" / "Theo dõi sản phẩm khác"
 

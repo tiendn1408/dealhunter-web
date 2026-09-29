@@ -2,8 +2,12 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata = {
-  title: "Deal Hunter — Săn Deal & Lịch Sử Giá",
-  description: "Theo dõi giá sản phẩm xuyên sàn TMĐT Shopee, Lazada, TikTok Shop",
+  title: "Deal Hunter — Săn đúng giá trước khi mua",
+  description:
+    "Theo dõi giá sản phẩm bạn quan tâm và nhận thông báo khi có giá tốt từ Shopee, Lazada, TikTok Shop.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -13,9 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-screen flex flex-col bg-[#F8FAF9] text-slate-900 antialiased">
         <Navbar />
-        <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+        <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
           {children}
         </main>
       </body>

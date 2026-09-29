@@ -89,12 +89,30 @@ export function getLocalProductMeta(sourceOrTrackingId: string): LocalProductMet
   return store[sourceOrTrackingId];
 }
 
+async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err: any) {
+    if (
+      err?.name === "TypeError" ||
+      err?.message?.includes("fetch") ||
+      err?.message?.includes("NetworkError") ||
+      err?.message?.includes("Failed")
+    ) {
+      throw new Error(
+        `Không thể kết nối đến máy chủ Backend (${API_BASE_URL}). Vui lòng đảm bảo backend Go đang được khởi chạy.`
+      );
+    }
+    throw err;
+  }
+}
+
 /**
  * Track a new product by its URL.
  */
 export async function trackProduct(url: string): Promise<TrackResponse> {
   const cleanUrl = url.trim();
-  const res = await fetch(`${API_BASE_URL}/tracked-products`, {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -130,7 +148,7 @@ export async function trackProduct(url: string): Promise<TrackResponse> {
  * List all tracked products for the current user.
  */
 export async function listTrackings(): Promise<TrackedProduct[]> {
-  const res = await fetch(`${API_BASE_URL}/tracked-products`, {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products`, {
     headers: {
       "X-User-ID": getUserId(),
     },
@@ -164,7 +182,7 @@ export async function listTrackings(): Promise<TrackedProduct[]> {
  * Get details for a single tracked product.
  */
 export async function getTracking(id: string): Promise<TrackedProduct> {
-  const res = await fetch(`${API_BASE_URL}/tracked-products/${id}`, {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}`, {
     headers: {
       "X-User-ID": getUserId(),
     },
@@ -202,7 +220,7 @@ export async function getPriceHistory(
   if (to) params.set("to", to);
   if (params.toString()) url += `?${params.toString()}`;
 
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await safeFetch(url, { cache: "no-store" });
   if (!res.ok) {
     throw new Error("Không thể tải lịch sử giá");
   }
@@ -215,7 +233,7 @@ export async function getPriceHistory(
  * Pause tracking for a product.
  */
 export async function pauseTracking(id: string) {
-  const res = await fetch(`${API_BASE_URL}/tracked-products/${id}/pause`, {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/pause`, {
     method: "POST",
     headers: {
       "X-User-ID": getUserId(),
@@ -232,7 +250,7 @@ export async function pauseTracking(id: string) {
  * Resume tracking for a product.
  */
 export async function resumeTracking(id: string) {
-  const res = await fetch(`${API_BASE_URL}/tracked-products/${id}/resume`, {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/resume`, {
     method: "POST",
     headers: {
       "X-User-ID": getUserId(),

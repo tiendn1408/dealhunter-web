@@ -1169,7 +1169,7 @@ Product Detail:
 Current Price
 6.290.000đ
 
-[ 🔔 Tạo cảnh báo ]
+[ [Alert] Tạo cảnh báo ]
 ```
 
 ## Alert creation
@@ -1198,7 +1198,7 @@ Kênh
 Sau khi tạo:
 
 ```text
-🔔 Alert active
+[Active] Alert active
 
 Báo khi giá ≤ 6.000.000đ
 
@@ -1223,12 +1223,12 @@ Không cần thành inbox phức tạp.
 Ví dụ:
 
 ```text
-🔥 Sony XM6
+[Deal] Sony XM6
 Giá vừa giảm xuống 5.990.000đ
 
 2 giờ trước
 
-🔥 SSD 2TB
+[Deal] SSD 2TB
 Đã đạt điều kiện bạn đặt
 
 Hôm qua
@@ -1304,7 +1304,7 @@ Effective price
 ## Deal explanation
 
 ```text
-🔥 Strong price signal
+[Hot Deal] Strong price signal
 
 6.190.000đ
 
@@ -1382,7 +1382,7 @@ What are you hunting for?
 
 ──────────────────────────────
 
-🔥 Deals worth watching
+[Deals] Deals worth watching
 
 Sony XM6
 6.19m

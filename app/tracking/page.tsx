@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   listTrackings,
+  listNotifications,
   pauseTracking,
   resumeTracking,
   getPriceHistory,
@@ -45,11 +46,20 @@ export default function MyTrackingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "dropped" | "target">("all");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const fetchTrackings = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Check unread notifications in background
+      listNotifications(1)
+        .then((notifs) => {
+          setHasUnread(notifs.some((n) => !n.read_at));
+        })
+        .catch(() => {});
+
       const data = await listTrackings();
 
       // Read locally saved target prices
@@ -185,7 +195,9 @@ export default function MyTrackingPage() {
             title="Xem thông báo"
           >
             <Bell className="w-4 h-4" />
-            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5" />
+            {hasUnread && (
+              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 animate-pulse" />
+            )}
           </Link>
         </div>
       </div>

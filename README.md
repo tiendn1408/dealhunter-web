@@ -81,9 +81,11 @@ deal-hunter-web/
 │
 └── docs/                       # Tai lieu thiet ke & ke hoach
     ├── README.md               # Muc luc dieu huong tai lieu
-    ├── ui-ux-plan.md           # Thiet ke UX/UI toan dien (goc BA/PM)
-    ├── architecture/overview.md # Kien truc frontend & Data flow
-    └── plans/phase-1-core-tracking.md # Ke hoach chi tiet Phase 1
+    ├── architecture/           # Kien truc frontend & Data flow
+    ├── specs/                  # Thiet ke UI/UX goc, ban cai tien va mockups
+    └── plans/                  # Ke hoach & Bao cao kiem dinh tung Phase
+        ├── phase-1/            # Phase 1: Core Tracking UI [100% Hoan thanh]
+        └── phase-2/            # Phase 2: Alert Engine & Zalo Notification
 ```
 
 ---

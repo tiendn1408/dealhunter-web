@@ -262,3 +262,213 @@ export async function resumeTracking(id: string) {
   }
   return res.json();
 }
+
+export * from "./types";
+import {
+  AlertRule,
+  CreateAlertPayload,
+  PriceNotification,
+  UserProfile,
+  ConnectZaloPayload,
+} from "./types";
+
+/**
+ * Create an alert rule for a tracked product.
+ */
+export async function createAlert(
+  trackedProductIdOrSourceId: string,
+  payload: CreateAlertPayload
+): Promise<AlertRule> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/tracked-products/${trackedProductIdOrSourceId}/alerts`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-ID": getUserId(),
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    let msg = errorText;
+    try {
+      const parsed = JSON.parse(errorText);
+      msg = parsed.message || parsed.error || errorText;
+    } catch {}
+    throw new Error(msg || "Không thể tạo quy tắc cảnh báo");
+  }
+
+  return res.json();
+}
+
+/**
+ * List alert rules for a specific tracked product.
+ */
+export async function listAlerts(
+  trackedProductIdOrSourceId: string
+): Promise<AlertRule[]> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/tracked-products/${trackedProductIdOrSourceId}/alerts`,
+    {
+      headers: {
+        "X-User-ID": getUserId(),
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Không thể tải danh sách cảnh báo của sản phẩm");
+  }
+
+  const data = await res.json();
+  return data.data || [];
+}
+
+/**
+ * List all alert rules for the current user.
+ */
+export async function listUserAlerts(): Promise<AlertRule[]> {
+  const res = await safeFetch(`${API_BASE_URL}/alert-rules`, {
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể tải danh sách cảnh báo của bạn");
+  }
+
+  const data = await res.json();
+  return data.data || [];
+}
+
+/**
+ * Deactivate / delete an alert rule.
+ */
+export async function deleteAlert(
+  alertId: string
+): Promise<{ status: string; id: string }> {
+  const res = await safeFetch(`${API_BASE_URL}/alerts/${alertId}`, {
+    method: "DELETE",
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể xóa quy tắc cảnh báo");
+  }
+
+  return res.json();
+}
+
+/**
+ * List price notifications for the current user.
+ */
+export async function listNotifications(
+  limit: number = 30
+): Promise<PriceNotification[]> {
+  const res = await safeFetch(`${API_BASE_URL}/notifications?limit=${limit}`, {
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể tải danh sách thông báo");
+  }
+
+  const data = await res.json();
+  return data.data || [];
+}
+
+/**
+ * Mark a notification as read.
+ */
+export async function markNotificationAsRead(
+  notificationId: string
+): Promise<{ status: string; id: string }> {
+  const res = await safeFetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+    method: "POST",
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể đánh dấu thông báo đã đọc");
+  }
+
+  return res.json();
+}
+
+/**
+ * Get current user profile and Zalo connection status.
+ */
+export async function getZaloStatus(): Promise<UserProfile> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/zalo/status`, {
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể kiểm tra trạng thái Zalo");
+  }
+
+  return res.json();
+}
+
+/**
+ * Connect Zalo account using phone number or Zalo ID.
+ */
+export async function connectZalo(
+  payload: ConnectZaloPayload
+): Promise<{ status: string; zalo_id?: string; phone?: string }> {
+  const res = await safeFetch(`${API_BASE_URL}/users/me/zalo`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-ID": getUserId(),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    let msg = errorText;
+    try {
+      const parsed = JSON.parse(errorText);
+      msg = parsed.message || parsed.error || errorText;
+    } catch {}
+    throw new Error(msg || "Không thể liên kết tài khoản Zalo");
+  }
+
+  return res.json();
+}
+
+/**
+ * Disconnect Zalo account.
+ */
+export async function disconnectZalo(): Promise<{ status: string }> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/zalo/disconnect`, {
+    method: "POST",
+    headers: {
+      "X-User-ID": getUserId(),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Không thể ngắt kết nối Zalo");
+  }
+
+  return res.json();
+}
+

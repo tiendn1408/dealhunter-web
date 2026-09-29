@@ -35,12 +35,12 @@ deal-hunter-web/
 │   └── formatting.ts           # (Phase 1: format tiền VND, thời gian)
 │
 └── docs/
-    ├── README.md
-    ├── ui-ux-plan.md           # File gốc BA/PM
-    ├── plans/
-    │   └── phase-1-core-tracking.md
-    └── architecture/
-        └── overview.md         # file này
+    ├── README.md               # Muc luc tong quan
+    ├── architecture/           # Kien truc he thong (file nay)
+    ├── specs/                  # Dac ta UI/UX goc, cai tien va mockups
+    └── plans/                  # Ke hoach va bao cao kiem dinh tung Phase
+        ├── phase-1/            # Phase 1: Core Tracking UI [100% Hoan thanh]
+        └── phase-2/            # Phase 2: Alert Engine & Zalo Notification
 ```
 
 ---

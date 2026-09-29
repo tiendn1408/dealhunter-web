@@ -8,9 +8,14 @@ import {
   getTracking,
   pauseTracking,
   resumeTracking,
+  listAlerts,
+  createAlert,
+  AlertRule,
   PriceSnapshot,
   TrackedProduct,
 } from "@/lib/api";
+import { CreateAlertModal } from "@/components/alerts/CreateAlertModal";
+import { ActiveAlertCard } from "@/components/alerts/ActiveAlertCard";
 import {
   formatVND,
   formatCompactVND,
@@ -43,6 +48,8 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  BellRing,
+  Plus,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -55,6 +62,8 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("90d");
   const [showTargetModal, setShowTargetModal] = useState(false);
+  const [showCreateAlertModal, setShowCreateAlertModal] = useState(false);
+  const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [targetInput, setTargetInput] = useState<number>(6000000);
   const [savedTarget, setSavedTarget] = useState<number | null>(null);
   const [copyNotice, setCopyNotice] = useState(false);
@@ -66,9 +75,10 @@ export default function ProductDetailPage() {
       setLoading(true);
       setError(null);
 
-      const [trackingRes, priceRes] = await Promise.allSettled([
+      const [trackingRes, priceRes, alertsRes] = await Promise.allSettled([
         getTracking(idOrSourceId),
         getPriceHistory(idOrSourceId),
+        listAlerts(idOrSourceId),
       ]);
 
       if (trackingRes.status === "fulfilled") {
@@ -77,13 +87,24 @@ export default function ProductDetailPage() {
       if (priceRes.status === "fulfilled") {
         setSnapshots(priceRes.value);
       }
+      if (alertsRes.status === "fulfilled") {
+        setAlerts(alertsRes.value);
+        // Find if there is a target_price alert rule to sync with target
+        const targetRule = alertsRes.value.find(
+          (r) => r.rule_type === "target_price" && r.active
+        );
+        if (targetRule) {
+          setSavedTarget(targetRule.threshold_value);
+          setTargetInput(targetRule.threshold_value);
+        }
+      }
 
-      // Read saved target price for this product
+      // Read saved target price for this product as fallback
       try {
         const raw = localStorage.getItem("dealhunter_targets");
         if (raw) {
           const store = JSON.parse(raw);
-          if (store[idOrSourceId]) {
+          if (store[idOrSourceId] && !savedTarget) {
             setSavedTarget(store[idOrSourceId]);
             setTargetInput(store[idOrSourceId]);
           }
@@ -126,7 +147,7 @@ export default function ProductDetailPage() {
   }, [currentPrice, savedTarget]);
 
   // Handle saving target price (Screen 8)
-  const handleSaveTarget = (e: React.FormEvent) => {
+  const handleSaveTarget = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetInput || targetInput <= 0) return;
 
@@ -138,6 +159,20 @@ export default function ProductDetailPage() {
       if (tracking?.ProductSourceID) store[tracking.ProductSourceID] = targetInput;
       if (tracking?.ID) store[tracking.ID] = targetInput;
       localStorage.setItem("dealhunter_targets", JSON.stringify(store));
+
+      // Persist to backend alert rules as target_price rule
+      createAlert(idOrSourceId, {
+        rule_type: "target_price",
+        threshold_value: targetInput,
+        expires_in_days: 60,
+      })
+        .then((newRule) => {
+          setAlerts((prev) => [
+            newRule,
+            ...prev.filter((r) => r.rule_type !== "target_price"),
+          ]);
+        })
+        .catch(() => {});
     } catch {}
 
     setShowTargetModal(false);
@@ -362,6 +397,65 @@ export default function ProductDetailPage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* 2.5 CẢNH BÁO GIÁ THÔNG MINH (Phase 2) */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
+              <BellRing className="w-5 h-5 text-pine-900" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-pine-900 tracking-tight">
+                Cảnh báo giá thông minh
+              </h2>
+              <p className="text-xs text-slate-500">
+                Nhận tin nhắn Zalo OA & thông báo app khi biến động giá
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowCreateAlertModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Thêm cảnh báo</span>
+          </button>
+        </div>
+
+        {alerts.length === 0 ? (
+          <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
+            <p className="text-xs text-slate-600 font-medium">
+              Chưa có quy tắc cảnh báo nào cho sản phẩm này.
+            </p>
+            <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+              Thiết lập quy tắc giảm theo %, giá đích hoặc chạm đáy lịch sử để hệ thống tự động báo qua Zalo và Feed thông báo.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowCreateAlertModal(true)}
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-pine-900 bg-white border border-slate-200 rounded-full hover:bg-pine-50 transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Tạo quy tắc đầu tiên</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {alerts.map((rule) => (
+              <ActiveAlertCard
+                key={rule.id}
+                rule={rule}
+                onRuleDeleted={(deletedId) => {
+                  setAlerts((prev) => prev.filter((r) => r.id !== deletedId));
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 3. SECTION LỊCH SỬ GIÁ & BIỂU ĐỒ matching Screen 7 in mobile.png */}
@@ -640,6 +734,21 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+
+      {/* CREATE ALERT MODAL (Phase 2) */}
+      <CreateAlertModal
+        isOpen={showCreateAlertModal}
+        onClose={() => setShowCreateAlertModal(false)}
+        productId={idOrSourceId}
+        currentPrice={currentPrice}
+        onAlertCreated={(newRule) => {
+          setAlerts((prev) => [newRule, ...prev]);
+          if (newRule.rule_type === "target_price") {
+            setSavedTarget(newRule.threshold_value);
+            setTargetInput(newRule.threshold_value);
+          }
+        }}
+      />
     </div>
   );
 }

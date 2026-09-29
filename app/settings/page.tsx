@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUserId } from "@/lib/api";
+import { getUserId, getZaloStatus, disconnectZalo, UserProfile } from "@/lib/api";
+import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
 import {
   Settings,
   User,
@@ -17,6 +18,7 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
+  Unlink,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -24,11 +26,18 @@ export default function SettingsPage() {
   const [interval, setInterval] = useState("1800");
   const [showIntervalModal, setShowIntervalModal] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [zaloProfile, setZaloProfile] = useState<UserProfile | null>(null);
+  const [showZaloModal, setShowZaloModal] = useState(false);
+  const [zaloDisconnecting, setZaloDisconnecting] = useState(false);
 
   useEffect(() => {
     setUserId(getUserId());
     const saved = localStorage.getItem("dealhunter_poll_interval");
     if (saved) setInterval(saved);
+
+    getZaloStatus()
+      .then((profile) => setZaloProfile(profile))
+      .catch(() => {});
   }, []);
 
   const handleSaveInterval = (val: string) => {
@@ -44,6 +53,29 @@ export default function SettingsPage() {
       localStorage.removeItem("dealhunter_user_id");
       localStorage.removeItem("dealhunter_products_meta");
       window.location.reload();
+    }
+  };
+
+  const handleDisconnectZalo = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Bạn có chắc muốn ngắt kết nối nhận tin nhắn Zalo?")) return;
+    setZaloDisconnecting(true);
+    try {
+      await disconnectZalo();
+      setZaloProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              zalo_connected: false,
+              phone: undefined,
+              zalo_id: undefined,
+            }
+          : null
+      );
+    } catch (err) {
+      alert("Không thể ngắt kết nối Zalo. Vui lòng thử lại.");
+    } finally {
+      setZaloDisconnecting(false);
     }
   };
 
@@ -129,28 +161,66 @@ export default function SettingsPage() {
           <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
         </button>
 
-        {/* Liên kết Zalo */}
-        <div className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-              <MessageSquare className="w-4 h-4" />
+        {/* Liên kết Zalo (Phase 2) */}
+        {zaloProfile?.zalo_connected ? (
+          <div className="flex items-center justify-between p-4 sm:p-4.5 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-slate-900 block">
+                    Zalo: {zaloProfile.phone || zaloProfile.zalo_id}
+                  </span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+                    Đã kết nối
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-500 block">
+                  Đang nhận tin nhắn cảnh báo biến động giá tức thì
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-sm font-semibold text-slate-800 block">
-                Liên kết Zalo
-              </span>
-              <span className="text-[11px] text-slate-400 block">
-                Nhận tin nhắn ZNS khi giá giảm
-              </span>
+
+            <button
+              type="button"
+              onClick={handleDisconnectZalo}
+              disabled={zaloDisconnecting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold transition-colors disabled:opacity-50"
+              title="Ngắt kết nối Zalo"
+            >
+              <Unlink className="w-3.5 h-3.5" />
+              <span>{zaloDisconnecting ? "Đang ngắt..." : "Hủy liên kết"}</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowZaloModal(true)}
+            className="w-full flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-slate-800 block">
+                  Liên kết Zalo
+                </span>
+                <span className="text-[11px] text-slate-400 block">
+                  Nhận tin nhắn ZNS khi giá giảm
+                </span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
-              Phase 2
-            </span>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
-          </div>
-        </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold px-2.5 py-1 bg-pine-900 text-white rounded-full">
+                Kết nối ngay
+              </span>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+            </div>
+          </button>
+        )}
 
         {/* Lịch sử giá */}
         <Link
@@ -255,6 +325,21 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Zalo Connect Modal (Phase 2) */}
+      <ZaloConnectModal
+        isOpen={showZaloModal}
+        onClose={() => setShowZaloModal(false)}
+        onConnected={(profile) => {
+          setZaloProfile((prev) => ({
+            user_id: prev?.user_id || userId,
+            created_at: prev?.created_at || new Date().toISOString(),
+            zalo_connected: true,
+            phone: profile.phone,
+            zalo_id: profile.zalo_id,
+          }));
+        }}
+      />
     </div>
   );
 }

@@ -87,6 +87,21 @@ export function formatDateTime(dateInput: string | Date): string {
   });
 }
 
+/**
+ * Format date only (dd/mm/yyyy).
+ * Example: "29/09/2026"
+ */
+export function formatDate(dateInput: string | Date): string {
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return "—";
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export interface PriceStats {
   lowest: number;
   highest: number;

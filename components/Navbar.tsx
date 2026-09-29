@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DealHunterLogo } from "./ui/DealHunterLogo";
+import { listNotifications } from "@/lib/api";
 import {
   Compass,
   Bookmark,
@@ -17,6 +18,25 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [topSearch, setTopSearch] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    // Check unread notifications count
+    const checkUnread = async () => {
+      try {
+        const notifs = await listNotifications(20);
+        const unread = notifs.filter((n) => !n.read_at).length;
+        setUnreadCount(unread);
+      } catch {
+        // quiet fallback
+      }
+    };
+
+    checkUnread();
+    // Poll every 30s for updates
+    const timer = setInterval(checkUnread, 30000);
+    return () => clearInterval(timer);
+  }, [pathname]);
 
   const handleTopSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +111,9 @@ export default function Navbar() {
               title="Thông báo biến động giá"
             >
               <Bell className="w-4 h-4" />
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5" />
+              {unreadCount > 0 && (
+                <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 animate-pulse" />
+              )}
             </Link>
 
             {/* User Login / Profile Button */}
@@ -128,11 +150,14 @@ export default function Navbar() {
               }`}
             >
               <div
-                className={`p-1 rounded-xl transition-colors ${
+                className={`p-1 rounded-xl transition-colors relative ${
                   isActive ? "bg-pine-50 text-pine-900" : ""
                 }`}
               >
                 <Icon className="w-5 h-5" />
+                {item.href === "/notifications" && unreadCount > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-0.5 right-0.5" />
+                )}
               </div>
               <span className="text-[10px] mt-0.5 tracking-tight font-medium">
                 {item.name}

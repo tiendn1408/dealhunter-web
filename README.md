@@ -29,6 +29,8 @@ Giao diện web người dùng của hệ thống **Deal Hunter** — Theo dõi 
 
 ## Khoi Chay Nhanh (Local Development)
 
+> **Tai lieu huong dan toan dien**: Xem chi tiet cach khoi dong ca Backend Go (Postgres, Redis, Worker, Notifier) va Frontend tai [`docs/guides/installation-and-runbook.md`](./docs/guides/installation-and-runbook.md).
+
 ### 1. Cai dat thu vien:
 ```bash
 npm install

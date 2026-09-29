@@ -22,6 +22,9 @@ docs/
 ├── architecture/                      # Kiến trúc kỹ thuật Frontend
 │   └── overview.md                   # Sơ đồ luồng dữ liệu, component tree và routing
 │
+├── guides/                            # Hướng dẫn cài đặt & vận hành thực tế
+│   └── installation-and-runbook.md   # Hướng dẫn cài đặt & chạy dự án fullstack chi tiết
+│
 └── plans/                             # Kế hoạch triển khai & Báo cáo kiểm định theo Phase
     ├── phase-1/
     │   ├── plan.md                   # Kế hoạch triển khai kỹ thuật Phase 1
@@ -38,6 +41,7 @@ docs/
 
 | Thư mục | Tệp tài liệu | Mô tả nội dung | Trạng thái |
 |---------|--------------|----------------|------------|
+| **guides/** | [`guides/installation-and-runbook.md`](./guides/installation-and-runbook.md) | **Hướng dẫn cài đặt & vận hành toàn diện (Fullstack Runbook)** | **SẴN SÀNG** |
 | **specs/** | [`specs/master-ui-ux.md`](./specs/master-ui-ux.md) | Đặc tả trải nghiệm người dùng gốc (toàn bộ 6 phase) | Tài liệu gốc |
 | **specs/** | [`specs/phase-1-ui-ux-improve.md`](./specs/phase-1-ui-ux-improve.md) | Quy chuẩn chi tiết màu sắc, layout, 10 màn hình mockup | Chuẩn thiết kế |
 | **architecture/** | [`architecture/overview.md`](./architecture/overview.md) | Kiến trúc thư mục, quy tắc client/server component, caching | Hoàn thiện |

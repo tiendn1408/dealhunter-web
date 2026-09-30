@@ -7,9 +7,9 @@
 >
 > **Phien ban**: 3.0
 > **Nguon goc**:
-> - Roadmap goc: `deal_hunter/docs/plans/phase-1-core-tracking.md` — phan Phase 3 (dong 1390-1400)
+> - Roadmap goc: `dealhunter/docs/plans/phase-1-core-tracking.md` — phan Phase 3 (dong 1390-1400)
 > - Master UI/UX spec: `docs/specs/master-ui-ux.md` — muc 35 va 36
-> - BE Phase 3 API: `deal_hunter/docs/plans/phase-3-cross-platform.md`
+> - BE Phase 3 API: `dealhunter/docs/plans/phase-3-cross-platform.md`
 
 ---
 
@@ -658,7 +658,7 @@ npm install @tanstack/react-query
 ## 10. Cau Truc Thu Muc Sau Phase 3
 
 ```text
-deal-hunter-web/
+dealhunter-web/
 ├── app/
 │   ├── layout.tsx                     -- Them QueryProvider boc ngoai
 │   ├── page.tsx                       -- Khong doi

@@ -20,7 +20,7 @@ Tai lieu nay dac ta kien truc tong the, mo hinh quan ly state, luong du lieu va 
 ## 2. Cau Truc Thu Muc (Directory Structure)
 
 ```text
-deal-hunter-web/
+dealhunter-web/
 ├── app/                        # Next.js App Router (Pages & Layouts)
 │   ├── layout.tsx              # Root Layout: QueryProvider, Navbar, Mobile Bottom Nav, SEO metadata
 │   ├── page.tsx                # Trang chu: Dan link, nhan dien san, khoi tao theo doi
@@ -114,7 +114,7 @@ flowchart TD
 ```
 
 ### Nguyen Tac Khoi Tao QueryClient (SSR Hydration Safety):
-- `QueryClient` duoc khoi tao ben trong `useState` tai Client Component [`components/QueryProvider.tsx`](file:///Users/tien.dang/Workplace/reference/deal-hunter-web/components/QueryProvider.tsx).
+- `QueryClient` duoc khoi tao ben trong `useState` tai Client Component [`components/QueryProvider.tsx`](file:///Users/tien.dang/Workplace/reference/dealhunter-web/components/QueryProvider.tsx).
 - Dieu nay ngan chan tinh trang ro ri cache (cache leaking) giua cac request nguoi dung khac nhau trong co che Server-Side Rendering cua Next.js App Router.
 
 ---

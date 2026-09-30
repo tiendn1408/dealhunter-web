@@ -76,7 +76,7 @@ npm run build
 ## Cau Truc Thu Muc
 
 ```
-deal-hunter-web/
+dealhunter-web/
 ├── app/                        # Next.js App Router (Pages)
 │   ├── layout.tsx              # Root Layout (Navbar & Mobile Bottom Nav)
 │   ├── page.tsx                # Trang chu: Dan link & Quet gia
@@ -121,7 +121,7 @@ deal-hunter-web/
 
 ## Lien Ket Backend
 
-Du an nay ket noi truc tiep voi he thong Go backend tai `deal_hunter`:
+Du an nay ket noi truc tiep voi he thong Go backend tai `dealhunter`:
 
 ### Phase 1: Core Price Tracking
 - `POST /api/v1/tracked-products`: Bat dau theo doi URL san pham

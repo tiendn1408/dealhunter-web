@@ -111,7 +111,7 @@ export interface ConnectZaloPayload {
 
 ### 2.3 Khớp Nối Hợp Đồng API Backend ↔ Frontend
 
-Toàn bộ 9 API endpoints phía Backend Go (`deal_hunter`) đã được tích hợp đầy đủ trong `lib/api.ts`:
+Toàn bộ 9 API endpoints phía Backend Go (`dealhunter`) đã được tích hợp đầy đủ trong `lib/api.ts`:
 
 | STT | Endpoint Backend | Phương thức | Hàm client trong `lib/api.ts` | Chức năng trên Frontend | Cơ chế xử lý |
 |:---:|-------------------|:-----------:|-------------------------------|-------------------------|--------------|
@@ -278,28 +278,28 @@ Route (app)                              Size     First Load JS
 
 #### Terminal 1: Backend API Server
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/api/main.go
 ```
 *API server khởi chạy tại cổng mặc định `8080`.*
 
 #### Terminal 2: Background Worker (Quét giá & Đánh giá Alert Rules)
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/worker/main.go
 ```
 *Worker tiêu thụ job từ Redis stream `dh:stream:price-fetch`, phát hiện thay đổi giá và đẩy payload thông báo vào `dh:stream:notifications`.*
 
 #### Terminal 3: Notifier Service (Gửi tin Zalo OA)
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/notifier/main.go
 ```
 *Notifier tiêu thụ stream thông báo, gửi tin qua Zalo Client (Mock hoặc HTTP) và cập nhật trạng thái `sent` vào Postgres.*
 
 #### Terminal 4: Frontend Web Next.js
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 npm run dev
 ```
 *Truy cập giao diện tại: `http://localhost:3000`.*
@@ -373,5 +373,5 @@ Kế hoạch cho **Phase 3: So Sánh Giá Đa Nền Tảng (Cross-platform Price
 
 ---
 
-*Tài liệu được biên soạn và lưu trữ tại:* `deal-hunter-web/docs/plans/phase-2/verification-report.md`  
+*Tài liệu được biên soạn và lưu trữ tại:* `dealhunter-web/docs/plans/phase-2/verification-report.md`  
 *Trạng thái hoàn thiện:* **100% HOAN THIEN VA SAN SANG PRODUCTION (PRODUCTION READY)**

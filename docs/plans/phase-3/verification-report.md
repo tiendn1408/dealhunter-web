@@ -67,7 +67,7 @@ Nang cap he thong theo doi gia tu don le tung san sang **he sinh thai so sanh gi
 - Command: Python recursive char scan tren toan bo file ma nguon va tai lieu
 - Ket qua: **AUDIT PASSED: ZERO EMOJI IN ENTIRE FRONTEND REPO!**
 
-### 4.3 Kiem Dinh Backend Go (`deal_hunter`)
+### 4.3 Kiem Dinh Backend Go (`dealhunter`)
 - Command: `go build ./cmd/...` va `go test -race ./...`
 - Ket qua: **PASS 100% (27/27 test suites)**
 

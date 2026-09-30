@@ -12,7 +12,7 @@ Hoàn thiện trọn vẹn lớp giao diện người dùng (Frontend) cho tính
 - Tự động nhận diện sàn, đọc thông tin sản phẩm và lập lịch theo dõi giá tự động.
 - Trực quan hóa biến động giá thực tế (bao gồm tiền hàng và phí vận chuyển) bằng biểu đồ diện tích (AreaChart).
 - Thiết lập giá mục tiêu và quản lý danh sách sản phẩm theo dõi thời gian thực.
-- Khớp nối 100% với hợp đồng API của Backend Go (`deal_hunter`).
+- Khớp nối 100% với hợp đồng API của Backend Go (`dealhunter`).
 
 ### 1.2 Ràng Buộc & Tiêu Chuẩn Kỹ Thuật (Non-negotiable Rules)
 1. **Tiêu chuẩn "No Emoji"**: Tuyệt đối không sử dụng ký tự emoji trong toàn bộ mã nguồn, giao diện, thẻ thông báo, biểu tượng và tài liệu kỹ thuật. Toàn bộ hình ảnh biểu đạt sử dụng SVG vector thuần túy hoặc ký tự đồ họa tiêu chuẩn.
@@ -66,7 +66,7 @@ Hoàn thiện trọn vẹn lớp giao diện người dùng (Frontend) cho tính
 
 ### 2.3 Khớp Nối Hợp Đồng API Backend (API Integration Matrix)
 
-| Endpoint Backend (`deal_hunter`) | Phương thức | Chức năng trên Frontend | Cơ chế xử lý |
+| Endpoint Backend (`dealhunter`) | Phương thức | Chức năng trên Frontend | Cơ chế xử lý |
 |-----------------------------------|-------------|-------------------------|--------------|
 | `/api/v1/tracked-products` | `POST` | Thêm sản phẩm cần theo dõi | Tự động sinh `UserID` duy nhất, bắt lỗi trùng lặp |
 | `/api/v1/tracked-products` | `GET` | Tải danh sách theo dõi | Tự động làm giàu metadata (Tên, Ảnh, Sàn, Giá mới nhất) |
@@ -193,7 +193,7 @@ Quy trình triển khai Phase 1 đã tuân thủ nghiêm ngặt 6 bước kỹ t
 #### Bước 1: Khởi chạy Backend Go
 ```bash
 # Di chuyển vào thư mục backend
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 
 # Chạy server API (cổng mặc định 8080)
 go run cmd/api/main.go
@@ -203,7 +203,7 @@ go run cmd/api/main.go
 #### Bước 2: Khởi chạy Frontend Next.js
 ```bash
 # Di chuyển vào thư mục frontend
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 
 # Khởi chạy máy chủ phát triển
 npm run dev
@@ -281,5 +281,5 @@ npm run dev
 
 ---
 
-*Tài liệu được biên soạn và lưu trữ tại:* `deal-hunter-web/docs/plans/phase-1/verification-report.md`  
+*Tài liệu được biên soạn và lưu trữ tại:* `dealhunter-web/docs/plans/phase-1/verification-report.md`  
 *Trạng thái Phase 1:* **HOÀN THÀNH 100% (READY FOR PHASE 2)**

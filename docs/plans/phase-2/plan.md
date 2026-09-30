@@ -86,7 +86,7 @@ export interface ZaloAccountConnection {
 
 ## 3. Khớp Nối Hợp Đồng API Frontend ↔ Backend (API Matrix)
 
-| Endpoint Backend (`deal_hunter`) | Phương thức | Chức năng phía Frontend |
+| Endpoint Backend (`dealhunter`) | Phương thức | Chức năng phía Frontend |
 |-----------------------------------|-------------|-------------------------|
 | `/api/v1/tracked-products/{id}/alerts` | `POST` | Tạo mới quy tắc cảnh báo giá cho một sản phẩm |
 | `/api/v1/tracked-products/{id}/alerts` | `GET` | Tải danh sách cảnh báo của một sản phẩm |
@@ -171,15 +171,15 @@ export interface ZaloAccountConnection {
 ### 6.1 Khởi Động Đồng Thời Backend (với Notifier Worker) & Frontend
 ```bash
 # 1. Chạy Backend API & Worker
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/api/main.go
 
 # 2. Chạy Notifier Worker trong terminal riêng (Phase 2)
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/notifier/main.go
 
 # 3. Chạy Frontend
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 npm run dev
 ```
 
@@ -191,5 +191,5 @@ npm run dev
 
 ---
 
-*Tài liệu được biên soạn và lưu trữ tại:* `deal-hunter-web/docs/plans/phase-2/plan.md`  
+*Tài liệu được biên soạn và lưu trữ tại:* `dealhunter-web/docs/plans/phase-2/plan.md`  
 *Trạng thái kế hoạch:* **100% HOAN THIEN (COMPLETED & VERIFIED)**

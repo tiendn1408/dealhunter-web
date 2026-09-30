@@ -1,6 +1,6 @@
 # Deal Hunter — Hướng Dẫn Cài Đặt & Vận Hành Toàn Diện (Fullstack Runbook)
 
-> **Mục tiêu tài liệu**: Cung cấp hướng dẫn từng bước chuẩn xác, chi tiết từ khâu chuẩn bị môi trường, khởi động cơ sở dữ liệu, chạy migration, khởi chạy các dịch vụ Backend Go (`deal_hunter`) và giao diện Frontend Next.js (`deal-hunter-web`), cùng kịch bản kiểm thử tích hợp (End-to-End).
+> **Mục tiêu tài liệu**: Cung cấp hướng dẫn từng bước chuẩn xác, chi tiết từ khâu chuẩn bị môi trường, khởi động cơ sở dữ liệu, chạy migration, khởi chạy các dịch vụ Backend Go (`dealhunter`) và giao diện Frontend Next.js (`deal-hunter-web`), cùng kịch bản kiểm thử tích hợp (End-to-End).
 
 ---
 
@@ -18,8 +18,8 @@ Trước khi bắt đầu, hãy đảm bảo máy tính của bạn đã cài đ
 
 > [!NOTE]
 > Đường dẫn mặc định của hai kho lưu trữ:
-> - Backend: `/Users/tien.dang/Workplace/reference/deal_hunter`
-> - Frontend: `/Users/tien.dang/Workplace/reference/deal-hunter-web`
+> - Backend: `/Users/tien.dang/Workplace/reference/dealhunter`
+> - Frontend: `/Users/tien.dang/Workplace/reference/dealhunter-web`
 
 ---
 
@@ -31,7 +31,7 @@ Backend sử dụng **PostgreSQL** để lưu trữ dữ liệu bền vững (s�
 Mở một cửa sổ Terminal và thực hiện:
 
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 docker compose up -d postgres redis
 ```
 
@@ -53,10 +53,10 @@ Nếu bạn đã có sẵn PostgreSQL và Redis chạy trên máy:
 ## 3. Cấu Hình Môi Trường & Chạy Migration Backend (Bước 2)
 
 ### 3.1 Thiết lập tệp `.env` cho Backend
-Tại thư mục `deal_hunter`:
+Tại thư mục `dealhunter`:
 
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 cp .env.example .env
 ```
 
@@ -87,7 +87,7 @@ Hệ thống cung cấp sẵn công cụ migration tự động để tạo các
 
 Thực hiện lệnh:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/migrate/main.go up
 ```
 Kỳ vọng: Lệnh thông báo migration thành công lên phiên bản `000003`.
@@ -100,7 +100,7 @@ Hệ thống Backend được thiết kế theo kiến trúc Modular Monolith g�
 
 ### Tab 1: Khởi chạy API Server
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/api/main.go
 ```
 - Server lắng nghe tại: `http://localhost:8080`
@@ -113,7 +113,7 @@ go run cmd/api/main.go
 ### Tab 2: Khởi chạy Worker quét giá & Đánh giá Alert Rules (Worker Service)
 Worker chịu trách nhiệm đọc nhiệm vụ cào giá, phát hiện biến động và đánh giá các luật cảnh báo:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/worker/main.go
 ```
 - Tự động kết nối Redis stream `dh:stream:price-fetch`.
@@ -122,7 +122,7 @@ go run cmd/worker/main.go
 ### Tab 3: Khởi chạy Notifier Service (Gửi tin Zalo OA)
 Notifier chịu trách nhiệm tiêu thụ stream thông báo và bắn tin nhắn ZNS tới người dùng:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/notifier/main.go
 ```
 - Khi `ZALO_ENABLED=false` (mặc định), Notifier sử dụng `MockZaloClient` an toàn, ghi nhận tin gửi thành công vào Database mà không tốn phí ZNS.
@@ -130,7 +130,7 @@ go run cmd/notifier/main.go
 ### Tab 4: Khởi chạy Scheduler định kỳ (Tùy chọn)
 Nếu bạn muốn hệ thống tự động lập lịch quét định kỳ mỗi 30 phút:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal_hunter
+cd /Users/tien.dang/Workplace/reference/dealhunter
 go run cmd/scheduler/main.go
 ```
 
@@ -142,14 +142,14 @@ go run cmd/scheduler/main.go
 Mở một cửa sổ Terminal mới:
 
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 npm install
 ```
 
 ### 5.2 Thiết lập tệp môi trường `.env.local`
 Tạo file `.env.local` nếu cần tùy chỉnh cổng backend:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 cp .env.example .env.local
 ```
 Nội dung tệp:
@@ -159,7 +159,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 
 ### 5.3 Khởi chạy máy chủ phát triển (Development Server)
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 npm run dev
 ```
 - Ứng dụng web hoạt động tại: **`http://localhost:3000`**
@@ -167,7 +167,7 @@ npm run dev
 ### 5.4 Kiểm tra biên dịch Production (Production Build)
 Để đảm bảo toàn bộ mã nguồn không phát sinh lỗi kiểu hoặc cảnh báo:
 ```bash
-cd /Users/tien.dang/Workplace/reference/deal-hunter-web
+cd /Users/tien.dang/Workplace/reference/dealhunter-web
 npm run build
 ```
 Kỳ vọng kết quả:
@@ -273,5 +273,5 @@ Sau khi cả 4 tab Terminal đã hoạt động, thực hiện kịch bản 5 b�
 
 ---
 
-*Tài liệu được lưu trữ tại:* `deal-hunter-web/docs/guides/installation-and-runbook.md`  
+*Tài liệu được lưu trữ tại:* `dealhunter-web/docs/guides/installation-and-runbook.md`  
 *Trạng thái:* **HOÀN THIỆN & SẴN SÀNG SỬ DỤNG**

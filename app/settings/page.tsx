@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUserId, getZaloStatus, disconnectZalo, UserProfile } from "@/lib/api";
+import { getUserId } from "@/lib/api";
+import { useZaloProfile, useDisconnectZalo } from "@/lib/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
 import {
   Settings,
@@ -26,23 +28,22 @@ export default function SettingsPage() {
   const [interval, setInterval] = useState("1800");
   const [showIntervalModal, setShowIntervalModal] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
-  const [zaloProfile, setZaloProfile] = useState<UserProfile | null>(null);
   const [showZaloModal, setShowZaloModal] = useState(false);
-  const [zaloDisconnecting, setZaloDisconnecting] = useState(false);
+
+  const qc = useQueryClient();
+  const { data: zaloProfile = null } = useZaloProfile();
+  const disconnectMutation = useDisconnectZalo();
+  const zaloDisconnecting = disconnectMutation.isPending;
 
   useEffect(() => {
     setUserId(getUserId());
-    const saved = localStorage.getItem("dealhunter_poll_interval");
+    const saved = localStorage.getItem("deal-hunter-poll-interval") || localStorage.getItem("dealhunter_poll_interval");
     if (saved) setInterval(saved);
-
-    getZaloStatus()
-      .then((profile) => setZaloProfile(profile))
-      .catch(() => {});
   }, []);
 
   const handleSaveInterval = (val: string) => {
     setInterval(val);
-    localStorage.setItem("dealhunter_poll_interval", val);
+    localStorage.setItem("deal-hunter-poll-interval", val);
     setShowIntervalModal(false);
     setSavedNotice(true);
     setTimeout(() => setSavedNotice(false), 2500);
@@ -50,7 +51,9 @@ export default function SettingsPage() {
 
   const handleResetUser = () => {
     if (confirm("Bạn có muốn đặt lại mã định danh người dùng trên thiết bị này?")) {
+      localStorage.removeItem("deal-hunter-user-id");
       localStorage.removeItem("dealhunter_user_id");
+      localStorage.removeItem("deal-hunter-products-meta");
       localStorage.removeItem("dealhunter_products_meta");
       window.location.reload();
     }
@@ -59,23 +62,10 @@ export default function SettingsPage() {
   const handleDisconnectZalo = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Bạn có chắc muốn ngắt kết nối nhận tin nhắn Zalo?")) return;
-    setZaloDisconnecting(true);
     try {
-      await disconnectZalo();
-      setZaloProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              zalo_connected: false,
-              phone: undefined,
-              zalo_id: undefined,
-            }
-          : null
-      );
+      await disconnectMutation.mutateAsync();
     } catch (err) {
       alert("Không thể ngắt kết nối Zalo. Vui lòng thử lại.");
-    } finally {
-      setZaloDisconnecting(false);
     }
   };
 
@@ -330,14 +320,8 @@ export default function SettingsPage() {
       <ZaloConnectModal
         isOpen={showZaloModal}
         onClose={() => setShowZaloModal(false)}
-        onConnected={(profile) => {
-          setZaloProfile((prev) => ({
-            user_id: prev?.user_id || userId,
-            created_at: prev?.created_at || new Date().toISOString(),
-            zalo_connected: true,
-            phone: profile.phone,
-            zalo_id: profile.zalo_id,
-          }));
+        onConnected={() => {
+          qc.invalidateQueries({ queryKey: ["zalo", "profile"] });
         }}
       />
     </div>

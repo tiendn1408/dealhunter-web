@@ -244,12 +244,12 @@ Quy trình triển khai Frontend Phase 2 tuân thủ nghiêm ngặt 6 bước k�
   ▲ Next.js 14.2.24
 
    Creating an optimized production build ...
- ✓ Compiled successfully
-   Linting and checking validity of types     ✓ Linting and checking validity of types 
-   Collecting page data     ✓ Collecting page data 
- ✓ Generating static pages (8/8)
-   Collecting build traces     ✓ Collecting build traces 
-   Finalizing page optimization     ✓ Finalizing page optimization 
+ [OK] Compiled successfully
+   Linting and checking validity of types     [OK] Linting and checking validity of types 
+   Collecting page data     [OK] Collecting page data 
+ [OK] Generating static pages (8/8)
+   Collecting build traces     [OK] Collecting build traces 
+   Finalizing page optimization     [OK] Finalizing page optimization 
 
 Route (app)                              Size     First Load JS
 ┌ ○ /                                    8.29 kB         104 kB

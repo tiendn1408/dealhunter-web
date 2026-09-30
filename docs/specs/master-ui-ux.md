@@ -330,8 +330,8 @@ Loading state:
 ```text
 Đang kiểm tra sản phẩm...
 
-✓ Nhận diện nền tảng
-✓ Đọc thông tin sản phẩm
+[OK] Nhận diện nền tảng
+[OK] Đọc thông tin sản phẩm
 ● Lấy giá hiện tại
 ```
 
@@ -380,7 +380,7 @@ Sau khi tracking:
 
 ```text
 ┌─────────────────────────────────────────────┐
-│ ✓ Đang theo dõi                             │
+│ [OK] Đang theo dõi                             │
 │                                             │
 │ Sony WH-1000XM6                             │
 │                                             │
@@ -841,7 +841,7 @@ Button:
 ```text
 Theo dõi
    ↓
-Đang theo dõi ✓
+Đang theo dõi [OK]
 ```
 
 ### Chart
@@ -1190,7 +1190,7 @@ Thời hạn
 [ 30 ngày ]
 
 Kênh
-☑ Zalo
+[x] Zalo
 
 [ Tạo cảnh báo ]
 ```
@@ -1205,7 +1205,7 @@ Báo khi giá ≤ 6.000.000đ
 Hết hạn:
 23/10/2026
 
-Zalo connected ✓
+Zalo connected [OK]
 ```
 
 ---
@@ -1422,9 +1422,9 @@ Budget
 [ 45.000.000đ ]
 
 Platform
-☑ Shopee
-☑ Lazada
-☑ TikTok
+[x] Shopee
+[x] Lazada
+[x] TikTok
 
 Notify me when
 ○ Below budget

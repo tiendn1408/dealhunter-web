@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  listTrackings,
-  listNotifications,
-  pauseTracking,
-  resumeTracking,
-  getPriceHistory,
-  TrackedProduct,
-  PriceSnapshot,
-} from "@/lib/api";
-import { formatVND, formatRelativeTime, calculatePriceStats } from "@/lib/formatting";
+  useEnrichedTrackings,
+  useToggleTracking,
+  useHasUnreadNotifications,
+  EnrichedTrackingCard,
+} from "@/lib/hooks";
+import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { TrackingListSkeleton } from "@/components/ui/LoadingSkeleton";
 import {
@@ -29,120 +26,26 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-interface EnrichedTrackingCard extends TrackedProduct {
-  snapshots?: PriceSnapshot[];
-  currentPrice?: number;
-  oldPrice?: number;
-  changePercent?: number;
-  targetPrice?: number;
-  diffFromTarget?: number;
-  targetProgress?: number; // 0 to 100%
-}
-
 export default function MyTrackingPage() {
-  const [trackings, setTrackings] = useState<EnrichedTrackingCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: trackings = [], isLoading: loading, error: queryError, refetch } = useEnrichedTrackings();
+  const toggleMutation = useToggleTracking();
+  const { data: hasUnread = false } = useHasUnreadNotifications();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "dropped" | "target">("all");
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const [hasUnread, setHasUnread] = useState(false);
 
-  const fetchTrackings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Check unread notifications in background
-      listNotifications(1)
-        .then((notifs) => {
-          setHasUnread(notifs.some((n) => !n.read_at));
-        })
-        .catch(() => {});
-
-      const data = await listTrackings();
-
-      // Read locally saved target prices
-      let localTargets: Record<string, number> = {};
-      try {
-        const raw = localStorage.getItem("dealhunter_targets");
-        if (raw) localTargets = JSON.parse(raw);
-      } catch {}
-
-      const enriched: EnrichedTrackingCard[] = await Promise.all(
-        data.map(async (item) => {
-          let snapshots: PriceSnapshot[] = [];
-          try {
-            snapshots = await getPriceHistory(item.ProductSourceID || item.ID);
-          } catch {}
-
-          const stats = calculatePriceStats(snapshots);
-          const currentPrice =
-            item.LastEffectivePrice ||
-            item.LastPrice ||
-            (stats ? stats.current : 6190000); // default baseline
-
-          const oldPrice = stats && stats.highest > currentPrice ? stats.highest : (currentPrice ? Math.round(currentPrice * 1.14) : undefined);
-          const changePercent = stats ? stats.changePercent : -12.7;
-
-          // Target price: check saved target or compute sensible default
-          const key = item.ProductSourceID || item.ID;
-          const targetPrice = localTargets[key] || (currentPrice ? Math.round(currentPrice * 0.96) : 6000000);
-          const diffFromTarget = currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : 0;
-
-          // Calculate progress towards target
-          let targetProgress = 65;
-          if (oldPrice && currentPrice && targetPrice && oldPrice > targetPrice) {
-            const totalDropNeeded = oldPrice - targetPrice;
-            const currentDrop = oldPrice - currentPrice;
-            targetProgress = Math.min(100, Math.max(10, Math.round((currentDrop / totalDropNeeded) * 100)));
-          }
-
-          return {
-            ...item,
-            snapshots,
-            currentPrice,
-            oldPrice,
-            changePercent,
-            targetPrice,
-            diffFromTarget,
-            targetProgress,
-          };
-        })
-      );
-
-      setTrackings(enriched);
-    } catch (err: any) {
-      setError(err.message || "Không thể tải danh sách theo dõi");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTrackings();
-  }, []);
+  const error = queryError ? (queryError as Error).message : null;
 
   const handleToggle = async (e: React.MouseEvent, id: string, currentlyActive: boolean) => {
     e.preventDefault();
     e.stopPropagation();
     setTogglingId(id);
 
-    setTrackings((prev) =>
-      prev.map((item) => (item.ID === id ? { ...item, Active: !currentlyActive } : item))
-    );
-
     try {
-      if (currentlyActive) {
-        await pauseTracking(id);
-      } else {
-        await resumeTracking(id);
-      }
+      await toggleMutation.mutateAsync({ id, currentlyActive });
     } catch (err: any) {
       alert("Thao tác thất bại: " + err.message);
-      setTrackings((prev) =>
-        prev.map((item) => (item.ID === id ? { ...item, Active: currentlyActive } : item))
-      );
     } finally {
       setTogglingId(null);
     }
@@ -265,7 +168,7 @@ export default function MyTrackingPage() {
           <p className="text-xs sm:text-sm font-semibold">{error}</p>
           <button
             type="button"
-            onClick={fetchTrackings}
+            onClick={() => refetch()}
             className="px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-semibold hover:bg-rose-700"
           >
             Thử lại
@@ -324,7 +227,17 @@ export default function MyTrackingPage() {
                   {/* Title & Platform */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <PlatformBadge platformOrUrl={t.Platform || t.CanonicalURL} />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <PlatformBadge platformOrUrl={t.Platform || t.CanonicalURL} />
+                        {Boolean(
+                          (t.ProductID && trackings.filter((item) => item.ProductID === t.ProductID).length > 1) ||
+                          !t.IsPrimary
+                        ) && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                            Đa sàn
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-pine-50 text-pine-900 border border-pine-100">
                         {t.Active ? "Đang theo dõi" : "Tạm dừng"}
                       </span>

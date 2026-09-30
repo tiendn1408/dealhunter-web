@@ -4,18 +4,16 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  getPriceHistory,
-  getTracking,
-  pauseTracking,
-  resumeTracking,
-  listAlerts,
   createAlert,
   AlertRule,
   PriceSnapshot,
   TrackedProduct,
 } from "@/lib/api";
+import { useTracking, usePriceHistory, useAlerts } from "@/lib/hooks";
 import { CreateAlertModal } from "@/components/alerts/CreateAlertModal";
 import { ActiveAlertCard } from "@/components/alerts/ActiveAlertCard";
+import { SourceComparisonSection } from "@/components/comparison/SourceComparisonSection";
+import { LinkSourceModal } from "@/components/comparison/LinkSourceModal";
 import {
   formatVND,
   formatCompactVND,
@@ -56,70 +54,50 @@ export default function ProductDetailPage() {
   const params = useParams();
   const idOrSourceId = params.id as string;
 
-  const [tracking, setTracking] = useState<TrackedProduct | null>(null);
-  const [snapshots, setSnapshots] = useState<PriceSnapshot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: tracking, isLoading: trackingLoading, error: trackingError } = useTracking(idOrSourceId);
+  const { data: snapshots = [], isLoading: priceLoading, error: priceError } = usePriceHistory(idOrSourceId);
+  const { data: alertsData = [], refetch: refetchAlerts } = useAlerts(idOrSourceId);
+
+  const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("90d");
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [showCreateAlertModal, setShowCreateAlertModal] = useState(false);
-  const [alerts, setAlerts] = useState<AlertRule[]>([]);
+  const [showLinkModal, setShowLinkModal] = useState(false);
   const [targetInput, setTargetInput] = useState<number>(6000000);
   const [savedTarget, setSavedTarget] = useState<number | null>(null);
   const [copyNotice, setCopyNotice] = useState(false);
 
-  const fetchData = async () => {
-    if (!idOrSourceId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const [trackingRes, priceRes, alertsRes] = await Promise.allSettled([
-        getTracking(idOrSourceId),
-        getPriceHistory(idOrSourceId),
-        listAlerts(idOrSourceId),
-      ]);
-
-      if (trackingRes.status === "fulfilled") {
-        setTracking(trackingRes.value);
-      }
-      if (priceRes.status === "fulfilled") {
-        setSnapshots(priceRes.value);
-      }
-      if (alertsRes.status === "fulfilled") {
-        setAlerts(alertsRes.value);
-        // Find if there is a target_price alert rule to sync with target
-        const targetRule = alertsRes.value.find(
-          (r) => r.rule_type === "target_price" && r.active
-        );
-        if (targetRule) {
-          setSavedTarget(targetRule.threshold_value);
-          setTargetInput(targetRule.threshold_value);
-        }
-      }
-
-      // Read saved target price for this product as fallback
-      try {
-        const raw = localStorage.getItem("dealhunter_targets");
-        if (raw) {
-          const store = JSON.parse(raw);
-          if (store[idOrSourceId] && !savedTarget) {
-            setSavedTarget(store[idOrSourceId]);
-            setTargetInput(store[idOrSourceId]);
-          }
-        }
-      } catch {}
-    } catch (err: any) {
-      setError(err.message || "Không thể tải thông tin sản phẩm");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = trackingLoading || priceLoading;
+  const error = trackingError
+    ? (trackingError as Error).message
+    : priceError
+    ? (priceError as Error).message
+    : null;
 
   useEffect(() => {
-    fetchData();
-  }, [idOrSourceId]);
+    if (alertsData.length > 0) {
+      setAlerts(alertsData);
+      const targetRule = alertsData.find(
+        (r) => r.rule_type === "target_price" && r.active
+      );
+      if (targetRule) {
+        setSavedTarget(targetRule.threshold_value);
+        setTargetInput(targetRule.threshold_value);
+        return;
+      }
+    }
+
+    try {
+      const raw = localStorage.getItem("deal-hunter-targets") || localStorage.getItem("dealhunter_targets");
+      if (raw) {
+        const store = JSON.parse(raw);
+        if (store[idOrSourceId] && !savedTarget) {
+          setSavedTarget(store[idOrSourceId]);
+          setTargetInput(store[idOrSourceId]);
+        }
+      }
+    } catch {}
+  }, [alertsData, idOrSourceId, savedTarget]);
 
   const stats = useMemo(() => {
     return calculatePriceStats(snapshots);
@@ -153,12 +131,12 @@ export default function ProductDetailPage() {
 
     setSavedTarget(targetInput);
     try {
-      const raw = localStorage.getItem("dealhunter_targets");
+      const raw = localStorage.getItem("deal-hunter-targets") || localStorage.getItem("dealhunter_targets");
       const store = raw ? JSON.parse(raw) : {};
       store[idOrSourceId] = targetInput;
       if (tracking?.ProductSourceID) store[tracking.ProductSourceID] = targetInput;
       if (tracking?.ID) store[tracking.ID] = targetInput;
-      localStorage.setItem("dealhunter_targets", JSON.stringify(store));
+      localStorage.setItem("deal-hunter-targets", JSON.stringify(store));
 
       // Persist to backend alert rules as target_price rule
       createAlert(idOrSourceId, {
@@ -171,6 +149,7 @@ export default function ProductDetailPage() {
             newRule,
             ...prev.filter((r) => r.rule_type !== "target_price"),
           ]);
+          refetchAlerts();
         })
         .catch(() => {});
     } catch {}
@@ -457,6 +436,13 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 2.6 SECTION SO SANH GIA DA SAN (Phase 3) */}
+      <SourceComparisonSection
+        trackingId={idOrSourceId}
+        productId={tracking?.ProductID || idOrSourceId}
+        onLinkSource={() => setShowLinkModal(true)}
+      />
 
       {/* 3. SECTION LỊCH SỬ GIÁ & BIỂU ĐỒ matching Screen 7 in mobile.png */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-6">
@@ -748,6 +734,14 @@ export default function ProductDetailPage() {
             setTargetInput(newRule.threshold_value);
           }
         }}
+      />
+
+      {/* LINK SOURCE MODAL (Phase 3) */}
+      <LinkSourceModal
+        isOpen={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+        productId={tracking?.ProductID || idOrSourceId}
+        trackingId={idOrSourceId}
       />
     </div>
   );

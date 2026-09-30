@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DealHunterLogo } from "./ui/DealHunterLogo";
-import { listNotifications } from "@/lib/api";
+import { useUnreadNotificationsCount } from "@/lib/hooks";
 import {
   Compass,
   Bookmark,
@@ -18,25 +18,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [topSearch, setTopSearch] = useState("");
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    // Check unread notifications count
-    const checkUnread = async () => {
-      try {
-        const notifs = await listNotifications(20);
-        const unread = notifs.filter((n) => !n.read_at).length;
-        setUnreadCount(unread);
-      } catch {
-        // quiet fallback
-      }
-    };
-
-    checkUnread();
-    // Poll every 30s for updates
-    const timer = setInterval(checkUnread, 30000);
-    return () => clearInterval(timer);
-  }, [pathname]);
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   const handleTopSearch = (e: React.FormEvent) => {
     e.preventDefault();

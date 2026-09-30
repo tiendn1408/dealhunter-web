@@ -3,7 +3,9 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { trackProduct, listTrackings, TrackedProduct } from "@/lib/api";
+import { trackProduct } from "@/lib/api";
+import { useTrackings } from "@/lib/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import { detectPlatform, formatVND } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import {
@@ -25,12 +27,13 @@ import {
 function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const qc = useQueryClient();
 
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [userTrackings, setUserTrackings] = useState<TrackedProduct[]>([]);
+  const { data: userTrackings = [] } = useTrackings();
   const [showInputModal, setShowInputModal] = useState(false);
 
   // Success state matching Screen 4
@@ -47,11 +50,6 @@ function HomeContent() {
       setUrl(urlParam);
       setShowInputModal(true);
     }
-
-    // Check if user already has tracked products (for Zero-state vs Existing user state)
-    listTrackings()
-      .then((data) => setUserTrackings(data))
-      .catch(() => {});
   }, [searchParams]);
 
   const detected = url.trim() ? detectPlatform(url) : null;
@@ -70,6 +68,7 @@ function HomeContent() {
 
     try {
       const res = await trackProduct(cleanUrl);
+      qc.invalidateQueries({ queryKey: ["trackings"] });
       setSuccessData({
         id: res.id,
         productSourceId: res.product_source_id,

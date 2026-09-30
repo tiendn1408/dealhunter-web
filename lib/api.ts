@@ -4,11 +4,11 @@ export function getUserId(): string {
   if (typeof window === "undefined") {
     return "00000000-0000-0000-0000-000000000001";
   }
-  let uid = localStorage.getItem("dealhunter_user_id");
+  let uid = localStorage.getItem("deal-hunter-user-id") || localStorage.getItem("dealhunter_user_id");
   if (!uid) {
     // Default to the deterministic seed user UUID for demo
     uid = "00000000-0000-0000-0000-000000000001";
-    localStorage.setItem("dealhunter_user_id", uid);
+    localStorage.setItem("deal-hunter-user-id", uid);
   }
   return uid;
 }
@@ -30,6 +30,8 @@ export interface TrackedProduct {
   LastPrice?: number;
   LastEffectivePrice?: number;
   LastInStock?: boolean;
+  ProductID?: string;
+  IsPrimary?: boolean;
 }
 
 export interface PriceSnapshot {
@@ -61,7 +63,7 @@ interface LocalProductMeta {
 function getLocalMetaStore(): Record<string, LocalProductMeta> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem("dealhunter_products_meta");
+    const raw = localStorage.getItem("deal-hunter-products-meta") || localStorage.getItem("dealhunter_products_meta");
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -77,7 +79,7 @@ export function saveLocalProductMeta(sourceOrTrackingId: string, meta: LocalProd
       ...meta,
       savedAt: Date.now(),
     };
-    localStorage.setItem("dealhunter_products_meta", JSON.stringify(store));
+    localStorage.setItem("deal-hunter-products-meta", JSON.stringify(store));
   } catch (err) {
     console.warn("Failed to save local product meta:", err);
   }
@@ -270,6 +272,9 @@ import {
   PriceNotification,
   UserProfile,
   ConnectZaloPayload,
+  ComparisonResult,
+  LinkSourceResponse,
+  ProductGroupSummary,
 } from "./types";
 
 /**
@@ -470,5 +475,47 @@ export async function disconnectZalo(): Promise<{ status: string }> {
   }
 
   return res.json();
+}
+
+/**
+ * Phase 3: Cross-platform Price Comparison API functions
+ */
+
+export async function getProductComparison(id: string): Promise<ComparisonResult> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/tracked-products/${id}/comparison`,
+    { headers: { "X-User-ID": getUserId() } }
+  );
+  if (!res.ok) throw new Error("Khong the tai du lieu so sanh gia");
+  return res.json();
+}
+
+export async function linkProductSource(
+  productId: string,
+  url: string
+): Promise<LinkSourceResponse> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/products/${productId}/link-source`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-User-ID": getUserId() },
+      body: JSON.stringify({ url }),
+    }
+  );
+  if (res.status === 409) throw new Error("URL nay da duoc lien ket voi san pham roi");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Khong the lien ket san");
+  }
+  return res.json();
+}
+
+export async function listProductGroups(): Promise<ProductGroupSummary[]> {
+  const res = await safeFetch(`${API_BASE_URL}/product-groups`, {
+    headers: { "X-User-ID": getUserId() },
+  });
+  if (!res.ok) throw new Error("Khong the tai danh sach nhom san pham");
+  const data = await res.json();
+  return data.groups || [];
 }
 

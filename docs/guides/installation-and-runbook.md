@@ -40,12 +40,12 @@ Kiểm tra trạng thái các container đang chạy:
 docker compose ps
 ```
 Kỳ vọng kết quả:
-- `deal_hunter-postgres-1`: Cổng `5432:5432` (healthy / running)
-- `deal_hunter-redis-1`: Cổng `6379:6379` (healthy / running)
+- `dealhunter-postgres`: Cổng `5433:5432` (healthy / running)
+- `dealhunter-redis`: Cổng `6379:6379` (healthy / running)
 
 ### Cách 2: Sử dụng PostgreSQL và Redis cài trực tiếp (Native)
 Nếu bạn đã có sẵn PostgreSQL và Redis chạy trên máy:
-- PostgreSQL URL: `postgres://dealuser:dealpass@localhost:5432/dealdb?sslmode=disable`
+- PostgreSQL URL: `postgres://dealuser:dealpass@localhost:5433/dealdb?sslmode=disable`
 - Redis URL: `redis://localhost:6379`
 
 ---
@@ -64,7 +64,7 @@ Nội dung tệp `.env` tiêu chuẩn cho phát triển local:
 ```env
 APP_ENV=development
 HTTP_PORT=8080
-DATABASE_URL=postgres://dealuser:dealpass@localhost:5432/dealdb?sslmode=disable
+DATABASE_URL=postgres://dealuser:dealpass@localhost:5433/dealdb?sslmode=disable
 REDIS_URL=redis://localhost:6379
 WORKER_CONCURRENCY=10
 DEFAULT_POLL_INTERVAL=1800
@@ -80,16 +80,17 @@ ZALO_APP_ID=
 ```
 
 ### 3.2 Chạy Migration khởi tạo cấu trúc bảng Database
-Hệ thống cung cấp sẵn công cụ migration tự động để tạo các bảng cho cả Phase 1 và Phase 2:
+Hệ thống cung cấp sẵn công cụ migration tự động để tạo các bảng cho cả Phase 1, Phase 2 và Phase 3:
 - Migration `000001`: Khởi tạo bảng `users`, `tracked_products`, `product_sources`, `price_snapshots`.
 - Migration `000002`: Bổ sung cột cho `users`, tạo bảng `alert_rules` và `notification_logs`.
+- Migration `000003`: Bổ sung cột `is_primary` cho `tracked_products`, tạo bảng `comparison_snapshots`.
 
 Thực hiện lệnh:
 ```bash
 cd /Users/tien.dang/Workplace/reference/deal_hunter
 go run cmd/migrate/main.go up
 ```
-Kỳ vọng: Lệnh thông báo migration thành công lên phiên bản `000002`.
+Kỳ vọng: Lệnh thông báo migration thành công lên phiên bản `000003`.
 
 ---
 
@@ -171,10 +172,10 @@ npm run build
 ```
 Kỳ vọng kết quả:
 ```text
-✓ Compiled successfully
-✓ Linting and checking validity of types
-✓ Generating static pages (8/8)
-✓ Finalizing page optimization
+[OK] Compiled successfully
+[OK] Linting and checking validity of types
+[OK] Generating static pages (8/8)
+[OK] Finalizing page optimization
 ```
 
 ---
@@ -223,6 +224,20 @@ Sau khi cả 4 tab Terminal đã hoạt động, thực hiện kịch bản 5 b�
    - Thẻ chuyển sang trạng thái đã đọc (mờ đi).
    - Chấm đỏ trên biểu tượng Chuông tự động biến mất.
 
+### Bước 6: So sánh giá đa sàn & Xem Best Deal (Phase 3)
+1. Tại trang chi tiết sản phẩm `/tracking/[id]`, cuộn xuống Section 2.6: **"So sánh giá các sàn"**.
+2. Quan sát bảng so sánh liệt kê các sàn hiện có kèm giá niêm yết, phí vận chuyển và giá thực trả.
+3. Bấm nút **"Liên kết thêm sàn"** (hoặc nút dán link trong callout khi chỉ có 1 sàn):
+   - Modal liên kết sàn xuất hiện.
+   - Dán một đường link từ sàn khác (ví dụ: TikTok Shop hoặc Lazada).
+   - Logo sàn tự động nhận diện trực quan qua `PlatformBadge`.
+   - Bấm **"Xác nhận liên kết sàn"**.
+4. Modal đóng lại, hệ thống tự động refetch bảng so sánh qua TanStack Query:
+   - Banner **"Giá tốt nhất"** (Emerald) tự động làm nổi bật sàn có giá thực trả thấp nhất.
+   - Hiển thị số tiền và phần trăm tiết kiệm được so với sàn đắt nhất.
+5. Bấm vào tab **"Đang theo dõi"** (`/tracking`):
+   - Thẻ sản phẩm thuộc nhóm từ 2 nguồn trở lên tự động xuất hiện huy hiệu **"Đa sàn"**.
+
 ---
 
 ## 7. Xử Lý Sự Cố Thường Gặp (Troubleshooting)
@@ -233,14 +248,14 @@ Sau khi cả 4 tab Terminal đã hoạt động, thực hiện kịch bản 5 b�
   1. Kiểm tra xem Terminal chạy `cmd/api/main.go` có thông báo lỗi kết nối DB không.
   2. Thử truy cập `http://localhost:8080/health`. Nếu không phản hồi, khởi động lại lệnh `go run cmd/api/main.go`.
 
-### Vấn đề 2: Lỗi kết nối PostgreSQL (`connection refused` trên port 5432)
-- **Nguyên nhân**: Container Docker của PostgreSQL chưa khởi chạy hoặc đang bị chiếm dụng cổng bởi PostgreSQL cài ngoài máy.
+### Vấn đề 2: Lỗi kết nối PostgreSQL (`connection refused` trên port 5433)
+- **Nguyên nhân**: Container Docker của PostgreSQL chưa khởi chạy hoặc đang bị chiếm dụng cổng bởi tiến trình khác.
 - **Khắc phục**:
   ```bash
   docker compose down
   docker compose up -d postgres
   # Kiem tra cong
-  lsof -i :5432
+  lsof -i :5433
   ```
 
 ### Vấn đề 3: Lỗi Redis Stream consumer group (`NOGROUP`)

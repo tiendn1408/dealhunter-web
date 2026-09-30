@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import { PriceNotification } from "@/lib/api";
 import {
-  listNotifications,
-  markNotificationAsRead,
-  PriceNotification,
-} from "@/lib/api";
+  useNotifications,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+} from "@/lib/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import {
@@ -23,38 +25,16 @@ import {
 } from "lucide-react";
 
 export default function NotificationsPage() {
+  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "drop" | "zalo">("all");
-  const [notifications, setNotifications] = useState<PriceNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [markingAll, setMarkingAll] = useState(false);
-
-  const fetchNotifs = async () => {
-    try {
-      setLoading(true);
-      const data = await listNotifications(50);
-      setNotifications(data);
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifs();
-  }, []);
+  const { data: notifications = [], isLoading: loading } = useNotifications(50);
+  const markReadMutation = useMarkNotificationAsRead();
+  const markAllMutation = useMarkAllNotificationsAsRead();
 
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    // Optimistic update
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, read_at: new Date().toISOString() } : n
-      )
-    );
-
     try {
-      await markNotificationAsRead(id);
+      await markReadMutation.mutateAsync(id);
     } catch (err) {
       console.error("Failed to mark as read:", err);
     }
@@ -64,19 +44,14 @@ export default function NotificationsPage() {
     const unread = notifications.filter((n) => !n.read_at);
     if (unread.length === 0) return;
 
-    setMarkingAll(true);
-    // Optimistic update
-    const now = new Date().toISOString();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read_at: n.read_at || now })));
-
     try {
-      await Promise.allSettled(unread.map((n) => markNotificationAsRead(n.id)));
+      await markAllMutation.mutateAsync(unread.map((n) => n.id));
     } catch (err) {
       console.error("Failed to mark all as read:", err);
-    } finally {
-      setMarkingAll(false);
     }
   };
+
+  const markingAll = markAllMutation.isPending;
 
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.read_at).length;
@@ -221,7 +196,7 @@ export default function NotificationsPage() {
                   platform: "shopee",
                   product_url: "/tracking",
                 };
-                setNotifications((prev) => [sampleNotif, ...prev]);
+                qc.setQueryData<PriceNotification[]>(["notifications", 50], (prev = []) => [sampleNotif, ...prev]);
               }}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-semibold transition-all border border-slate-200"
             >

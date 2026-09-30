@@ -36,6 +36,7 @@ export const en: Dictionary = {
     settings: "Settings",
     searchPlaceholder: "Search products, paste link or keywords...",
     notificationsTitle: "Price Alert Notifications",
+    languageToggle: "Switch language",
   },
   home: {
     taglinePill: "Track right. Buy smart.",
@@ -282,6 +283,11 @@ export const en: Dictionary = {
     simulateBtn: "Simulate 12% Price Drop",
     inApp: "In-app",
     productFallback: "Tracked Product",
+    statusQueued: "Queued",
+    statusSent: "Sent",
+    statusDelivered: "Delivered",
+    statusRead: "Read",
+    statusFailed: "Failed",
   },
   settings: {
     title: "Settings & Profile",

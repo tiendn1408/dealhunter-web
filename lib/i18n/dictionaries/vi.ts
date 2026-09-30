@@ -34,6 +34,7 @@ export const vi = {
     settings: "Cá nhân",
     searchPlaceholder: "Tìm sản phẩm, dán link hoặc nhập từ khóa...",
     notificationsTitle: "Thông báo biến động giá",
+    languageToggle: "Chuyển đổi ngôn ngữ",
   },
   home: {
     taglinePill: "Săn đúng giá. Mua đúng lúc.",
@@ -280,6 +281,11 @@ export const vi = {
     simulateBtn: "Giả lập giảm giá 12%",
     inApp: "In-app",
     productFallback: "Sản phẩm theo dõi",
+    statusQueued: "Đang chờ",
+    statusSent: "Đã gửi",
+    statusDelivered: "Đã nhận",
+    statusRead: "Đã xem",
+    statusFailed: "Gửi lỗi",
   },
   settings: {
     title: "Cài đặt & Cá nhân",

@@ -19,6 +19,7 @@ import {
   TrendingDown,
   MessageSquare,
   CheckCheck,
+  Check,
   Sparkles,
   ExternalLink,
 } from "lucide-react";
@@ -269,6 +270,30 @@ export default function NotificationsPage() {
                             {t.notifications.inApp}
                           </span>
                         )}
+
+                        {notif.status === "read" ? (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CheckCheck className="w-3 h-3 text-emerald-600" />
+                            <span>{t.notifications.statusRead}</span>
+                          </span>
+                        ) : notif.status === "delivered" ? (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                            <Check className="w-3 h-3 text-sky-600" />
+                            <span>{t.notifications.statusDelivered}</span>
+                          </span>
+                        ) : notif.status === "sent" ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200">
+                            {t.notifications.statusSent}
+                          </span>
+                        ) : notif.status === "failed" ? (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                            {t.notifications.statusFailed}
+                          </span>
+                        ) : notif.status === "queued" ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            {t.notifications.statusQueued}
+                          </span>
+                        ) : null}
                       </div>
 
                       <span className="text-[11px] text-slate-400 font-normal">

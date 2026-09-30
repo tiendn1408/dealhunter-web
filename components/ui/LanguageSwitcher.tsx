@@ -13,7 +13,7 @@ export function LanguageSwitcher({
   variant = "pill",
   className = "",
 }: LanguageSwitcherProps) {
-  const { locale, setLocale, toggleLocale } = useLanguage();
+  const { locale, setLocale, toggleLocale, t } = useLanguage();
 
   if (variant === "select") {
     return (
@@ -37,7 +37,7 @@ export function LanguageSwitcher({
       type="button"
       onClick={toggleLocale}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs ${className}`}
-      title={locale === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}
+      title={t.nav.languageToggle}
       aria-label="Toggle language"
     >
       <Globe className="w-3.5 h-3.5 text-slate-500" />

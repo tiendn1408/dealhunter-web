@@ -24,10 +24,12 @@ export interface PriceNotification {
   alert_rule_id: string;
   channel: string;
   recipient: string;
-  status: 'queued' | 'sent' | 'failed';
+  status: 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
+  msg_id?: string | null;
   price_before: number;
   price_after: number;
   sent_at?: string | null;
+  delivered_at?: string | null;
   read_at?: string | null;
   created_at: string;
   product_title?: string;

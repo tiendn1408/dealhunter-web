@@ -8,6 +8,7 @@ import {
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
 } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
@@ -18,14 +19,13 @@ import {
   TrendingDown,
   MessageSquare,
   CheckCheck,
-  CheckCircle2,
-  Clock,
   Sparkles,
   ExternalLink,
 } from "lucide-react";
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
+  const { t, formatText } = useLanguage();
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "drop" | "zalo">("all");
   const { data: notifications = [], isLoading: loading } = useNotifications(50);
   const markReadMutation = useMarkNotificationAsRead();
@@ -73,16 +73,16 @@ export default function NotificationsPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
-              Thông báo
+              {t.notifications.title}
             </h1>
             {unreadCount > 0 && (
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-                {unreadCount} mới
+                {formatText(t.notifications.unreadBadge, { count: unreadCount })}
               </span>
             )}
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Cập nhật biến động giá và thông báo chạm giá mục tiêu
+            {t.notifications.subtitle}
           </p>
         </div>
 
@@ -93,17 +93,17 @@ export default function NotificationsPage() {
               onClick={handleMarkAllRead}
               disabled={markingAll}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-pine-900 hover:bg-pine-50 border border-pine-200/80 rounded-full transition-colors"
-              title="Đánh dấu tất cả đã đọc"
+              title={t.notifications.markAllRead}
             >
               <CheckCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Đã đọc tất cả</span>
+              <span className="hidden sm:inline">{t.notifications.markAllRead}</span>
             </button>
           )}
 
           <Link
             href="/settings"
             className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
-            title="Cài đặt thông báo"
+            title={t.nav.settings}
           >
             <SlidersHorizontal className="w-4 h-4" />
           </Link>
@@ -113,10 +113,15 @@ export default function NotificationsPage() {
       {/* Filter Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
         {[
-          { id: "all", label: "Tất cả" },
-          { id: "unread", label: `Chưa đọc ${unreadCount > 0 ? `(${unreadCount})` : ""}` },
-          { id: "drop", label: "Giá giảm sâu" },
-          { id: "zalo", label: "Tin Zalo OA" },
+          { id: "all", label: t.notifications.tabAll },
+          {
+            id: "unread",
+            label: formatText(t.notifications.tabUnread, {
+              count: unreadCount > 0 ? `(${unreadCount})` : "",
+            }),
+          },
+          { id: "drop", label: t.notifications.tabPriceDrop },
+          { id: "zalo", label: t.notifications.tabZalo },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -159,13 +164,13 @@ export default function NotificationsPage() {
           <div>
             <h3 className="text-lg font-bold text-pine-900 mb-1">
               {activeTab === "unread"
-                ? "Không có thông báo chưa đọc"
-                : "Chưa có thông báo nào"}
+                ? t.notifications.emptyUnreadTitle
+                : t.notifications.emptyTitle}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
               {activeTab === "unread"
-                ? "Bạn đã đọc hết tất cả thông báo giá mới nhất."
-                : "Khi sản phẩm bạn đang theo dõi có biến động giá hoặc chạm mức giá mục tiêu, bạn sẽ nhận được thông báo tại đây."}
+                ? t.notifications.emptyUnreadDesc
+                : t.notifications.emptyDesc}
             </p>
           </div>
 
@@ -174,7 +179,7 @@ export default function NotificationsPage() {
               href="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all"
             >
-              <span>Theo dõi sản phẩm mới</span>
+              <span>{t.notifications.trackNewBtn}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
@@ -201,7 +206,7 @@ export default function NotificationsPage() {
               className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-semibold transition-all border border-slate-200"
             >
               <Sparkles className="w-3.5 h-3.5 text-pine-900" />
-              <span>Giả lập giảm giá 12%</span>
+              <span>{t.notifications.simulateBtn}</span>
             </button>
           </div>
         </div>
@@ -261,7 +266,7 @@ export default function NotificationsPage() {
                           </span>
                         ) : (
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pine-50 text-pine-900 border border-pine-200">
-                            In-app
+                            {t.notifications.inApp}
                           </span>
                         )}
                       </div>
@@ -272,7 +277,7 @@ export default function NotificationsPage() {
                     </div>
 
                     <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
-                      {notif.product_title || "Sản phẩm theo dõi"}
+                      {notif.product_title || t.notifications.productFallback}
                     </h4>
 
                     {/* Price Diff */}
@@ -305,7 +310,7 @@ export default function NotificationsPage() {
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="p-1.5 text-slate-400 hover:text-pine-900 hover:bg-slate-100 rounded-lg transition-colors mt-auto"
-                        title="Xem trang sản phẩm"
+                        title={t.common.viewProduct}
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>

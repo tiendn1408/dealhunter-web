@@ -7,6 +7,7 @@ import {
   createAlert,
   AlertRule,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n";
 import { formatVND } from "@/lib/formatting";
 import {
   X,
@@ -15,8 +16,6 @@ import {
   History,
   CheckCircle2,
   AlertCircle,
-  MessageSquare,
-  Bell,
   Clock,
   Sparkles,
 } from "lucide-react";
@@ -36,6 +35,7 @@ export function CreateAlertModal({
   currentPrice,
   onAlertCreated,
 }: CreateAlertModalProps) {
+  const { t, formatText } = useLanguage();
   const [conditionType, setConditionType] =
     useState<AlertConditionType>("drop_percent");
 
@@ -64,17 +64,17 @@ export function CreateAlertModal({
       if (conditionType === "drop_percent") {
         thresholdValue = Number(dropPercent);
         if (thresholdValue <= 0 || thresholdValue > 99) {
-          throw new Error("Phần trăm giảm giá phải từ 1% đến 99%");
+          throw new Error(t.alerts.percentRangeError);
         }
       } else if (conditionType === "target_price") {
         thresholdValue = Number(targetPrice);
         if (thresholdValue <= 0) {
-          throw new Error("Mức giá mục tiêu phải lớn hơn 0đ");
+          throw new Error(t.alerts.pricePositiveError);
         }
       } else if (conditionType === "lowest_in_days") {
         thresholdValue = Number(lowestDays);
         if (thresholdValue <= 0) {
-          throw new Error("Số ngày theo dõi đáy phải lớn hơn 0");
+          throw new Error(t.alerts.daysPositiveError);
         }
       }
 
@@ -88,7 +88,7 @@ export function CreateAlertModal({
       onAlertCreated(createdRule);
       onClose();
     } catch (err: any) {
-      setError(err.message || "Không thể tạo quy tắc cảnh báo. Vui lòng thử lại.");
+      setError(err.message || t.alerts.createError);
     } finally {
       setLoading(false);
     }
@@ -107,10 +107,10 @@ export function CreateAlertModal({
 
         <div>
           <h3 className="text-xl font-black text-pine-900 tracking-tight">
-            Thiết lập cảnh báo giá thông minh
+            {t.alerts.modalTitle}
           </h3>
           <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-            Hệ thống tự động theo dõi và kích hoạt thông báo đa kênh khi sản phẩm đạt điều kiện bạn chọn.
+            {t.alerts.modalDesc}
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export function CreateAlertModal({
           {/* Condition Type Selector */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-              Chọn điều kiện kích hoạt
+              {t.alerts.selectCondition}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
@@ -144,9 +144,9 @@ export function CreateAlertModal({
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-bold block">Giảm theo %</span>
+                  <span className="text-xs font-bold block">{t.alerts.typeDropPercent}</span>
                   <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Khi giảm ít nhất X%
+                    {t.alerts.whenDropsBy}
                   </span>
                 </div>
               </button>
@@ -167,9 +167,9 @@ export function CreateAlertModal({
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-bold block">Chạm giá đích</span>
+                  <span className="text-xs font-bold block">{t.alerts.typeTargetPrice}</span>
                   <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Giá dưới mức định trước
+                    {t.alerts.priceBelowTarget}
                   </span>
                 </div>
               </button>
@@ -190,9 +190,9 @@ export function CreateAlertModal({
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-bold block">Đáy lịch sử</span>
+                  <span className="text-xs font-bold block">{t.alerts.typeLowestDays}</span>
                   <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Thấp nhất trong N ngày
+                    {t.alerts.lowestInNDays}
                   </span>
                 </div>
               </button>
@@ -204,10 +204,10 @@ export function CreateAlertModal({
             <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700">
-                  Mức giảm tối thiểu (%)
+                  {t.alerts.minDropPercent}
                 </span>
                 <span className="text-xs text-slate-500">
-                  Giá kích hoạt:{" "}
+                  {t.alerts.triggerPriceLabel}{" "}
                   <strong className="text-pine-900">
                     {formatVND(Math.round(currentPrice * (1 - dropPercent / 100)))}
                   </strong>
@@ -251,10 +251,10 @@ export function CreateAlertModal({
             <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700">
-                  Mức giá mong muốn (VNĐ)
+                  {t.alerts.desiredPriceLabel}
                 </span>
                 <span className="text-xs text-slate-500">
-                  Giá hiện tại:{" "}
+                  {t.alerts.currentPriceLabel}{" "}
                   <strong className="text-slate-800">
                     {formatVND(currentPrice)}
                   </strong>
@@ -271,7 +271,7 @@ export function CreateAlertModal({
               />
 
               <div className="text-center text-xs font-semibold text-slate-500">
-                Hiển thị: {formatVND(targetPrice)}
+                {t.alerts.displayPriceLabel} {formatVND(targetPrice)}
               </div>
 
               <div className="grid grid-cols-4 gap-2 pt-1">
@@ -299,7 +299,7 @@ export function CreateAlertModal({
           {conditionType === "lowest_in_days" && (
             <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
               <span className="text-xs font-bold text-slate-700 block">
-                Khoảng thời gian so sánh đáy
+                {t.alerts.comparisonPeriod}
               </span>
               <div className="grid grid-cols-3 gap-2">
                 {[30, 60, 90].map((d) => (
@@ -313,12 +313,12 @@ export function CreateAlertModal({
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    Đáy {d} ngày
+                    {formatText(t.alerts.lowestDaysPill, { days: d })}
                   </button>
                 ))}
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Hệ thống sẽ đối chiếu với toàn bộ lịch sử snapshot trong {lowestDays} ngày qua. Nếu giá hiện tại thấp hơn kỷ lục trước đó, thông báo sẽ kích hoạt ngay.
+                {formatText(t.alerts.lowestDaysExplanation, { days: lowestDays })}
               </p>
             </div>
           )}
@@ -328,15 +328,15 @@ export function CreateAlertModal({
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-slate-500" />
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Thời hạn hiệu lực của cảnh báo
+                {t.alerts.validityPeriod}
               </label>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: "30 ngày", val: 30 },
-                { label: "60 ngày", val: 60 },
-                { label: "90 ngày", val: 90 },
-                { label: "Vô hạn", val: undefined },
+                { label: t.alerts.expires30Days, val: 30 },
+                { label: t.alerts.expires60Days, val: 60 },
+                { label: t.alerts.expires90Days, val: 90 },
+                { label: t.alerts.permanent, val: undefined },
               ].map((opt) => (
                 <button
                   key={opt.label}
@@ -357,16 +357,16 @@ export function CreateAlertModal({
           {/* Channels Preview */}
           <div className="bg-pine-50/70 border border-pine-100 rounded-2xl p-3.5 space-y-2">
             <span className="text-xs font-bold text-pine-900 block">
-              Kênh tiếp nhận thông báo
+              {t.alerts.channelsSection}
             </span>
             <div className="flex items-center gap-4 text-xs text-slate-700">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Trung tâm thông báo (In-app)</span>
+                <span>{t.alerts.channelInApp}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Zalo OA (Khi đã kết nối)</span>
+                <span>{t.alerts.channelZalo}</span>
               </div>
             </div>
           </div>
@@ -378,11 +378,11 @@ export function CreateAlertModal({
             className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span>Đang lưu quy tắc...</span>
+              <span>{t.alerts.creatingBtn}</span>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Kích hoạt cảnh báo giá</span>
+                <span>{t.alerts.submitBtn}</span>
               </>
             )}
           </button>

@@ -6,8 +6,8 @@ import {
   useEnrichedTrackings,
   useToggleTracking,
   useHasUnreadNotifications,
-  EnrichedTrackingCard,
 } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { TrackingListSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 export default function MyTrackingPage() {
+  const { t, formatText } = useLanguage();
   const { data: trackings = [], isLoading: loading, error: queryError, refetch } = useEnrichedTrackings();
   const toggleMutation = useToggleTracking();
   const { data: hasUnread = false } = useHasUnreadNotifications();
@@ -45,7 +46,7 @@ export default function MyTrackingPage() {
     try {
       await toggleMutation.mutateAsync({ id, currentlyActive });
     } catch (err: any) {
-      alert("Thao tác thất bại: " + err.message);
+      alert(formatText(t.tracking.actionFailed, { message: err.message }));
     } finally {
       setTogglingId(null);
     }
@@ -74,12 +75,12 @@ export default function MyTrackingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
-            Đang theo dõi
+            {t.tracking.title}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             {trackings.length > 0
-              ? `${trackings.length} sản phẩm đang được cập nhật giá`
-              : "0 sản phẩm"}
+              ? formatText(t.tracking.subtitle, { count: trackings.length })
+              : t.tracking.zeroCount}
           </p>
         </div>
 
@@ -89,13 +90,13 @@ export default function MyTrackingPage() {
             className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-pine-900 hover:bg-pine-950 text-white text-xs font-semibold shadow-2xs transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Theo dõi thêm</span>
+            <span>{t.tracking.trackMore}</span>
           </Link>
 
           <Link
             href="/notifications"
             className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors relative"
-            title="Xem thông báo"
+            title={t.tracking.viewNotifications}
           >
             <Bell className="w-4 h-4" />
             {hasUnread && (
@@ -110,16 +111,16 @@ export default function MyTrackingPage() {
         {/* Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           {[
-            { id: "all", label: "Tất cả", count: trackings.length },
+            { id: "all", label: t.tracking.filterAll, count: trackings.length },
             {
               id: "dropped",
-              label: "Giá giảm",
-              count: trackings.filter((t) => (t.changePercent || 0) < 0).length,
+              label: t.tracking.filterDropped,
+              count: trackings.filter((item) => (item.changePercent || 0) < 0).length,
             },
             {
               id: "target",
-              label: "Gần mục tiêu",
-              count: trackings.filter((t) => (t.diffFromTarget || 0) <= 300000).length,
+              label: t.tracking.filterTarget,
+              count: trackings.filter((item) => (item.diffFromTarget || 0) <= 300000).length,
             },
           ].map((tab) => (
             <button
@@ -153,7 +154,7 @@ export default function MyTrackingPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm sản phẩm theo dõi..."
+            placeholder={t.tracking.searchPlaceholder}
             className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-slate-800 placeholder-slate-400 shadow-2xs"
           />
         </div>
@@ -171,7 +172,7 @@ export default function MyTrackingPage() {
             onClick={() => refetch()}
             className="px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-semibold hover:bg-rose-700"
           >
-            Thử lại
+            {t.tracking.retry}
           </button>
         </div>
       ) : filteredTrackings.length === 0 ? (
@@ -184,13 +185,13 @@ export default function MyTrackingPage() {
           <div className="space-y-1">
             <h3 className="text-lg font-bold text-pine-900">
               {trackings.length === 0
-                ? "Bạn chưa theo dõi sản phẩm nào"
-                : "Không tìm thấy sản phẩm phù hợp"}
+                ? t.tracking.emptyTitle
+                : t.tracking.notFoundTitle}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
               {trackings.length === 0
-                ? "Dán đường link từ Shopee, Lazada hoặc TikTok Shop để bắt đầu lưu lại lịch sử biến động giá."
-                : "Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc Tất cả."}
+                ? t.tracking.emptyDesc
+                : t.tracking.notFoundDesc}
             </p>
           </div>
 
@@ -198,20 +199,20 @@ export default function MyTrackingPage() {
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs sm:text-sm font-semibold shadow-2xs transition-all"
           >
-            <span>{trackings.length === 0 ? "Theo dõi giá" : "Về trang chủ"}</span>
+            <span>{trackings.length === 0 ? t.tracking.trackPriceBtn : t.tracking.homeBtn}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : (
         /* Product Cards matching Screen 5 in mobile.png */
         <div className="grid grid-cols-1 gap-4">
-          {filteredTrackings.map((t) => {
-            const hasPrice = t.currentPrice !== undefined && t.currentPrice > 0;
-            const detailHref = `/tracking/${t.ProductSourceID || t.ID}`;
+          {filteredTrackings.map((item) => {
+            const hasPrice = item.currentPrice !== undefined && item.currentPrice > 0;
+            const detailHref = `/tracking/${item.ProductSourceID || item.ID}`;
 
             return (
               <Link
-                key={t.ID}
+                key={item.ID}
                 href={detailHref}
                 className="block bg-white border border-slate-200/90 hover:border-pine-300 rounded-3xl p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all group"
               >
@@ -228,26 +229,26 @@ export default function MyTrackingPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <PlatformBadge platformOrUrl={t.Platform || t.CanonicalURL} />
+                        <PlatformBadge platformOrUrl={item.Platform || item.CanonicalURL} />
                         {Boolean(
-                          (t.ProductID && trackings.filter((item) => item.ProductID === t.ProductID).length > 1) ||
-                          !t.IsPrimary
+                          (item.ProductID && trackings.filter((track) => track.ProductID === item.ProductID).length > 1) ||
+                          !item.IsPrimary
                         ) && (
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                            Đa sàn
+                            {t.tracking.multiPlatform}
                           </span>
                         )}
                       </div>
                       <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-pine-50 text-pine-900 border border-pine-100">
-                        {t.Active ? "Đang theo dõi" : "Tạm dừng"}
+                        {item.Active ? t.tracking.statusTracking : t.tracking.statusPaused}
                       </span>
                     </div>
 
                     <h2 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-pine-900 transition-colors line-clamp-1">
-                      {t.Title || (t.CanonicalURL ? t.CanonicalURL.split("/").pop() : "Sản phẩm theo dõi giá")}
+                      {item.Title || (item.CanonicalURL ? item.CanonicalURL.split("/").pop() : t.notifications.productFallback)}
                     </h2>
                     <p className="text-xs text-slate-400 mt-0.5 truncate">
-                      {t.SellerName ? `Shop: ${t.SellerName}` : "Hệ thống kiểm tra tự động"}
+                      {item.SellerName ? formatText(t.comparison.shopLabel, { name: item.SellerName }) : t.tracking.autoCheck}
                     </p>
                   </div>
                 </div>
@@ -255,16 +256,16 @@ export default function MyTrackingPage() {
                 {/* Row 2: Price row with Strikethrough & Drop % */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-baseline gap-2.5">
                   <span className="text-2xl font-black text-pine-900">
-                    {hasPrice ? formatVND(t.currentPrice) : "Đang kiểm tra..."}
+                    {hasPrice ? formatVND(item.currentPrice) : t.tracking.checking}
                   </span>
-                  {t.oldPrice && (
+                  {item.oldPrice && (
                     <span className="text-xs text-slate-400 line-through">
-                      {formatVND(t.oldPrice)}
+                      {formatVND(item.oldPrice)}
                     </span>
                   )}
-                  {t.changePercent !== undefined && (
+                  {item.changePercent !== undefined && (
                     <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
-                      ↓ {Math.abs(t.changePercent)}%
+                      ↓ {Math.abs(item.changePercent)}%
                     </span>
                   )}
                 </div>
@@ -274,20 +275,20 @@ export default function MyTrackingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                        Giá mục tiêu
+                        {t.tracking.targetPriceLabel}
                       </span>
                       <span className="text-xs sm:text-sm font-bold text-slate-800">
-                        {t.targetPrice ? formatVND(t.targetPrice) : "Chưa đặt"}
+                        {item.targetPrice ? formatVND(item.targetPrice) : t.tracking.notSet}
                       </span>
                     </div>
 
                     <div>
                       <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                        Còn cách
+                        {t.tracking.distanceLabel}
                       </span>
                       <span className="text-xs sm:text-sm font-bold text-pine-900">
-                        {t.diffFromTarget !== undefined
-                          ? formatVND(t.diffFromTarget)
+                        {item.diffFromTarget !== undefined
+                          ? formatVND(item.diffFromTarget)
                           : "—"}
                       </span>
                     </div>
@@ -297,7 +298,7 @@ export default function MyTrackingPage() {
                   <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
                     <div
                       className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${t.targetProgress || 60}%` }}
+                      style={{ width: `${item.targetProgress || 60}%` }}
                     />
                   </div>
                 </div>
@@ -306,20 +307,24 @@ export default function MyTrackingPage() {
                 <div className="mt-3.5 flex items-center justify-between text-xs text-slate-400">
                   <span className="flex items-center gap-1 font-medium">
                     <Clock className="w-3 h-3 text-slate-400" />
-                    <span>Cập nhật {formatRelativeTime(t.UpdatedAt || t.CreatedAt)}</span>
+                    <span>
+                      {formatText(t.tracking.updated, {
+                        time: formatRelativeTime(item.UpdatedAt || item.CreatedAt),
+                      })}
+                    </span>
                   </span>
 
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={(e) => handleToggle(e, t.ID, t.Active)}
+                      onClick={(e) => handleToggle(e, item.ID, item.Active)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                        t.Active
+                        item.Active
                           ? "bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600"
                           : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
                       }`}
                     >
-                      {t.Active ? "Tạm dừng" : "Tiếp tục"}
+                      {item.Active ? t.tracking.pause : t.tracking.resume}
                     </button>
                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-pine-900 group-hover:translate-x-0.5 transition-all" />
                   </div>

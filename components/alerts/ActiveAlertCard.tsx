@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { AlertRule, deleteAlert } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n";
 import { formatVND, formatDate } from "@/lib/formatting";
 import {
   TrendingDown,
   Target,
   History,
   Trash2,
-  CheckCircle2,
   Clock,
-  AlertTriangle,
 } from "lucide-react";
 
 interface ActiveAlertCardProps {
@@ -19,17 +18,18 @@ interface ActiveAlertCardProps {
 }
 
 export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
+  const { t, formatText } = useLanguage();
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("Bạn có chắc muốn hủy quy tắc cảnh báo này?")) return;
+    if (!confirm(t.alerts.deleteRuleConfirm)) return;
 
     setDeleting(true);
     try {
       await deleteAlert(rule.id);
       onRuleDeleted(rule.id);
     } catch (err) {
-      alert("Không thể xóa quy tắc cảnh báo. Vui lòng thử lại.");
+      alert(t.alerts.deleteFailed);
       setDeleting(false);
     }
   };
@@ -38,29 +38,37 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
     switch (rule.rule_type) {
       case "drop_percent":
         return {
-          title: "Cảnh báo giảm giá sâu",
-          description: `Kích hoạt khi giá giảm ít nhất ${rule.threshold_value}%`,
+          title: t.alerts.dropPercentTitle,
+          description: formatText(t.alerts.dropPercentDesc, {
+            threshold: rule.threshold_value,
+          }),
           icon: TrendingDown,
           badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
         };
       case "target_price":
         return {
-          title: "Cảnh báo chạm giá mục tiêu",
-          description: `Kích hoạt khi giá xuống dưới hoặc bằng ${formatVND(rule.threshold_value)}`,
+          title: t.alerts.targetPriceTitle,
+          description: formatText(t.alerts.targetPriceDesc, {
+            price: formatVND(rule.threshold_value),
+          }),
           icon: Target,
           badgeColor: "bg-pine-50 text-pine-900 border-pine-200",
         };
       case "lowest_in_days":
         return {
-          title: `Cảnh báo đáy ${rule.threshold_value} ngày`,
-          description: `Kích hoạt khi giá chạm mức thấp nhất trong ${rule.threshold_value} ngày qua`,
+          title: formatText(t.alerts.lowestDaysTitle, {
+            threshold: rule.threshold_value,
+          }),
+          description: formatText(t.alerts.lowestDaysDesc, {
+            threshold: rule.threshold_value,
+          }),
           icon: History,
           badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
         };
       default:
         return {
-          title: "Quy tắc cảnh báo",
-          description: `Ngưỡng: ${rule.threshold_value}`,
+          title: t.detail.smartAlertsTitle,
+          description: `${rule.threshold_value}`,
           icon: Target,
           badgeColor: "bg-slate-50 text-slate-700 border-slate-200",
         };
@@ -83,7 +91,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
             <span
               className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${details.badgeColor}`}
             >
-              Đang bật
+              {t.alerts.activeBadge}
             </span>
           </div>
 
@@ -96,8 +104,8 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
               <Clock className="w-3 h-3 text-slate-400" />
               <span>
                 {rule.expires_at
-                  ? `Hết hạn: ${formatDate(rule.expires_at)}`
-                  : "Hiệu lực: Vô thời hạn"}
+                  ? formatText(t.alerts.expiresAt, { date: formatDate(rule.expires_at) })
+                  : t.alerts.noExpiry}
               </span>
             </span>
           </div>
@@ -110,10 +118,10 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
           onClick={handleDelete}
           disabled={deleting}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-50"
-          title="Tắt cảnh báo này"
+          title={t.common.delete}
         >
           <Trash2 className="w-3.5 h-3.5" />
-          <span>{deleting ? "Đang xóa..." : "Tắt cảnh báo"}</span>
+          <span>{deleting ? t.common.loading : t.common.delete}</span>
         </button>
       </div>
     </div>

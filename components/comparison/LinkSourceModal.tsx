@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLinkSource } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { detectPlatform } from "@/lib/formatting";
 import { X, Link2, Sparkles, AlertCircle } from "lucide-react";
@@ -19,6 +20,7 @@ export function LinkSourceModal({
   productId,
   trackingId,
 }: LinkSourceModalProps) {
+  const { t } = useLanguage();
   const [url, setUrl] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -39,12 +41,12 @@ export function LinkSourceModal({
     const cleanUrl = url.trim();
 
     if (!cleanUrl) {
-      setLocalError("Vui lòng nhập đường dẫn sản phẩm");
+      setLocalError(t.comparison.enterUrlError);
       return;
     }
 
     if (!productId) {
-      setLocalError("Không tìm thấy mã sản phẩm để liên kết");
+      setLocalError(t.comparison.missingProductError);
       return;
     }
 
@@ -61,11 +63,9 @@ export function LinkSourceModal({
         onError: (err: any) => {
           const msg = err?.message || "";
           if (msg.includes("unsupported platform")) {
-            setLocalError(
-              "Đường dẫn không thuộc các sàn được hỗ trợ (Shopee, Lazada, TikTok Shop)."
-            );
+            setLocalError(t.comparison.unsupportedPlatformError);
           } else {
-            setLocalError(msg || "Không thể liên kết sàn này.");
+            setLocalError(msg || t.comparison.linkFailed);
           }
         },
       }
@@ -90,10 +90,10 @@ export function LinkSourceModal({
             <Link2 className="w-5 h-5 text-pine-900" />
           </div>
           <h3 className="text-xl font-black text-pine-900 tracking-tight">
-            Liên kết thêm sàn
+            {t.comparison.linkModalTitle}
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Dán đường dẫn sản phẩm tương tự từ sàn khác (Shopee, Lazada, TikTok Shop) để đối chiếu giá tốt nhất.
+            {t.comparison.linkModalDesc}
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export function LinkSourceModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 block">
-              Đường dẫn sản phẩm sàn khác
+              {t.comparison.urlInputLabel}
             </label>
             <input
               type="url"
@@ -119,7 +119,7 @@ export function LinkSourceModal({
                 setUrl(e.target.value);
                 if (localError) setLocalError(null);
               }}
-              placeholder="https://shopee.vn/... hoặc https://lazada.vn/..."
+              placeholder={t.comparison.urlPlaceholder}
               className="w-full px-4 py-3 text-xs sm:text-sm rounded-2xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 transition-all"
             />
           </div>
@@ -127,7 +127,7 @@ export function LinkSourceModal({
           {/* Real-time Platform Recognition */}
           {detectedPlatform && detectedPlatform.id !== "other" && (
             <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-              <span className="text-slate-400 font-medium">Nhận diện:</span>
+              <span className="text-slate-400 font-medium">{t.comparison.detectedLabel}</span>
               <PlatformBadge platformOrUrl={url} />
             </div>
           )}
@@ -139,11 +139,11 @@ export function LinkSourceModal({
             className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
           >
             {linkMutation.isPending ? (
-              <span>Đang liên kết và quét giá...</span>
+              <span>{t.comparison.linkingInProgress}</span>
             ) : (
               <>
                 <Link2 className="w-4 h-4" />
-                <span>Liên kết sản phẩm</span>
+                <span>{t.comparison.linkButtonText}</span>
               </>
             )}
           </button>
@@ -153,9 +153,9 @@ export function LinkSourceModal({
         <div className="bg-pine-50/80 border border-pine-100 rounded-2xl p-3.5 text-xs text-pine-900 flex items-start gap-2.5">
           <Sparkles className="w-4 h-4 text-pine-800 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-bold block">Tự động cập nhật</span>
+            <span className="font-bold block">{t.comparison.autoUpdateTipTitle}</span>
             <p className="text-slate-600 text-[11px] leading-relaxed">
-              Sau khi liên kết, hệ thống sẽ kích hoạt lệnh quét giá ngay lập tức và tự động cập nhật vào bảng so sánh.
+              {t.comparison.autoUpdateTipDesc}
             </p>
           </div>
         </div>

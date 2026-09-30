@@ -6,11 +6,11 @@ import { getUserId } from "@/lib/api";
 import { useZaloProfile, useDisconnectZalo } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
   Settings,
-  User,
   Bookmark,
-  Bell,
   MessageSquare,
   LineChart,
   HelpCircle,
@@ -19,8 +19,8 @@ import {
   ChevronRight,
   Clock,
   CheckCircle2,
-  Sparkles,
   Unlink,
+  Globe,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const [savedNotice, setSavedNotice] = useState(false);
   const [showZaloModal, setShowZaloModal] = useState(false);
 
+  const { t, formatText } = useLanguage();
   const qc = useQueryClient();
   const { data: zaloProfile = null } = useZaloProfile();
   const disconnectMutation = useDisconnectZalo();
@@ -50,7 +51,7 @@ export default function SettingsPage() {
   };
 
   const handleResetUser = () => {
-    if (confirm("Bạn có muốn đặt lại mã định danh người dùng trên thiết bị này?")) {
+    if (confirm(t.settings.resetConfirm)) {
       localStorage.removeItem("deal-hunter-user-id");
       localStorage.removeItem("dealhunter_user_id");
       localStorage.removeItem("deal-hunter-products-meta");
@@ -61,11 +62,11 @@ export default function SettingsPage() {
 
   const handleDisconnectZalo = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Bạn có chắc muốn ngắt kết nối nhận tin nhắn Zalo?")) return;
+    if (!confirm(t.settings.disconnectConfirm)) return;
     try {
       await disconnectMutation.mutateAsync();
     } catch (err) {
-      alert("Không thể ngắt kết nối Zalo. Vui lòng thử lại.");
+      alert(t.settings.disconnectFailed);
     }
   };
 
@@ -74,13 +75,13 @@ export default function SettingsPage() {
       {/* Header matching Screen 10 */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
-          Cá nhân
+          {t.settings.title}
         </h1>
         <button
           type="button"
           onClick={() => setShowIntervalModal(true)}
           className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
-          title="Tùy chỉnh hệ thống"
+          title={t.settings.title}
         >
           <Settings className="w-5 h-5" />
         </button>
@@ -89,18 +90,18 @@ export default function SettingsPage() {
       {savedNotice && (
         <div className="p-3.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>Đã cập nhật chu kỳ quét thành công!</span>
+          <span>{t.settings.scanUpdated}</span>
         </div>
       )}
 
       {/* User Profile Card matching Screen 10 */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-2xs flex items-center gap-4">
         <div className="w-14 h-14 rounded-full bg-pine-900 text-white flex items-center justify-center font-bold text-xl shadow-xs">
-          T
+          D
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-bold text-pine-900 truncate">
-            Người dùng DealHunter
+            {t.settings.userTitle}
           </h2>
           <p className="text-xs text-slate-400 font-mono truncate mt-0.5">
             ID: {userId.slice(0, 16)}...
@@ -120,11 +121,11 @@ export default function SettingsPage() {
               <Bookmark className="w-4 h-4" />
             </div>
             <span className="text-sm font-semibold text-slate-800">
-              Đang theo dõi
+              {t.nav.tracking}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Xem danh sách</span>
+            <span>{t.settings.viewList}</span>
             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
           </div>
         </Link>
@@ -141,10 +142,12 @@ export default function SettingsPage() {
             </div>
             <div>
               <span className="text-sm font-semibold text-slate-800 block">
-                Cài đặt chu kỳ quét
+                {t.settings.scanSection}
               </span>
               <span className="text-[11px] text-slate-400 block">
-                Hiện tại: Mỗi {Math.round(parseInt(interval, 10) / 60)} phút
+                {formatText(t.settings.currentInterval, {
+                  minutes: Math.round(parseInt(interval, 10) / 60),
+                })}
               </span>
             </div>
           </div>
@@ -161,14 +164,16 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-900 block">
-                    Zalo: {zaloProfile.phone || zaloProfile.zalo_id}
+                    {formatText(t.settings.zaloActiveTitle, {
+                      identifier: zaloProfile.phone || zaloProfile.zalo_id || "",
+                    })}
                   </span>
                   <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
-                    Đã kết nối
+                    {t.settings.zaloConnected}
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 block">
-                  Đang nhận tin nhắn cảnh báo biến động giá tức thì
+                  {t.settings.zaloActiveDesc}
                 </span>
               </div>
             </div>
@@ -178,10 +183,10 @@ export default function SettingsPage() {
               onClick={handleDisconnectZalo}
               disabled={zaloDisconnecting}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold transition-colors disabled:opacity-50"
-              title="Ngắt kết nối Zalo"
+              title={t.settings.disconnectZaloBtn}
             >
               <Unlink className="w-3.5 h-3.5" />
-              <span>{zaloDisconnecting ? "Đang ngắt..." : "Hủy liên kết"}</span>
+              <span>{zaloDisconnecting ? t.settings.disconnecting : t.settings.disconnectZaloBtn}</span>
             </button>
           </div>
         ) : (
@@ -196,16 +201,16 @@ export default function SettingsPage() {
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-800 block">
-                  Liên kết Zalo
+                  {t.settings.zaloSection}
                 </span>
                 <span className="text-[11px] text-slate-400 block">
-                  Nhận tin nhắn ZNS khi giá giảm
+                  {t.settings.zaloDesc}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold px-2.5 py-1 bg-pine-900 text-white rounded-full">
-                Kết nối ngay
+                {t.settings.connectNow}
               </span>
               <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
             </div>
@@ -222,7 +227,7 @@ export default function SettingsPage() {
               <LineChart className="w-4 h-4" />
             </div>
             <span className="text-sm font-semibold text-slate-800">
-              Lịch sử giá đã lưu
+              {t.settings.priceHistoryMenu}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
@@ -235,7 +240,7 @@ export default function SettingsPage() {
               <HelpCircle className="w-4 h-4" />
             </div>
             <span className="text-sm font-semibold text-slate-800">
-              Hỗ trợ & góp ý
+              {t.settings.supportFeedback}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -248,10 +253,28 @@ export default function SettingsPage() {
               <FileText className="w-4 h-4" />
             </div>
             <span className="text-sm font-semibold text-slate-800">
-              Điều khoản sử dụng
+              {t.settings.termsOfService}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-300" />
+        </div>
+
+        {/* Ngôn ngữ hiển thị */}
+        <div className="flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center">
+              <Globe className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-slate-800 block">
+                {t.settings.languageSection}
+              </span>
+              <span className="text-[11px] text-slate-400 block">
+                {t.settings.languageDesc}
+              </span>
+            </div>
+          </div>
+          <LanguageSwitcher variant="select" />
         </div>
 
         {/* Đăng xuất / Đặt lại */}
@@ -265,7 +288,7 @@ export default function SettingsPage() {
               <LogOut className="w-4 h-4" />
             </div>
             <span className="text-sm font-semibold text-rose-600">
-              Đặt lại mã định danh
+              {t.settings.resetUserId}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-rose-300 group-hover:text-rose-500 transition-colors" />
@@ -277,18 +300,18 @@ export default function SettingsPage() {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-xl space-y-4 animate-scaleUp">
             <h3 className="text-lg font-bold text-pine-900">
-              Chọn chu kỳ quét giá
+              {t.settings.intervalModalTitle}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Tần suất scheduler kiểm tra và ghi lại giá mới nhất từ các sàn thương mại điện tử.
+              {t.settings.intervalModalDesc}
             </p>
 
             <div className="space-y-2 pt-2">
               {[
-                { val: "1800", label: "Mỗi 30 phút (Khuyến nghị)" },
-                { val: "3600", label: "Mỗi 1 giờ" },
-                { val: "7200", label: "Mỗi 2 giờ" },
-                { val: "21600", label: "Mỗi 6 giờ" },
+                { val: "1800", label: t.settings.interval30m },
+                { val: "3600", label: t.settings.interval1h },
+                { val: "7200", label: t.settings.interval2h },
+                { val: "21600", label: t.settings.interval6h },
               ].map((opt) => (
                 <button
                   key={opt.val}
@@ -310,7 +333,7 @@ export default function SettingsPage() {
               onClick={() => setShowIntervalModal(false)}
               className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold"
             >
-              Hủy
+              {t.common.cancel}
             </button>
           </div>
         </div>

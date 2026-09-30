@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useComparison } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import {
@@ -25,6 +26,7 @@ export function SourceComparisonSection({
   productId,
   onLinkSource,
 }: SourceComparisonSectionProps) {
+  const { t, formatText } = useLanguage();
   const { data: comparison, isLoading, error } = useComparison(trackingId);
 
   const sortedSources = useMemo(() => {
@@ -63,7 +65,7 @@ export function SourceComparisonSection({
       <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-pine-900 tracking-tight">
-            So sánh giá đa sàn
+            {t.comparison.title}
           </h2>
           <button
             type="button"
@@ -71,12 +73,12 @@ export function SourceComparisonSection({
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Thêm sàn khác</span>
+            <span>{t.comparison.addAnotherPlatform}</span>
           </button>
         </div>
         <div className="p-4 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 text-slate-400" />
-          <span>Chưa thể tải dữ liệu so sánh giá đa sàn lúc này.</span>
+          <span>{t.comparison.loadError}</span>
         </div>
       </div>
     );
@@ -95,10 +97,10 @@ export function SourceComparisonSection({
             </div>
             <div>
               <h2 className="text-lg font-black text-pine-900 tracking-tight">
-                So sánh giá đa sàn
+                {t.comparison.title}
               </h2>
               <p className="text-xs text-slate-500">
-                Tìm giá tốt nhất trên Shopee, Lazada và TikTok Shop
+                {t.comparison.singleSourceSubtitle}
               </p>
             </div>
           </div>
@@ -107,15 +109,15 @@ export function SourceComparisonSection({
         <div className="p-5 rounded-2xl bg-slate-50/90 border border-dashed border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap text-xs text-slate-700">
-              <span>Sản phẩm này hiện chỉ đang theo dõi trên</span>
+              <span>{t.comparison.singleSourceTracking}</span>
               {primarySource ? (
                 <PlatformBadge platformOrUrl={primarySource.platform} />
               ) : (
-                <span className="font-semibold text-slate-800">1 sàn</span>
+                <span className="font-semibold text-slate-800">{t.comparison.onePlatform}</span>
               )}
             </div>
             <p className="text-[11px] text-slate-500 max-w-md leading-relaxed">
-              Dán thêm đường link sản phẩm tương ứng từ Lazada hoặc TikTok Shop để hệ thống tự động tìm nơi bán rẻ nhất.
+              {t.comparison.singleSourceHelp}
             </p>
           </div>
 
@@ -125,7 +127,7 @@ export function SourceComparisonSection({
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Liên kết thêm sàn</span>
+            <span>{t.comparison.linkSourceBtn}</span>
           </button>
         </div>
       </div>
@@ -145,10 +147,10 @@ export function SourceComparisonSection({
           </div>
           <div>
             <h2 className="text-lg font-black text-pine-900 tracking-tight">
-              So sánh giá đa sàn
+              {t.comparison.title}
             </h2>
             <p className="text-xs text-slate-500">
-              Bảng so sánh giá thực tế giữa các sàn thương mại điện tử
+              {t.comparison.multiSourceSubtitle}
             </p>
           </div>
         </div>
@@ -159,7 +161,7 @@ export function SourceComparisonSection({
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>Thêm sàn khác</span>
+          <span>{t.comparison.addAnotherPlatform}</span>
         </button>
       </div>
 
@@ -170,22 +172,21 @@ export function SourceComparisonSection({
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-700 text-white uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                <span>Giá tốt nhất</span>
+                <span>{t.comparison.bestDealTitle}</span>
               </span>
               <PlatformBadge platformOrUrl={bestDeal.platform} />
             </div>
             <p className="text-xs text-emerald-900 font-medium pt-0.5">
-              Tiết kiệm{" "}
-              <span className="font-extrabold text-emerald-950">
-                {formatVND(bestDeal.saving_vs_most_expensive)}
-              </span>{" "}
-              ({bestDeal.saving_percent.toFixed(1)}%) so với sàn đắt nhất
+              {formatText(t.comparison.savingSummary, {
+                amount: formatVND(bestDeal.saving_vs_most_expensive),
+                percent: bestDeal.saving_percent.toFixed(1),
+              })}
             </p>
           </div>
 
           <div className="text-left sm:text-right">
             <span className="text-[10px] uppercase font-bold text-emerald-700 block tracking-wider">
-              Thực trả tốt nhất
+              {t.comparison.bestEffectivePrice}
             </span>
             <span className="text-xl sm:text-2xl font-black text-emerald-950 block">
               {formatVND(bestDeal.effective_price)}
@@ -216,7 +217,7 @@ export function SourceComparisonSection({
                   {isWinningDeal && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-700" />
-                      <span>Rẻ nhất</span>
+                      <span>{t.comparison.cheapest}</span>
                     </span>
                   )}
                   <span
@@ -229,33 +230,35 @@ export function SourceComparisonSection({
                     }`}
                   >
                     {!hasPrice
-                      ? "Đang quét"
+                      ? t.comparison.scanning
                       : source.in_stock
-                      ? "Còn hàng"
-                      : "Hết hàng"}
+                      ? t.comparison.inStock
+                      : t.comparison.outOfStock}
                   </span>
                 </div>
 
                 <p className="text-xs text-slate-600 truncate font-medium">
-                  {source.seller_name ? `Shop: ${source.seller_name}` : "Cửa hàng chính hãng"}
+                  {source.seller_name
+                    ? formatText(t.comparison.shopLabel, { name: source.seller_name })
+                    : t.comparison.officialStore}
                 </p>
 
                 {/* Sub-details: Listed price & Shipping fee */}
                 {hasPrice && (
                   <div className="flex items-center gap-3 text-[11px] text-slate-500 pt-0.5">
                     <span>
-                      Giá niêm yết:{" "}
+                      {t.comparison.listedPrice}{" "}
                       <span className="font-semibold text-slate-700">
                         {formatVND(source.listed_price)}
                       </span>
                     </span>
                     <span>·</span>
                     <span>
-                      Phí ship:{" "}
+                      {t.comparison.shippingFee}{" "}
                       <span className="font-semibold text-slate-700">
                         {source.shipping_fee > 0
                           ? formatVND(source.shipping_fee)
-                          : "Miễn phí"}
+                          : t.comparison.free}
                       </span>
                     </span>
                   </div>
@@ -266,14 +269,14 @@ export function SourceComparisonSection({
               <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
                 <div className="text-left sm:text-right">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                    Giá thực trả
+                    {t.comparison.effectivePrice}
                   </span>
                   <span
                     className={`text-lg sm:text-xl font-black block ${
                       isWinningDeal ? "text-emerald-950" : "text-slate-900"
                     }`}
                   >
-                    {hasPrice ? formatVND(source.effective_price) : "Đang kiểm tra..."}
+                    {hasPrice ? formatVND(source.effective_price) : t.comparison.checking}
                   </span>
                 </div>
 
@@ -288,7 +291,7 @@ export function SourceComparisonSection({
                         : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200"
                     }`}
                   >
-                    <span>Đến nơi bán</span>
+                    <span>{t.comparison.visitStore}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 ) : null}
@@ -303,10 +306,12 @@ export function SourceComparisonSection({
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5" />
           <span>
-            Dữ liệu so sánh: {formatRelativeTime(comparison.computed_at)}
+            {formatText(t.comparison.dataTimestamp, {
+              time: formatRelativeTime(comparison.computed_at),
+            })}
           </span>
         </div>
-        <span>Giá thực trả đã bao gồm phí vận chuyển ước tính</span>
+        <span>{t.comparison.effectivePriceFootnote}</span>
       </div>
     </div>
   );

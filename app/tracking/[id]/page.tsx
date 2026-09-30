@@ -10,6 +10,7 @@ import {
   TrackedProduct,
 } from "@/lib/api";
 import { useTracking, usePriceHistory, useAlerts } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { CreateAlertModal } from "@/components/alerts/CreateAlertModal";
 import { ActiveAlertCard } from "@/components/alerts/ActiveAlertCard";
 import { SourceComparisonSection } from "@/components/comparison/SourceComparisonSection";
@@ -53,6 +54,7 @@ import {
 export default function ProductDetailPage() {
   const params = useParams();
   const idOrSourceId = params.id as string;
+  const { t, formatText } = useLanguage();
 
   const { data: tracking, isLoading: trackingLoading, error: trackingError } = useTracking(idOrSourceId);
   const { data: snapshots = [], isLoading: priceLoading, error: priceError } = usePriceHistory(idOrSourceId);
@@ -167,7 +169,7 @@ export default function ProductDetailPage() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: tracking?.Title || "Deal Hunter",
+        title: tracking?.Title || t.common.appName,
         url: window.location.href,
       }).catch(() => {});
     } else {
@@ -225,7 +227,7 @@ export default function ProductDetailPage() {
         <Link
           href="/tracking"
           className="p-2 -ml-2 text-slate-600 hover:text-pine-900 rounded-full hover:bg-slate-100 transition-colors"
-          title="Quay lại danh sách"
+          title={t.detail.backToList}
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
@@ -233,14 +235,14 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2">
           {copyNotice && (
             <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
-              Đã sao chép link!
+              {t.detail.copiedLink}
             </span>
           )}
           <button
             type="button"
             onClick={handleShare}
             className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
-            title="Chia sẻ sản phẩm"
+            title={t.detail.shareProduct}
           >
             <Share2 className="w-4 h-4" />
           </button>
@@ -269,7 +271,7 @@ export default function ProductDetailPage() {
             {tracking?.Title || "Tai nghe Sony WH-1000XM6"}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-normal">
-            Tai nghe chống ồn cao cấp · {tracking?.SellerName ? `Shop: ${tracking.SellerName}` : "Chính hãng"}
+            {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
           </p>
           <div className="pt-1 flex items-center gap-2 flex-wrap">
             <PlatformBadge platformOrUrl={tracking?.Platform || tracking?.CanonicalURL} />
@@ -280,7 +282,7 @@ export default function ProductDetailPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-pine-900 hover:underline"
               >
-                <span>Mở trang sàn gốc</span>
+                <span>{t.detail.openOriginal}</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
@@ -307,10 +309,10 @@ export default function ProductDetailPage() {
         {/* Badges matching Screen 6 */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            Vừa giảm
+            {t.detail.justDropped}
           </span>
           <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Giá thấp nhất 90 ngày
+            {t.detail.lowest90dBadge}
           </span>
         </div>
 
@@ -319,16 +321,16 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                Giá mục tiêu
+                {t.detail.targetPrice}
               </span>
               <span className="text-sm sm:text-base font-black text-slate-800">
-                {savedTarget ? formatVND(savedTarget) : "Chưa đặt"}
+                {savedTarget ? formatVND(savedTarget) : t.detail.notSet}
               </span>
             </div>
 
             <div>
               <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                Còn cách
+                {t.detail.distanceFromTarget}
               </span>
               <span className="text-sm sm:text-base font-black text-pine-900">
                 {formatVND(diffFromTarget)}
@@ -345,13 +347,13 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Tiến độ đạt mức mong muốn</span>
+            <span>{t.detail.targetProgress}</span>
             <button
               type="button"
               onClick={() => setShowTargetModal(true)}
               className="font-bold text-pine-900 hover:underline"
             >
-              Chỉnh sửa mục tiêu
+              {t.detail.editTarget}
             </button>
           </div>
         </div>
@@ -360,7 +362,7 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-2 gap-3 pt-2">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-4">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider mb-1">
-              Thấp nhất 90 ngày
+              {t.detail.lowest90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
               {stats ? formatVND(stats.lowest) : "6.050.000đ"}
@@ -369,7 +371,7 @@ export default function ProductDetailPage() {
 
           <div className="bg-white border border-slate-200/90 rounded-2xl p-4">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider mb-1">
-              Trung bình 90 ngày
+              {t.detail.average90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
               {stats ? formatVND(stats.average) : "7.090.000đ"}
@@ -387,10 +389,10 @@ export default function ProductDetailPage() {
             </div>
             <div>
               <h2 className="text-lg font-black text-pine-900 tracking-tight">
-                Cảnh báo giá thông minh
+                {t.detail.smartAlertsTitle}
               </h2>
               <p className="text-xs text-slate-500">
-                Nhận tin nhắn Zalo OA & thông báo app khi biến động giá
+                {t.detail.smartAlertsDesc}
               </p>
             </div>
           </div>
@@ -401,17 +403,17 @@ export default function ProductDetailPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Thêm cảnh báo</span>
+            <span>{t.detail.addAlertBtn}</span>
           </button>
         </div>
 
         {alerts.length === 0 ? (
           <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
             <p className="text-xs text-slate-600 font-medium">
-              Chưa có quy tắc cảnh báo nào cho sản phẩm này.
+              {t.detail.noAlertsTitle}
             </p>
             <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-              Thiết lập quy tắc giảm theo %, giá đích hoặc chạm đáy lịch sử để hệ thống tự động báo qua Zalo và Feed thông báo.
+              {t.detail.noAlertsDesc}
             </p>
             <button
               type="button"
@@ -419,7 +421,7 @@ export default function ProductDetailPage() {
               className="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-pine-900 bg-white border border-slate-200 rounded-full hover:bg-pine-50 transition-colors"
             >
               <Plus className="w-3 h-3" />
-              <span>Tạo quy tắc đầu tiên</span>
+              <span>{t.detail.createFirstRuleBtn}</span>
             </button>
           </div>
         ) : (
@@ -449,20 +451,20 @@ export default function ProductDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-black text-pine-900">
-              Lịch sử giá
+              {t.detail.priceHistoryTitle}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Biểu đồ và các mốc giá quan trọng đã ghi nhận
+              {t.detail.priceHistorySubtitle}
             </p>
           </div>
 
           {/* Time range tabs matching Screen 7 */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full w-fit">
             {[
-              { id: "7d", label: "7 ngày" },
-              { id: "30d", label: "30 ngày" },
-              { id: "90d", label: "90 ngày" },
-              { id: "all", label: "Tất cả" },
+              { id: "7d", label: t.detail.range7d },
+              { id: "30d", label: t.detail.range30d },
+              { id: "90d", label: t.detail.range90d },
+              { id: "all", label: t.detail.rangeAll },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -484,7 +486,7 @@ export default function ProductDetailPage() {
         <div className="h-64 sm:h-72 w-full pt-2">
           {chartData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              Đang tích lũy dữ liệu snapshot theo thời gian...
+              {t.detail.accumulatingData}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -523,7 +525,7 @@ export default function ProductDetailPage() {
                             {formatVND(data.effectivePrice)}
                           </p>
                           <p className="text-[11px] text-slate-300">
-                            Giá niêm yết: {formatVND(data.rawPrice)}
+                            {t.detail.listedPriceLabel} {formatVND(data.rawPrice)}
                           </p>
                         </div>
                       );
@@ -537,7 +539,9 @@ export default function ProductDetailPage() {
                     stroke="#e11d48"
                     strokeDasharray="4 4"
                     label={{
-                      value: `Giá mục tiêu: ${formatCompactVND(savedTarget)}`,
+                      value: formatText(t.detail.targetPriceLabel, {
+                        price: formatCompactVND(savedTarget),
+                      }),
                       fill: "#e11d48",
                       fontSize: 10,
                       position: "insideBottomRight",
@@ -563,7 +567,7 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
           <div className="p-2.5 rounded-xl bg-slate-50">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              Thấp nhất 90 ngày
+              {t.detail.lowest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
               {stats ? formatVND(stats.lowest) : "6.050.000đ"}
@@ -572,7 +576,7 @@ export default function ProductDetailPage() {
 
           <div className="p-2.5 rounded-xl bg-slate-50">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              Trung bình 90 ngày
+              {t.detail.average90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
               {stats ? formatVND(stats.average) : "7.090.000đ"}
@@ -581,7 +585,7 @@ export default function ProductDetailPage() {
 
           <div className="p-2.5 rounded-xl bg-slate-50">
             <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              Cao nhất 90 ngày
+              {t.detail.highest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
               {stats ? formatVND(stats.highest) : "7.490.000đ"}
@@ -592,44 +596,44 @@ export default function ProductDetailPage() {
         {/* Các mốc giá quan trọng matching Screen 7 */}
         <div className="space-y-3 pt-4 border-t border-slate-100">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            Các mốc giá quan trọng
+            {t.detail.keyPriceMilestones}
           </h3>
 
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="font-semibold text-slate-800">Vừa giảm giá</span>
+                <span className="font-semibold text-slate-800">{t.detail.milestoneJustDropped}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-pine-900">{formatVND(currentPrice)}</span>
-                <span className="text-[10px] text-slate-400">Gần nhất</span>
+                <span className="text-[10px] text-slate-400">{t.detail.milestoneRecent}</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="font-semibold text-slate-800">Giá thấp nhất 90 ngày</span>
+                <span className="font-semibold text-slate-800">{t.detail.milestoneLowest}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-pine-900">
                   {stats ? formatVND(stats.lowest) : "6.050.000đ"}
                 </span>
-                <span className="text-[10px] text-slate-400">Đáy ghi nhận</span>
+                <span className="text-[10px] text-slate-400">{t.detail.milestoneRecordedLow}</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-slate-400" />
-                <span className="font-semibold text-slate-800">Giá trung bình 90 ngày</span>
+                <span className="font-semibold text-slate-800">{t.detail.milestoneAverage}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-700">
                   {stats ? formatVND(stats.average) : "7.090.000đ"}
                 </span>
-                <span className="text-[10px] text-slate-400">Trung vị</span>
+                <span className="text-[10px] text-slate-400">{t.detail.milestoneMedian}</span>
               </div>
             </div>
           </div>
@@ -644,7 +648,7 @@ export default function ProductDetailPage() {
           className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-full text-sm shadow-xl pointer-events-auto transition-all flex items-center justify-center gap-2"
         >
           <Target className="w-4 h-4" />
-          <span>{savedTarget ? "Cập nhật giá mục tiêu" : "Đặt giá mục tiêu"}</span>
+          <span>{savedTarget ? t.detail.updateTargetButton : t.detail.setTargetButton}</span>
         </button>
       </div>
 
@@ -662,10 +666,10 @@ export default function ProductDetailPage() {
 
             <div>
               <h3 className="text-xl font-black text-pine-900">
-                Đặt giá mục tiêu
+                {t.detail.targetModalTitle}
               </h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Khi giá chạm mức bạn muốn, DealHunter sẽ thông báo cho bạn.
+                {t.detail.targetModalDesc}
               </p>
             </div>
 
@@ -681,7 +685,7 @@ export default function ProductDetailPage() {
                   className="w-full px-4 py-3.5 text-2xl font-black rounded-2xl border border-slate-200 bg-slate-50 text-pine-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-center"
                 />
                 <span className="text-xs font-semibold text-slate-400 block text-center mt-1">
-                  Giá hiển thị: {formatVND(targetInput)}
+                  {formatText(t.detail.displayPrice, { price: formatVND(targetInput) })}
                 </span>
               </div>
 
@@ -703,7 +707,7 @@ export default function ProductDetailPage() {
                 type="submit"
                 className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all"
               >
-                Bắt đầu theo dõi
+                {t.detail.startTrackingBtn}
               </button>
             </form>
 
@@ -711,9 +715,9 @@ export default function ProductDetailPage() {
             <div className="bg-pine-50/80 border border-pine-100 rounded-2xl p-3.5 text-xs text-pine-900 flex items-start gap-2.5">
               <Sparkles className="w-4 h-4 text-pine-800 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold block mb-0.5">Gợi ý</span>
+                <span className="font-bold block mb-0.5">{t.detail.tipTitle}</span>
                 <span className="text-slate-600 leading-relaxed block">
-                  Mức giá mục tiêu thường thấp hơn 5–15% so với giá hiện tại để bắt được các đợt flash sale tốt nhất.
+                  {t.detail.tipDesc}
                 </span>
               </div>
             </div>

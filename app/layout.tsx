@@ -1,6 +1,7 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { QueryProvider } from "@/components/QueryProvider";
+import { LanguageProvider } from "@/lib/i18n";
 
 export const metadata = {
   title: "DealHunter — Săn đúng giá trước khi mua",
@@ -20,10 +21,12 @@ export default function RootLayout({
     <html lang="vi">
       <body className="min-h-screen flex flex-col bg-[#F8FAF9] text-slate-900 antialiased">
         <QueryProvider>
-          <Navbar />
-          <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
-            {children}
-          </main>
+          <LanguageProvider>
+            <Navbar />
+            <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+              {children}
+            </main>
+          </LanguageProvider>
         </QueryProvider>
       </body>
     </html>

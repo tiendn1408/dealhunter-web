@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackProduct } from "@/lib/api";
 import { useTrackings } from "@/lib/hooks";
+import { useLanguage } from "@/lib/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { detectPlatform, formatVND } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
@@ -13,21 +14,18 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Clock,
   ShieldCheck,
   Search,
   X,
   Target,
-  Bookmark,
-  Sparkles,
   TrendingDown,
-  ShoppingBag,
 } from "lucide-react";
 
 function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const qc = useQueryClient();
+  const { t, formatText } = useLanguage();
 
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +74,7 @@ function HomeContent() {
       });
       setShowInputModal(false);
     } catch (err: any) {
-      setError(err.message || "Không thể theo dõi sản phẩm. Vui lòng kiểm tra lại link.");
+      setError(err.message || t.home.defaultError);
     } finally {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -125,16 +123,16 @@ function HomeContent() {
               {/* Tagline Pill */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pine-100/90 text-pine-900 border border-pine-200/80 text-xs font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-pine-800" />
-                <span>Săn đúng giá. Mua đúng lúc.</span>
+                <span>{t.home.taglinePill}</span>
               </div>
 
               {/* Headline */}
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-5xl font-black text-pine-900 tracking-tight leading-tight">
-                  DealHunter
+                  {t.home.heroTitle}
                 </h1>
                 <p className="text-base sm:text-xl text-slate-600 font-normal leading-relaxed max-w-lg">
-                  Theo dõi giá sản phẩm bạn quan tâm và nhận thông báo khi có giá tốt.
+                  {t.home.heroSubtitle}
                 </p>
               </div>
 
@@ -152,7 +150,7 @@ function HomeContent() {
                       value={url}
                       disabled={loading}
                       onChange={(e) => setUrl(e.target.value)}
-                      placeholder="Dán link sản phẩm (Shopee, Lazada, TikTok Shop...)"
+                      placeholder={t.home.pastePlaceholder}
                       className="w-full pl-10 pr-4 py-3 text-xs sm:text-sm rounded-xl focus:outline-none text-slate-800 placeholder-slate-400 bg-transparent font-medium"
                     />
                   </div>
@@ -164,11 +162,11 @@ function HomeContent() {
                     {loading ? (
                       <>
                         <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                        <span>Đang phân tích...</span>
+                        <span>{t.home.analyzingBtn}</span>
                       </>
                     ) : (
                       <>
-                        <span>Theo dõi giá</span>
+                        <span>{t.home.trackBtn}</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -184,7 +182,11 @@ function HomeContent() {
                           <polyline points="3 8.5 6.5 12 13 4" />
                         </svg>
                       </span>
-                      <span>Nhận diện nền tảng ({detected?.name || "Hệ thống"})</span>
+                      <span>
+                        {formatText(t.home.stepDetectPlatform, {
+                          platform: detected?.name || t.common.appName,
+                        })}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 font-medium">
                       {loadingStep >= 1 ? (
@@ -197,7 +199,7 @@ function HomeContent() {
                         <span className="inline-block w-3 h-3 border-2 border-pine-800 border-t-transparent rounded-full animate-spin" />
                       )}
                       <span className={loadingStep >= 1 ? "text-slate-700" : "text-pine-900 font-bold"}>
-                        Đọc thông tin sản phẩm & giá hiện tại...
+                        {t.home.stepReadData}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 font-medium">
@@ -211,7 +213,7 @@ function HomeContent() {
                         <span className="text-slate-300">●</span>
                       )}
                       <span className={loadingStep >= 2 ? "text-pine-900 font-bold" : "text-slate-400"}>
-                        Lập lịch theo dõi tự động định kỳ...
+                        {t.home.stepScheduleJob}
                       </span>
                     </div>
                   </div>
@@ -220,14 +222,14 @@ function HomeContent() {
 
               {/* Sub-action: "Hoặc: Tìm sản phẩm bạn muốn mua" */}
               <div className="flex items-center gap-2 text-xs text-slate-500 pt-1">
-                <span>Hoặc:</span>
+                <span>{t.home.orChooseSample}</span>
                 <button
                   type="button"
                   onClick={() => setShowInputModal(true)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-all shadow-2xs"
                 >
                   <Search className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Chọn link sản phẩm mẫu</span>
+                  <span>{t.home.sampleLinksBtn}</span>
                 </button>
               </div>
 
@@ -244,8 +246,8 @@ function HomeContent() {
             <div className="lg:col-span-5 relative flex items-center justify-center">
               {/* Curved annotation text */}
               <div className="hidden lg:block absolute -top-8 right-6 text-pine-800 font-bold text-xs tracking-wide">
-                <span className="block transform rotate-6">Không bỏ lỡ</span>
-                <span className="block transform rotate-6 text-sm text-pine-900">deal tốt!</span>
+                <span className="block transform rotate-6">{t.home.dontMissTitle1}</span>
+                <span className="block transform rotate-6 text-sm text-pine-900">{t.home.dontMissTitle2}</span>
                 <svg className="w-8 h-8 text-pine-700 mt-1 ml-4" viewBox="0 0 40 40" fill="none">
                   <path d="M10 5 C 25 15, 30 25, 20 35" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" />
                   <polygon points="17,35 24,35 20,38" fill="currentColor" />
@@ -257,11 +259,11 @@ function HomeContent() {
                 {/* Badge top right */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 uppercase">
-                    Minh họa
+                    {t.home.illustrationBadge}
                   </span>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <TrendingDown className="w-3 h-3" />
-                    Vừa giảm
+                    {t.home.justDroppedBadge}
                   </span>
                 </div>
 
@@ -286,12 +288,12 @@ function HomeContent() {
                     6.190.000đ
                   </span>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500 text-white">
-                    Giảm 12,7%
+                    -12,7%
                   </span>
                 </div>
 
                 <p className="text-[11px] text-slate-500 font-medium">
-                  Giá thấp nhất 90 ngày: 6.050.000đ
+                  {formatText(t.home.lowest90d, { price: "6.050.000đ" })}
                 </p>
               </div>
             </div>
@@ -307,10 +309,10 @@ function HomeContent() {
 
           <div>
             <h2 className="text-2xl font-black text-pine-900 mb-1">
-              Đã thêm sản phẩm
+              {t.home.addedSuccessTitle}
             </h2>
             <p className="text-xs text-slate-500">
-              Sản phẩm đã được ghi nhận vào danh sách theo dõi của bạn
+              {t.home.addedSuccessDesc}
             </p>
           </div>
 
@@ -325,10 +327,10 @@ function HomeContent() {
 
             <div>
               <h3 className="font-bold text-slate-900 text-sm">
-                Sản phẩm theo dõi mới
+                {t.home.newTrackingProduct}
               </h3>
               <p className="text-xs text-slate-500">
-                Chu kỳ quét tự động mỗi 30 phút
+                {t.home.scanIntervalDesc}
               </p>
             </div>
           </div>
@@ -337,7 +339,7 @@ function HomeContent() {
           <div className="bg-pine-50/80 border border-pine-100 rounded-xl p-3 text-xs text-pine-900 leading-relaxed text-left flex items-start gap-2">
             <ShieldCheck className="w-4 h-4 text-pine-700 mt-0.5 shrink-0" />
             <span>
-              DealHunter sẽ theo dõi giá sản phẩm này và thông báo cho bạn khi có biến động hoặc đạt giá mục tiêu.
+              {t.home.noticeBanner}
             </span>
           </div>
 
@@ -348,7 +350,7 @@ function HomeContent() {
               onClick={() => router.push(`/tracking/${successData.productSourceId || successData.id}`)}
               className="w-full py-3 bg-pine-900 hover:bg-pine-950 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-xs transition-all"
             >
-              Xem sản phẩm
+              {t.home.viewProductBtn}
             </button>
             <button
               type="button"
@@ -358,7 +360,7 @@ function HomeContent() {
               }}
               className="w-full py-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs sm:text-sm border border-slate-200 transition-colors"
             >
-              Quay về trang chủ
+              {t.home.backHomeBtn}
             </button>
           </div>
         </div>
@@ -367,7 +369,7 @@ function HomeContent() {
       {/* 2. SECTION: CÁCH DEALHUNTER HOẠT ĐỘNG matching web-dashboard.png & mobile.png */}
       <div className="space-y-6">
         <h2 className="text-xl sm:text-2xl font-black text-pine-900 tracking-tight">
-          Cách DealHunter hoạt động
+          {t.home.howItWorks}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
@@ -379,10 +381,10 @@ function HomeContent() {
                 1
               </div>
               <h3 className="font-bold text-slate-900 text-sm">
-                Dán link sản phẩm
+                {t.home.step1Title}
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Sao chép link từ Shopee, Lazada, TikTok Shop hoặc nhập từ khóa cần mua.
+                {t.home.step1Desc}
               </p>
             </div>
 
@@ -392,10 +394,10 @@ function HomeContent() {
                 2
               </div>
               <h3 className="font-bold text-slate-900 text-sm">
-                Kiểm tra & theo dõi
+                {t.home.step2Title}
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Hệ thống tự động phân tích giá thực tế và lưu trữ lịch sử biến động định kỳ.
+                {t.home.step2Desc}
               </p>
             </div>
 
@@ -405,10 +407,10 @@ function HomeContent() {
                 3
               </div>
               <h3 className="font-bold text-slate-900 text-sm">
-                Nhận thông báo
+                {t.home.step3Title}
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Khi giá giảm hoặc chạm mức giá mục tiêu bạn mong muốn, bạn sẽ nhận được thông báo.
+                {t.home.step3Desc}
               </p>
             </div>
           </div>
@@ -420,10 +422,10 @@ function HomeContent() {
                 <Target className="w-4 h-4" />
               </div>
               <h3 className="font-bold text-pine-900 text-sm">
-                Bạn hoàn toàn chủ động
+                {t.home.empowerTitle}
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Đặt giá mục tiêu, xem biểu đồ lịch sử giá và tự quyết định thời điểm mua phù hợp nhất.
+                {t.home.empowerDesc}
               </p>
             </div>
 
@@ -431,7 +433,7 @@ function HomeContent() {
               href="/tracking"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-pine-900 hover:text-pine-950 mt-4 group"
             >
-              <span>Xem sản phẩm đã theo dõi</span>
+              <span>{t.home.viewTrackedBtn}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -442,11 +444,11 @@ function HomeContent() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-            Nền tảng được hỗ trợ
+            {t.home.supportedPlatformsTitle}
           </h2>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>An toàn · Nhanh chóng · Chính xác</span>
+            <span>{t.home.supportedPlatformsBadge}</span>
           </div>
         </div>
 
@@ -457,7 +459,7 @@ function HomeContent() {
             </div>
             <div>
               <span className="text-sm font-bold text-slate-900 block">Shopee</span>
-              <span className="text-[11px] text-slate-400 block">Hỗ trợ đầy đủ</span>
+              <span className="text-[11px] text-slate-400 block">{t.home.fullSupport}</span>
             </div>
           </div>
 
@@ -467,7 +469,7 @@ function HomeContent() {
             </div>
             <div>
               <span className="text-sm font-bold text-slate-900 block">Lazada</span>
-              <span className="text-[11px] text-slate-400 block">Hỗ trợ đầy đủ</span>
+              <span className="text-[11px] text-slate-400 block">{t.home.fullSupport}</span>
             </div>
           </div>
 
@@ -477,7 +479,7 @@ function HomeContent() {
             </div>
             <div>
               <span className="text-sm font-bold text-slate-900 block">TikTok Shop</span>
-              <span className="text-[11px] text-slate-400 block">Hỗ trợ đầy đủ</span>
+              <span className="text-[11px] text-slate-400 block">{t.home.fullSupport}</span>
             </div>
           </div>
         </div>
@@ -486,7 +488,7 @@ function HomeContent() {
       {/* 4. SECTION: BẠN CÓ THỂ BẮT ĐẦU BẰNG CÁCH... matching web-dashboard.png */}
       <div className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-          Bạn có thể bắt đầu bằng cách...
+          {t.home.startByTitle}
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -514,7 +516,7 @@ function HomeContent() {
                   {formatVND(sample.price)}
                 </span>
                 <span className="text-[11px] font-medium text-pine-900 flex items-center gap-1 group-hover:underline">
-                  Thử ngay
+                  {t.home.tryNow}
                   <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
@@ -537,10 +539,10 @@ function HomeContent() {
 
             <div>
               <h3 className="text-lg font-black text-pine-900">
-                Dán link sản phẩm
+                {t.home.modalTitle}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Hỗ trợ link từ Shopee, Lazada, TikTok Shop
+                {t.home.modalSubtitle}
               </p>
             </div>
 
@@ -551,7 +553,7 @@ function HomeContent() {
                   required
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://shopee.vn/product/..."
+                  placeholder={t.comparison.urlPlaceholder}
                   className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 pr-10"
                 />
                 {url && (
@@ -573,17 +575,17 @@ function HomeContent() {
                 {loading ? (
                   <>
                     <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                    <span>Đang kiểm tra...</span>
+                    <span>{t.home.modalChecking}</span>
                   </>
                 ) : (
-                  <span>Tiếp tục</span>
+                  <span>{t.home.modalContinue}</span>
                 )}
               </button>
             </form>
 
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Hoặc chọn nền tảng mẫu:
+                {t.home.orSelectPlatform}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {sampleLinks.map((s) => (
@@ -608,11 +610,12 @@ function HomeContent() {
 }
 
 export default function HomePage() {
+  const { t } = useLanguage();
   return (
     <Suspense
       fallback={
         <div className="max-w-3xl mx-auto py-14 text-center text-slate-400 text-xs">
-          Đang tải giao diện...
+          {t.home.loadingUI}
         </div>
       }
     >

@@ -90,7 +90,10 @@ export default function ProductDetailPage() {
     }
 
     try {
-      const raw = localStorage.getItem("deal-hunter-targets") || localStorage.getItem("dealhunter_targets");
+      const raw =
+        localStorage.getItem("dealhunter-targets") ||
+        localStorage.getItem("dealhunter_targets") ||
+        localStorage.getItem("deal-hunter-targets");
       if (raw) {
         const store = JSON.parse(raw);
         if (store[idOrSourceId] && !savedTarget) {
@@ -108,14 +111,14 @@ export default function ProductDetailPage() {
   const currentPrice =
     tracking?.LastEffectivePrice ||
     tracking?.LastPrice ||
-    (stats ? stats.current : 6190000);
+    (stats ? stats.current : undefined);
 
   const oldPrice =
-    stats && stats.highest > currentPrice
+    stats && currentPrice && stats.highest > currentPrice
       ? stats.highest
-      : Math.round(currentPrice * 1.14);
+      : (currentPrice ? Math.round(currentPrice * 1.14) : undefined);
 
-  const changePercent = stats ? stats.changePercent : -12.7;
+  const changePercent = stats ? stats.changePercent : undefined;
 
   // Set default target if not set
   useEffect(() => {
@@ -133,12 +136,15 @@ export default function ProductDetailPage() {
 
     setSavedTarget(targetInput);
     try {
-      const raw = localStorage.getItem("deal-hunter-targets") || localStorage.getItem("dealhunter_targets");
+      const raw =
+        localStorage.getItem("dealhunter-targets") ||
+        localStorage.getItem("dealhunter_targets") ||
+        localStorage.getItem("deal-hunter-targets");
       const store = raw ? JSON.parse(raw) : {};
       store[idOrSourceId] = targetInput;
       if (tracking?.ProductSourceID) store[tracking.ProductSourceID] = targetInput;
       if (tracking?.ID) store[tracking.ID] = targetInput;
-      localStorage.setItem("deal-hunter-targets", JSON.stringify(store));
+      localStorage.setItem("dealhunter-targets", JSON.stringify(store));
 
       // Persist to backend alert rules as target_price rule
       createAlert(idOrSourceId, {
@@ -206,7 +212,7 @@ export default function ProductDetailPage() {
 
   const diffFromTarget = savedTarget && currentPrice ? Math.max(0, currentPrice - savedTarget) : 0;
   const targetProgress = useMemo(() => {
-    if (!savedTarget || !currentPrice || !oldPrice || oldPrice <= savedTarget) return 65;
+    if (!savedTarget || !currentPrice || !oldPrice || oldPrice <= savedTarget) return 0;
     const drop = oldPrice - currentPrice;
     const total = oldPrice - savedTarget;
     return Math.min(100, Math.max(10, Math.round((drop / total) * 100)));
@@ -730,7 +736,7 @@ export default function ProductDetailPage() {
         isOpen={showCreateAlertModal}
         onClose={() => setShowCreateAlertModal(false)}
         productId={idOrSourceId}
-        currentPrice={currentPrice}
+        currentPrice={currentPrice || 0}
         onAlertCreated={(newRule) => {
           setAlerts((prev) => [newRule, ...prev]);
           if (newRule.rule_type === "target_price") {

@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { Radar, ArrowRight, Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface EmptyStateProps {
   title?: string;
@@ -11,12 +14,18 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  title = "Chưa có sản phẩm nào được theo dõi",
-  description = "Dán đường link từ Shopee, Lazada, hoặc TikTok Shop để bắt đầu ghi nhận lịch sử biến động giá.",
-  actionText = "Dán link theo dõi ngay",
+  title,
+  description,
+  actionText,
   actionHref = "/",
   onSampleClick,
 }: EmptyStateProps) {
+  const { t } = useLanguage();
+
+  const finalTitle = title || t.tracking.emptyTitle;
+  const finalDesc = description || t.tracking.emptyDesc;
+  const finalAction = actionText || t.tracking.trackPriceBtn;
+
   const sampleProducts = [
     {
       name: "Tai nghe Sony WH-1000XM6",
@@ -41,21 +50,21 @@ export function EmptyState({
         <Radar className="w-8 h-8 text-pine-900" />
       </div>
 
-      <h3 className="text-xl font-bold text-pine-900 mb-2">{title}</h3>
-      <p className="text-sm text-slate-500 mb-6 leading-relaxed">{description}</p>
+      <h3 className="text-xl font-bold text-pine-900 mb-2">{finalTitle}</h3>
+      <p className="text-sm text-slate-500 mb-6 leading-relaxed">{finalDesc}</p>
 
       <Link
         href={actionHref}
         className="inline-flex items-center gap-2 px-6 py-3 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs sm:text-sm font-semibold shadow-2xs transition-all"
       >
-        <span>{actionText}</span>
+        <span>{finalAction}</span>
         <ArrowRight className="w-4 h-4" />
       </Link>
 
       <div className="mt-8 pt-6 border-t border-slate-100">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Hoặc thử nhanh với sản phẩm mẫu:</span>
+          <span>{t.home.orChooseSample}</span>
         </p>
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
           {sampleProducts.map((sample) => (

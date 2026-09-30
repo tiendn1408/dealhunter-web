@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUserId } from "@/lib/api";
-import { useZaloProfile, useDisconnectZalo } from "@/lib/hooks";
+import { useZaloProfile, useDisconnectZalo, useAuth } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
@@ -16,6 +17,8 @@ import {
   HelpCircle,
   FileText,
   LogOut,
+  LogIn,
+  ShieldCheck,
   ChevronRight,
   Clock,
   CheckCircle2,
@@ -29,22 +32,27 @@ export default function SettingsPage() {
   const [showIntervalModal, setShowIntervalModal] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
   const [showZaloModal, setShowZaloModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { t, formatText } = useLanguage();
   const qc = useQueryClient();
+  const { user, isAuthenticated, logout } = useAuth();
   const { data: zaloProfile = null } = useZaloProfile();
   const disconnectMutation = useDisconnectZalo();
   const zaloDisconnecting = disconnectMutation.isPending;
 
   useEffect(() => {
     setUserId(getUserId());
-    const saved = localStorage.getItem("deal-hunter-poll-interval") || localStorage.getItem("dealhunter_poll_interval");
+    const saved =
+      localStorage.getItem("dealhunter-poll-interval") ||
+      localStorage.getItem("dealhunter_poll_interval") ||
+      localStorage.getItem("deal-hunter-poll-interval");
     if (saved) setInterval(saved);
   }, []);
 
   const handleSaveInterval = (val: string) => {
     setInterval(val);
-    localStorage.setItem("deal-hunter-poll-interval", val);
+    localStorage.setItem("dealhunter-poll-interval", val);
     setShowIntervalModal(false);
     setSavedNotice(true);
     setTimeout(() => setSavedNotice(false), 2500);
@@ -52,10 +60,13 @@ export default function SettingsPage() {
 
   const handleResetUser = () => {
     if (confirm(t.settings.resetConfirm)) {
-      localStorage.removeItem("deal-hunter-user-id");
+      localStorage.removeItem("dealhunter-token");
+      localStorage.removeItem("dealhunter-user-id");
       localStorage.removeItem("dealhunter_user_id");
-      localStorage.removeItem("deal-hunter-products-meta");
+      localStorage.removeItem("deal-hunter-user-id");
+      localStorage.removeItem("dealhunter-products-meta");
       localStorage.removeItem("dealhunter_products_meta");
+      localStorage.removeItem("deal-hunter-products-meta");
       window.location.reload();
     }
   };
@@ -95,18 +106,60 @@ export default function SettingsPage() {
       )}
 
       {/* User Profile Card matching Screen 10 */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-2xs flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-pine-900 text-white flex items-center justify-center font-bold text-xl shadow-xs">
-          D
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-2xs">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 rounded-full bg-pine-900 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+              {isAuthenticated && user?.name ? user.name[0].toUpperCase() : "D"}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-pine-900 truncate">
+                  {isAuthenticated ? (user?.name || t.settings.userTitle) : t.auth.guestUser}
+                </h2>
+                {isAuthenticated && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 uppercase border border-cyan-200">
+                    {user?.auth_provider || "Member"}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 font-mono truncate mt-0.5">
+                {isAuthenticated && user?.email ? user.email : `ID: ${userId.slice(0, 16)}...`}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={logout}
+                className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all flex items-center gap-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{t.auth.logout}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowLoginModal(true)}
+                className="px-4 py-2 rounded-full bg-pine-900 text-white text-xs font-semibold hover:bg-pine-800 transition-all shadow-xs flex items-center gap-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>{t.auth.login}</span>
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-base sm:text-lg font-bold text-pine-900 truncate">
-            {t.settings.userTitle}
-          </h2>
-          <p className="text-xs text-slate-400 font-mono truncate mt-0.5">
-            ID: {userId.slice(0, 16)}...
-          </p>
-        </div>
+
+        {!isAuthenticated && (
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-start gap-2.5 text-xs text-slate-500">
+            <ShieldCheck className="w-4 h-4 text-cyan-600 shrink-0 mt-0.5" />
+            <p>
+              {t.auth.guestTip}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Menu List matching Screen 10 */}
@@ -346,6 +399,12 @@ export default function SettingsPage() {
         onConnected={() => {
           qc.invalidateQueries({ queryKey: ["zalo", "profile"] });
         }}
+      />
+
+      {/* Login Modal (GAP-02) */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
   );

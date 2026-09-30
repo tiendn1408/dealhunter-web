@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listTrackings,
@@ -14,6 +15,20 @@ import {
   linkProductSource,
   pauseTracking,
   resumeTracking,
+  authDemoLogin,
+  authGoogleLogin,
+  authMigrateGuestData,
+  authGetMe,
+  getAuthToken,
+  setAuthToken,
+  getUserId,
+  getMatchSuggestions,
+  acceptMatchSuggestion,
+  dismissMatchSuggestion,
+  triggerAutoMatch,
+  MatchSuggestion,
+  AutoMatchResult,
+  AuthUser,
   TrackedProduct,
   PriceSnapshot,
 } from "./api";
@@ -45,7 +60,10 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
   let localTargets: Record<string, number> = {};
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem("deal-hunter-targets") || localStorage.getItem("dealhunter_targets");
+      const raw =
+        localStorage.getItem("dealhunter-targets") ||
+        localStorage.getItem("dealhunter_targets") ||
+        localStorage.getItem("deal-hunter-targets");
       if (raw) localTargets = JSON.parse(raw);
     } catch {}
   }
@@ -61,21 +79,21 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
       const currentPrice =
         item.LastEffectivePrice ||
         item.LastPrice ||
-        (stats ? stats.current : 6190000);
+        (stats ? stats.current : undefined);
 
       const oldPrice =
-        stats && stats.highest > currentPrice
+        stats && currentPrice && stats.highest > currentPrice
           ? stats.highest
           : (currentPrice ? Math.round(currentPrice * 1.14) : undefined);
-      const changePercent = stats ? stats.changePercent : -12.7;
+      const changePercent = stats ? stats.changePercent : undefined;
 
       const key = item.ProductSourceID || item.ID;
       const targetPrice =
-        localTargets[key] || (currentPrice ? Math.round(currentPrice * 0.96) : 6000000);
+        localTargets[key] || (currentPrice ? Math.round(currentPrice * 0.96) : undefined);
       const diffFromTarget =
         currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : 0;
 
-      let targetProgress = 65;
+      let targetProgress = 0;
       if (oldPrice && currentPrice && targetPrice && oldPrice > targetPrice) {
         const totalDropNeeded = oldPrice - targetPrice;
         const currentDrop = oldPrice - currentPrice;
@@ -267,3 +285,135 @@ export function useLinkSource(trackingId: string) {
     },
   });
 }
+
+// ---- GAP-02: Authentication & Guest Migration Hook ----
+
+export function useAuth() {
+  const qc = useQueryClient();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const token = mounted && typeof window !== "undefined" ? getAuthToken() : null;
+
+  const { data: user, isLoading, refetch } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: authGetMe,
+    enabled: mounted && !!token,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const demoLoginMutation = useMutation({
+    mutationFn: async ({ email, name }: { email?: string; name?: string } = {}) => {
+      const oldGuestId = getUserId();
+      const res = await authDemoLogin(email, name);
+      // Auto-migrate if guest ID differs from authenticated user ID
+      if (oldGuestId && oldGuestId !== res.user.id) {
+        try {
+          await authMigrateGuestData(oldGuestId);
+        } catch (mErr) {
+          console.warn("Guest data migration note:", mErr);
+        }
+      }
+      localStorage.setItem("dealhunter-user-id", res.user.id);
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
+      qc.invalidateQueries({ queryKey: ["trackings"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const googleLoginMutation = useMutation({
+    mutationFn: async (idToken: string) => {
+      const oldGuestId = getUserId();
+      const res = await authGoogleLogin(idToken);
+      if (oldGuestId && oldGuestId !== res.user.id) {
+        try {
+          await authMigrateGuestData(oldGuestId);
+        } catch (mErr) {
+          console.warn("Guest data migration note:", mErr);
+        }
+      }
+      localStorage.setItem("dealhunter-user-id", res.user.id);
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
+      qc.invalidateQueries({ queryKey: ["trackings"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const logout = () => {
+    setAuthToken(null);
+    qc.removeQueries({ queryKey: ["auth", "me"] });
+    qc.invalidateQueries({ queryKey: ["trackings"] });
+  };
+
+  const isAuthenticated = !!token && !!user && user.auth_provider !== "guest";
+
+  return {
+    user: isAuthenticated ? user : null,
+    token,
+    isAuthenticated,
+    isLoading,
+    loginWithDemo: demoLoginMutation.mutateAsync,
+    loginWithGoogle: googleLoginMutation.mutateAsync,
+    isLoggingIn: demoLoginMutation.isPending || googleLoginMutation.isPending,
+    logout,
+    refetchUser: refetch,
+  };
+}
+
+// ---- GAP-03: Auto-Matching & Suggestions Hooks ----
+
+export function useMatchSuggestions(idOrProductId: string) {
+  return useQuery({
+    queryKey: ["match-suggestions", idOrProductId],
+    queryFn: () => getMatchSuggestions(idOrProductId),
+    enabled: !!idOrProductId,
+    staleTime: 30_000,
+  });
+}
+
+export function useAcceptMatchSuggestion(idOrProductId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, suggestionId }: { productId: string; suggestionId: string }) =>
+      acceptMatchSuggestion(productId, suggestionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["match-suggestions", idOrProductId] });
+      qc.invalidateQueries({ queryKey: ["comparison", idOrProductId] });
+      qc.invalidateQueries({ queryKey: ["trackings"] });
+    },
+  });
+}
+
+export function useDismissMatchSuggestion(idOrProductId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, suggestionId }: { productId: string; suggestionId: string }) =>
+      dismissMatchSuggestion(productId, suggestionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["match-suggestions", idOrProductId] });
+    },
+  });
+}
+
+export function useTriggerAutoMatch(idOrProductId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => triggerAutoMatch(idOrProductId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["match-suggestions", idOrProductId] });
+      qc.invalidateQueries({ queryKey: ["comparison", idOrProductId] });
+      qc.invalidateQueries({ queryKey: ["trackings"] });
+    },
+  });
+}
+

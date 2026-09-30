@@ -1,7 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
-import { useComparison } from "@/lib/hooks";
+import { useMemo, useState } from "react";
+import {
+  useComparison,
+  useMatchSuggestions,
+  useAcceptMatchSuggestion,
+  useDismissMatchSuggestion,
+  useTriggerAutoMatch,
+} from "@/lib/hooks";
+import { MatchSuggestion } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
@@ -13,6 +20,8 @@ import {
   AlertCircle,
   Store,
   CheckCircle2,
+  X,
+  Search,
 } from "lucide-react";
 
 interface SourceComparisonSectionProps {
@@ -29,6 +38,16 @@ export function SourceComparisonSection({
   const { t, formatText } = useLanguage();
   const { data: comparison, isLoading, error } = useComparison(trackingId);
 
+  const effectiveProductId = productId || comparison?.product_id;
+  const { data: suggestions = [] } = useMatchSuggestions(trackingId);
+  const acceptMutation = useAcceptMatchSuggestion(trackingId);
+  const dismissMutation = useDismissMatchSuggestion(trackingId);
+  const autoMatchMutation = useTriggerAutoMatch(trackingId);
+
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
+
   const sortedSources = useMemo(() => {
     if (!comparison?.sources || comparison.sources.length === 0) return [];
     return [...comparison.sources].sort((a, b) => {
@@ -37,6 +56,50 @@ export function SourceComparisonSection({
       return a.effective_price - b.effective_price;
     });
   }, [comparison?.sources]);
+
+  const handleTriggerAutoMatch = async () => {
+    setIsScanning(true);
+    setScanMessage(null);
+    try {
+      const res = await autoMatchMutation.mutateAsync();
+      if (res.new_suggestions.length > 0 || res.auto_linked_sources.length > 0) {
+        setScanMessage(t.comparison.autoMatchFound);
+      } else {
+        setScanMessage(t.comparison.autoMatchNone);
+      }
+      setTimeout(() => setScanMessage(null), 4000);
+    } catch {
+      setScanMessage(t.comparison.autoMatchNone);
+      setTimeout(() => setScanMessage(null), 4000);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleAccept = async (sugg: MatchSuggestion) => {
+    setAcceptingId(sugg.id);
+    try {
+      await acceptMutation.mutateAsync({
+        productId: sugg.product_id || effectiveProductId || trackingId,
+        suggestionId: sugg.id,
+      });
+    } catch (err) {
+      console.error("Failed to accept suggestion:", err);
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  const handleDismiss = async (sugg: MatchSuggestion) => {
+    try {
+      await dismissMutation.mutateAsync({
+        productId: sugg.product_id || effectiveProductId || trackingId,
+        suggestionId: sugg.id,
+      });
+    } catch (err) {
+      console.error("Failed to dismiss suggestion:", err);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -84,13 +147,94 @@ export function SourceComparisonSection({
     );
   }
 
-  // Truong hop 1: San pham chi moi co 1 nguon (chua du >= 2 nguon de so sanh)
+  // Suggestions Component for both single and multi-source modes
+  const renderSuggestions = () => {
+    if (!suggestions || suggestions.length === 0) return null;
+
+    return (
+      <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-pine-900" />
+            <h3 className="text-xs sm:text-sm font-bold text-pine-900">
+              {t.comparison.suggestionsTitle}
+            </h3>
+          </div>
+          <span className="text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+            {suggestions.length}
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {t.comparison.suggestionsDesc}
+        </p>
+
+        <div className="space-y-2.5 pt-1">
+          {suggestions.map((sugg) => (
+            <div
+              key={sugg.id}
+              className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-all"
+            >
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <PlatformBadge platformOrUrl={sugg.candidate_platform} />
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+                    {formatText(t.comparison.matchConfidence, {
+                      percent: Math.round(sugg.match_score * 100),
+                    })}
+                  </span>
+                  {sugg.candidate_seller && (
+                    <span className="text-[11px] text-slate-400 truncate">
+                      {sugg.candidate_seller}
+                    </span>
+                  )}
+                </div>
+                <h4 className="text-xs sm:text-sm font-semibold text-pine-900 truncate">
+                  {sugg.candidate_title}
+                </h4>
+                {sugg.candidate_price > 0 && (
+                  <div className="text-xs font-bold text-slate-700">
+                    {formatVND(sugg.candidate_price)}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => handleAccept(sugg)}
+                  disabled={acceptingId === sugg.id}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold transition-all disabled:opacity-50 shadow-2xs"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>
+                    {acceptingId === sugg.id
+                      ? t.comparison.acceptingSuggestion
+                      : t.comparison.acceptSuggestionBtn}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDismiss(sugg)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+                  title={t.comparison.dismissSuggestionBtn}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Case 1: Only 1 source tracked so far
   if (!comparison?.comparison_available || sortedSources.length < 2) {
     const primarySource = sortedSources[0];
 
     return (
       <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
               <Store className="w-5 h-5 text-pine-900" />
@@ -104,7 +248,34 @@ export function SourceComparisonSection({
               </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={handleTriggerAutoMatch}
+              disabled={isScanning}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-pine-900 rounded-full text-xs font-semibold transition-all disabled:opacity-50"
+            >
+              <Search className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
+              <span>{isScanning ? t.comparison.autoMatching : t.comparison.autoMatchBtn}</span>
+            </button>
+            <button
+              type="button"
+              onClick={onLinkSource}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.comparison.linkSourceBtn}</span>
+            </button>
+          </div>
         </div>
+
+        {scanMessage && (
+          <div className="p-3 bg-cyan-50 border border-cyan-200 text-cyan-900 rounded-2xl text-xs font-medium flex items-center gap-2 animate-fadeIn">
+            <Sparkles className="w-4 h-4 text-cyan-700 shrink-0" />
+            <span>{scanMessage}</span>
+          </div>
+        )}
 
         <div className="p-5 rounded-2xl bg-slate-50/90 border border-dashed border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -130,11 +301,14 @@ export function SourceComparisonSection({
             <span>{t.comparison.linkSourceBtn}</span>
           </button>
         </div>
+
+        {/* GAP-03: Suggestions inside single-source view */}
+        {renderSuggestions()}
       </div>
     );
   }
 
-  // Truong hop 2: Co tu 2 nguon tro len (comparison_available = true)
+  // Case 2: Multi-source available (comparison_available = true)
   const bestDeal = comparison.best_deal;
 
   return (
@@ -155,17 +329,38 @@ export function SourceComparisonSection({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onLinkSource}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>{t.comparison.addAnotherPlatform}</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleTriggerAutoMatch}
+            disabled={isScanning}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-pine-900 rounded-full text-xs font-semibold transition-all disabled:opacity-50"
+          >
+            <Search className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
+            <span>{isScanning ? t.comparison.autoMatching : t.comparison.autoMatchBtn}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onLinkSource}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{t.comparison.addAnotherPlatform}</span>
+          </button>
+        </div>
       </div>
 
-      {/* 2. Best Deal Summary Banner */}
+      {scanMessage && (
+        <div className="p-3 bg-cyan-50 border border-cyan-200 text-cyan-900 rounded-2xl text-xs font-medium flex items-center gap-2 animate-fadeIn">
+          <Sparkles className="w-4 h-4 text-cyan-700 shrink-0" />
+          <span>{scanMessage}</span>
+        </div>
+      )}
+
+      {/* 2. GAP-03 Suggestions */}
+      {renderSuggestions()}
+
+      {/* 3. Best Deal Summary Banner */}
       {bestDeal && bestDeal.saving_vs_most_expensive > 0 && (
         <div className="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
@@ -195,7 +390,7 @@ export function SourceComparisonSection({
         </div>
       )}
 
-      {/* 3. Table / List of Marketplace Sources */}
+      {/* 4. Table / List of Marketplace Sources */}
       <div className="space-y-3 pt-1">
         {sortedSources.map((source) => {
           const isWinningDeal = source.is_best_deal && comparison.comparison_available;
@@ -301,7 +496,7 @@ export function SourceComparisonSection({
         })}
       </div>
 
-      {/* 4. Footer info */}
+      {/* 5. Footer info */}
       <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5" />

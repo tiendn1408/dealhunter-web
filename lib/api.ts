@@ -4,13 +4,66 @@ export function getUserId(): string {
   if (typeof window === "undefined") {
     return "00000000-0000-0000-0000-000000000001";
   }
-  let uid = localStorage.getItem("deal-hunter-user-id") || localStorage.getItem("dealhunter_user_id");
+  let uid =
+    localStorage.getItem("dealhunter-user-id") ||
+    localStorage.getItem("dealhunter_user_id") ||
+    localStorage.getItem("deal-hunter-user-id");
   if (!uid) {
     // Default to the deterministic seed user UUID for demo
     uid = "00000000-0000-0000-0000-000000000001";
-    localStorage.setItem("deal-hunter-user-id", uid);
+    localStorage.setItem("dealhunter-user-id", uid);
   }
   return uid;
+}
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("dealhunter-token") || localStorage.getItem("dealhunter_token");
+}
+
+export function setAuthToken(token: string | null) {
+  if (typeof window === "undefined") return;
+  if (token) {
+    localStorage.setItem("dealhunter-token", token);
+  } else {
+    localStorage.removeItem("dealhunter-token");
+    localStorage.removeItem("dealhunter_token");
+  }
+}
+
+export function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = {
+    "X-User-ID": getUserId(),
+    ...extraHeaders,
+  };
+  const token = getAuthToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+export interface AuthUser {
+  id: string;
+  email?: string;
+  name?: string;
+  avatar_url?: string;
+  auth_provider: string;
+  zalo_id?: string;
+  phone?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthLoginResponse {
+  token: string;
+  user: AuthUser;
+}
+
+export interface MigrationResult {
+  migrated_products: number;
+  migrated_alerts: number;
+  migrated_notifications: number;
 }
 
 export interface TrackedProduct {
@@ -63,7 +116,10 @@ interface LocalProductMeta {
 function getLocalMetaStore(): Record<string, LocalProductMeta> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem("deal-hunter-products-meta") || localStorage.getItem("dealhunter_products_meta");
+    const raw =
+      localStorage.getItem("dealhunter-products-meta") ||
+      localStorage.getItem("dealhunter_products_meta") ||
+      localStorage.getItem("deal-hunter-products-meta");
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -79,7 +135,7 @@ export function saveLocalProductMeta(sourceOrTrackingId: string, meta: LocalProd
       ...meta,
       savedAt: Date.now(),
     };
-    localStorage.setItem("deal-hunter-products-meta", JSON.stringify(store));
+    localStorage.setItem("dealhunter-products-meta", JSON.stringify(store));
   } catch (err) {
     console.warn("Failed to save local product meta:", err);
   }
@@ -116,10 +172,9 @@ export async function trackProduct(url: string): Promise<TrackResponse> {
   const cleanUrl = url.trim();
   const res = await safeFetch(`${API_BASE_URL}/tracked-products`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-      "X-User-ID": getUserId(),
-    },
+    }),
     body: JSON.stringify({ url: cleanUrl }),
   });
 
@@ -151,9 +206,7 @@ export async function trackProduct(url: string): Promise<TrackResponse> {
  */
 export async function listTrackings(): Promise<TrackedProduct[]> {
   const res = await safeFetch(`${API_BASE_URL}/tracked-products`, {
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -185,9 +238,7 @@ export async function listTrackings(): Promise<TrackedProduct[]> {
  */
 export async function getTracking(id: string): Promise<TrackedProduct> {
   const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}`, {
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -237,9 +288,7 @@ export async function getPriceHistory(
 export async function pauseTracking(id: string) {
   const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/pause`, {
     method: "POST",
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -254,9 +303,7 @@ export async function pauseTracking(id: string) {
 export async function resumeTracking(id: string) {
   const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/resume`, {
     method: "POST",
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -288,10 +335,9 @@ export async function createAlert(
     `${API_BASE_URL}/tracked-products/${trackedProductIdOrSourceId}/alerts`,
     {
       method: "POST",
-      headers: {
+      headers: getAuthHeaders({
         "Content-Type": "application/json",
-        "X-User-ID": getUserId(),
-      },
+      }),
       body: JSON.stringify(payload),
     }
   );
@@ -318,9 +364,7 @@ export async function listAlerts(
   const res = await safeFetch(
     `${API_BASE_URL}/tracked-products/${trackedProductIdOrSourceId}/alerts`,
     {
-      headers: {
-        "X-User-ID": getUserId(),
-      },
+      headers: getAuthHeaders(),
       cache: "no-store",
     }
   );
@@ -338,9 +382,7 @@ export async function listAlerts(
  */
 export async function listUserAlerts(): Promise<AlertRule[]> {
   const res = await safeFetch(`${API_BASE_URL}/alert-rules`, {
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -360,9 +402,7 @@ export async function deleteAlert(
 ): Promise<{ status: string; id: string }> {
   const res = await safeFetch(`${API_BASE_URL}/alerts/${alertId}`, {
     method: "DELETE",
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -379,9 +419,7 @@ export async function listNotifications(
   limit: number = 30
 ): Promise<PriceNotification[]> {
   const res = await safeFetch(`${API_BASE_URL}/notifications?limit=${limit}`, {
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -401,9 +439,7 @@ export async function markNotificationAsRead(
 ): Promise<{ status: string; id: string }> {
   const res = await safeFetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
     method: "POST",
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -418,9 +454,7 @@ export async function markNotificationAsRead(
  */
 export async function getZaloStatus(): Promise<UserProfile> {
   const res = await safeFetch(`${API_BASE_URL}/auth/zalo/status`, {
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -439,10 +473,9 @@ export async function connectZalo(
 ): Promise<{ status: string; zalo_id?: string; phone?: string }> {
   const res = await safeFetch(`${API_BASE_URL}/users/me/zalo`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-      "X-User-ID": getUserId(),
-    },
+    }),
     body: JSON.stringify(payload),
   });
 
@@ -465,9 +498,7 @@ export async function connectZalo(
 export async function disconnectZalo(): Promise<{ status: string }> {
   const res = await safeFetch(`${API_BASE_URL}/auth/zalo/disconnect`, {
     method: "POST",
-    headers: {
-      "X-User-ID": getUserId(),
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -484,7 +515,7 @@ export async function disconnectZalo(): Promise<{ status: string }> {
 export async function getProductComparison(id: string): Promise<ComparisonResult> {
   const res = await safeFetch(
     `${API_BASE_URL}/tracked-products/${id}/comparison`,
-    { headers: { "X-User-ID": getUserId() } }
+    { headers: getAuthHeaders() }
   );
   if (!res.ok) throw new Error("Khong the tai du lieu so sanh gia");
   return res.json();
@@ -498,7 +529,7 @@ export async function linkProductSource(
     `${API_BASE_URL}/products/${productId}/link-source`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-User-ID": getUserId() },
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ url }),
     }
   );
@@ -512,10 +543,147 @@ export async function linkProductSource(
 
 export async function listProductGroups(): Promise<ProductGroupSummary[]> {
   const res = await safeFetch(`${API_BASE_URL}/product-groups`, {
-    headers: { "X-User-ID": getUserId() },
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Khong the tai danh sach nhom san pham");
   const data = await res.json();
   return data.groups || [];
 }
+
+/**
+ * GAP-02: Authentication & Guest Migration API functions
+ */
+
+export async function authDemoLogin(email?: string, name?: string): Promise<AuthLoginResponse> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/demo-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email || "", name: name || "" }),
+  });
+  if (!res.ok) {
+    throw new Error("Đăng nhập thử nghiệm thất bại");
+  }
+  const data: AuthLoginResponse = await res.json();
+  setAuthToken(data.token);
+  return data;
+}
+
+export async function authGoogleLogin(idToken: string): Promise<AuthLoginResponse> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_token: idToken }),
+  });
+  if (!res.ok) {
+    throw new Error("Đăng nhập Google thất bại hoặc phiên đã hết hạn");
+  }
+  const data: AuthLoginResponse = await res.json();
+  setAuthToken(data.token);
+  return data;
+}
+
+export async function authMigrateGuestData(guestUserId: string): Promise<MigrationResult> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/migrate`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ guest_user_id: guestUserId }),
+  });
+  if (!res.ok) {
+    throw new Error("Đồng bộ dữ liệu khách vãng lai thất bại");
+  }
+  return await res.json();
+}
+
+export async function authGetMe(): Promise<AuthUser> {
+  const res = await safeFetch(`${API_BASE_URL}/auth/me`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error("Không thể lấy thông tin người dùng");
+  }
+  return await res.json();
+}
+
+/**
+ * GAP-03: Auto-Matching & Suggestion API functions
+ */
+
+export interface MatchSuggestion {
+  id: string;
+  product_id: string;
+  candidate_platform: string;
+  candidate_url: string;
+  candidate_title: string;
+  candidate_seller?: string;
+  candidate_price: number;
+  match_score: number;
+  status: "pending" | "accepted" | "dismissed" | "auto_linked";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AutoMatchResult {
+  product_id: string;
+  reference_title: string;
+  auto_linked_sources: string[];
+  new_suggestions: MatchSuggestion[];
+  total_discovered: number;
+}
+
+export async function getMatchSuggestions(idOrProductId: string): Promise<MatchSuggestion[]> {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${idOrProductId}/match-suggestions`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    return [];
+  }
+  const data = await res.json();
+  return data.suggestions || [];
+}
+
+export async function acceptMatchSuggestion(
+  productId: string,
+  suggestionId: string
+): Promise<{ status: string; id: string }> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/products/${productId}/match-suggestions/${suggestionId}/accept`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    }
+  );
+  if (!res.ok) {
+    throw new Error("Không thể chấp nhận liên kết gợi ý");
+  }
+  return await res.json();
+}
+
+export async function dismissMatchSuggestion(
+  productId: string,
+  suggestionId: string
+): Promise<{ status: string; id: string }> {
+  const res = await safeFetch(
+    `${API_BASE_URL}/products/${productId}/match-suggestions/${suggestionId}/dismiss`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    }
+  );
+  if (!res.ok) {
+    throw new Error("Không thể bỏ qua gợi ý");
+  }
+  return await res.json();
+}
+
+export async function triggerAutoMatch(idOrProductId: string): Promise<AutoMatchResult> {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${idOrProductId}/auto-match`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error("Tìm kiếm tự động thất bại");
+  }
+  return await res.json();
+}
+
 

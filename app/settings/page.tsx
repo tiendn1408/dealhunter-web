@@ -100,7 +100,7 @@ export default function SettingsPage() {
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-bold text-pine-900 truncate">
-            Người dùng Deal Hunter
+            Người dùng DealHunter
           </h2>
           <p className="text-xs text-slate-400 font-mono truncate mt-0.5">
             ID: {userId.slice(0, 16)}...

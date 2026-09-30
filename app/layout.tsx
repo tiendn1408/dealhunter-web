@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import { QueryProvider } from "@/components/QueryProvider";
 
 export const metadata = {
-  title: "Deal Hunter — Săn đúng giá trước khi mua",
+  title: "DealHunter — Săn đúng giá trước khi mua",
   description:
     "Theo dõi giá sản phẩm bạn quan tâm và nhận thông báo khi có giá tốt từ Shopee, Lazada, TikTok Shop.",
   icons: {

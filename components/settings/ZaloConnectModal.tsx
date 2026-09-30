@@ -167,7 +167,7 @@ export function ZaloConnectModal({
                 />
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Định danh tài khoản Zalo cá nhân được cấp khi quan tâm Official Account của Deal Hunter.
+                Định danh tài khoản Zalo cá nhân được cấp khi quan tâm Official Account của DealHunter.
               </p>
             </div>
           )}

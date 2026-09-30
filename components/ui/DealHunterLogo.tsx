@@ -27,7 +27,7 @@ export function DealHunterIcon({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Deal Hunter Logo"
+      aria-label="DealHunter Logo"
     >
       {/* Mảng 1 (trên-trái): Nghiêng xuống tạo lực chuyển động dốc */}
       <rect
@@ -91,7 +91,7 @@ export function DealHunterLogo({
             <span
               className={`${textSizeClass} font-black tracking-tight leading-none ${textColor}`}
             >
-              Deal Hunter
+              DealHunter
             </span>
           </div>
           {showTagline && (

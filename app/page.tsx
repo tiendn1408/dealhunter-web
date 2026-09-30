@@ -131,7 +131,7 @@ function HomeContent() {
               {/* Headline */}
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-5xl font-black text-pine-900 tracking-tight leading-tight">
-                  Deal Hunter
+                  DealHunter
                 </h1>
                 <p className="text-base sm:text-xl text-slate-600 font-normal leading-relaxed max-w-lg">
                   Theo dõi giá sản phẩm bạn quan tâm và nhận thông báo khi có giá tốt.
@@ -337,7 +337,7 @@ function HomeContent() {
           <div className="bg-pine-50/80 border border-pine-100 rounded-xl p-3 text-xs text-pine-900 leading-relaxed text-left flex items-start gap-2">
             <ShieldCheck className="w-4 h-4 text-pine-700 mt-0.5 shrink-0" />
             <span>
-              Deal Hunter sẽ theo dõi giá sản phẩm này và thông báo cho bạn khi có biến động hoặc đạt giá mục tiêu.
+              DealHunter sẽ theo dõi giá sản phẩm này và thông báo cho bạn khi có biến động hoặc đạt giá mục tiêu.
             </span>
           </div>
 
@@ -364,10 +364,10 @@ function HomeContent() {
         </div>
       )}
 
-      {/* 2. SECTION: CÁCH DEAL HUNTER HOẠT ĐỘNG matching web-dashboard.png & mobile.png */}
+      {/* 2. SECTION: CÁCH DEALHUNTER HOẠT ĐỘNG matching web-dashboard.png & mobile.png */}
       <div className="space-y-6">
         <h2 className="text-xl sm:text-2xl font-black text-pine-900 tracking-tight">
-          Cách Deal Hunter hoạt động
+          Cách DealHunter hoạt động
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">

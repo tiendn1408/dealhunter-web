@@ -665,7 +665,7 @@ export default function ProductDetailPage() {
                 Đặt giá mục tiêu
               </h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Khi giá chạm mức bạn muốn, Deal Hunter sẽ thông báo cho bạn.
+                Khi giá chạm mức bạn muốn, DealHunter sẽ thông báo cho bạn.
               </p>
             </div>
 

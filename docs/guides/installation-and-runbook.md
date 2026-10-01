@@ -41,12 +41,12 @@ docker compose ps
 ```
 Kỳ vọng kết quả:
 - `dealhunter-postgres`: Cổng `5433:5432` (healthy / running)
-- `dealhunter-redis`: Cổng `6379:6379` (healthy / running)
+- `dealhunter-redis`: Cổng `6380:6379` (healthy / running)
 
 ### Cách 2: Sử dụng PostgreSQL và Redis cài trực tiếp (Native)
 Nếu bạn đã có sẵn PostgreSQL và Redis chạy trên máy:
 - PostgreSQL URL: `postgres://dealuser:dealpass@localhost:5433/dealdb?sslmode=disable`
-- Redis URL: `redis://localhost:6379`
+- Redis URL: `redis://localhost:6380`
 
 ---
 
@@ -65,7 +65,7 @@ Nội dung tệp `.env` tiêu chuẩn cho phát triển local:
 APP_ENV=development
 HTTP_PORT=8080
 DATABASE_URL=postgres://dealuser:dealpass@localhost:5433/dealdb?sslmode=disable
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://localhost:6380
 WORKER_CONCURRENCY=10
 DEFAULT_POLL_INTERVAL=1800
 FETCH_TIMEOUT=10s

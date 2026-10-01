@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { PriceNotification } from "@/lib/api";
+import { PriceNotification, getUserId } from "@/lib/api";
 import {
   useNotifications,
   useMarkNotificationAsRead,
@@ -189,7 +189,7 @@ export default function NotificationsPage() {
               onClick={() => {
                 const sampleNotif: PriceNotification = {
                   id: "sample-" + Date.now(),
-                  user_id: "00000000-0000-0000-0000-000000000001",
+                  user_id: getUserId(),
                   alert_rule_id: "sample-rule-1",
                   channel: "zalo",
                   recipient: "0988123456",

@@ -73,7 +73,7 @@ Nang cap he thong theo doi gia tu don le tung san sang **he sinh thai so sanh gi
 
 ### 4.4 Kiem Dinh Luong Tich Hop Toan Dien Full HTTP Flow (E2E Integration)
 - Test suite: `TestPhase3FullHTTPFlow` (`tests/integration/http_phase3_flow_test.go`)
-- Ket noi truc tiep: PostgreSQL (port 5433) + Redis (port 6379)
+- Ket noi truc tiep: PostgreSQL (port 5433) + Redis (port 6380)
 - Ket qua thuc thi 7 buoc luong nguoi dung:
   - Buoc 1: POST `/api/v1/tracked-products` khoi tao theo doi san pham Shopee -> **201 Created**.
   - Buoc 2: GET `/api/v1/tracked-products/{id}/comparison` khi chi co 1 san -> **200 OK**, `sources_count = 1`.

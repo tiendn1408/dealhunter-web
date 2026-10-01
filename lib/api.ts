@@ -9,8 +9,9 @@ export function getUserId(): string {
     localStorage.getItem("dealhunter_user_id") ||
     localStorage.getItem("deal-hunter-user-id");
   if (!uid) {
-    // Default to the deterministic seed user UUID for demo
-    uid = "00000000-0000-0000-0000-000000000001";
+    uid = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : "00000000-0000-0000-0000-000000000001";
     localStorage.setItem("dealhunter-user-id", uid);
   }
   return uid;
@@ -79,6 +80,7 @@ export interface TrackedProduct {
   Title?: string;
   Platform?: string;
   CanonicalURL?: string;
+  AffiliateURL?: string;
   SellerName?: string;
   LastPrice?: number;
   LastEffectivePrice?: number;
@@ -685,5 +687,58 @@ export async function triggerAutoMatch(idOrProductId: string): Promise<AutoMatch
   }
   return await res.json();
 }
+
+/**
+ * Phase 3.5.2: Voucher Intelligence & 2-Step Combo API functions
+ */
+
+export interface ProductVoucher {
+  id: string;
+  product_source_id: string;
+  voucher_type: "shop_voucher" | "platform_voucher" | "freeship_voucher";
+  voucher_code?: string;
+  title: string;
+  discount_amount: number;
+  discount_percent: number;
+  min_order_value: number;
+  collect_url?: string;
+  affiliate_collect_url?: string;
+  expires_at?: string;
+}
+
+export interface VoucherCalculation {
+  listed_price: number;
+  shop_discount: number;
+  platform_coupon: number;
+  shipping_fee: number;
+  effective_price: number;
+  total_savings: number;
+  best_shop_voucher?: ProductVoucher;
+  best_platform_voucher?: ProductVoucher;
+  best_freeship_voucher?: ProductVoucher;
+  available_vouchers: ProductVoucher[];
+}
+
+export interface VoucherResponse {
+  product_source_id: string;
+  product_id: string;
+  platform: string;
+  canonical_url?: string;
+  affiliate_url?: string;
+  calculation: VoucherCalculation;
+  vouchers: ProductVoucher[];
+}
+
+export async function getTrackedProductVouchers(id: string): Promise<VoucherResponse | null> {
+  const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/vouchers`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    return null;
+  }
+  return await res.json();
+}
+
 
 

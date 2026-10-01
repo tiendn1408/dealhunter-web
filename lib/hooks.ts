@@ -31,6 +31,9 @@ import {
   AuthUser,
   TrackedProduct,
   PriceSnapshot,
+  getTrackedProductVouchers,
+  VoucherResponse,
+  ProductVoucher,
 } from "./api";
 import { CreateAlertPayload } from "./types";
 import { calculatePriceStats } from "./formatting";
@@ -84,12 +87,11 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
       const oldPrice =
         stats && currentPrice && stats.highest > currentPrice
           ? stats.highest
-          : (currentPrice ? Math.round(currentPrice * 1.14) : undefined);
+          : undefined;
       const changePercent = stats ? stats.changePercent : undefined;
 
       const key = item.ProductSourceID || item.ID;
-      const targetPrice =
-        localTargets[key] || (currentPrice ? Math.round(currentPrice * 0.96) : undefined);
+      const targetPrice = localTargets[key] || undefined;
       const diffFromTarget =
         currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : 0;
 
@@ -99,7 +101,7 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
         const currentDrop = oldPrice - currentPrice;
         targetProgress = Math.min(
           100,
-          Math.max(10, Math.round((currentDrop / totalDropNeeded) * 100))
+          Math.max(0, Math.round((currentDrop / totalDropNeeded) * 100))
         );
       }
 
@@ -351,7 +353,12 @@ export function useAuth() {
 
   const logout = () => {
     setAuthToken(null);
-    qc.removeQueries({ queryKey: ["auth", "me"] });
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dealhunter-user-id");
+      localStorage.removeItem("dealhunter_user_id");
+      localStorage.removeItem("deal-hunter-user-id");
+    }
+    qc.clear();
     qc.invalidateQueries({ queryKey: ["trackings"] });
   };
 
@@ -416,4 +423,16 @@ export function useTriggerAutoMatch(idOrProductId: string) {
     },
   });
 }
+
+// ---- Phase 3.5.2: Voucher Intelligence Hook ----
+
+export function useProductVouchers(id: string) {
+  return useQuery({
+    queryKey: ["vouchers", id],
+    queryFn: () => getTrackedProductVouchers(id),
+    enabled: !!id,
+    staleTime: 60_000,
+  });
+}
+
 

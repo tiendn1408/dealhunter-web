@@ -15,6 +15,7 @@ import { CreateAlertModal } from "@/components/alerts/CreateAlertModal";
 import { ActiveAlertCard } from "@/components/alerts/ActiveAlertCard";
 import { SourceComparisonSection } from "@/components/comparison/SourceComparisonSection";
 import { LinkSourceModal } from "@/components/comparison/LinkSourceModal";
+import { VoucherBox } from "@/components/voucher/VoucherBox";
 import {
   formatVND,
   formatCompactVND,
@@ -65,7 +66,7 @@ export default function ProductDetailPage() {
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [showCreateAlertModal, setShowCreateAlertModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
-  const [targetInput, setTargetInput] = useState<number>(6000000);
+  const [targetInput, setTargetInput] = useState<number>(0);
   const [savedTarget, setSavedTarget] = useState<number | null>(null);
   const [copyNotice, setCopyNotice] = useState(false);
 
@@ -116,7 +117,7 @@ export default function ProductDetailPage() {
   const oldPrice =
     stats && currentPrice && stats.highest > currentPrice
       ? stats.highest
-      : (currentPrice ? Math.round(currentPrice * 1.14) : undefined);
+      : undefined;
 
   const changePercent = stats ? stats.changePercent : undefined;
 
@@ -274,7 +275,7 @@ export default function ProductDetailPage() {
         {/* Title, Platform & Subtitle */}
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-black text-pine-900 tracking-tight leading-snug">
-            {tracking?.Title || "Tai nghe Sony WH-1000XM6"}
+            {tracking?.Title || (tracking?.CanonicalURL ? decodeURIComponent(tracking.CanonicalURL.split("/").filter(Boolean).pop() || "") : t.notifications.productFallback)}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-normal">
             {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
@@ -283,7 +284,7 @@ export default function ProductDetailPage() {
             <PlatformBadge platformOrUrl={tracking?.Platform || tracking?.CanonicalURL} />
             {tracking?.CanonicalURL && (
               <a
-                href={tracking.CanonicalURL}
+                href={tracking.AffiliateURL || tracking.CanonicalURL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-pine-900 hover:underline"
@@ -313,14 +314,20 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Badges matching Screen 6 */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            {t.detail.justDropped}
-          </span>
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            {t.detail.lowest90dBadge}
-          </span>
-        </div>
+        {(Boolean(changePercent && changePercent < 0) || Boolean(stats && currentPrice && currentPrice <= stats.lowest)) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {changePercent !== undefined && changePercent < 0 && (
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                {t.detail.justDropped}
+              </span>
+            )}
+            {stats && currentPrice && currentPrice <= stats.lowest && (
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {t.detail.lowest90dBadge}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Target Price Card matching Screen 6 */}
         <div className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
@@ -371,7 +378,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.lowest) : "6.050.000đ"}
+              {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
             </span>
           </div>
 
@@ -380,11 +387,18 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.average) : "7.090.000đ"}
+              {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
             </span>
           </div>
         </div>
       </div>
+
+      {/* 2.2 HỘP BÍ KÍP SĂN SALE 2 BƯỚC & VOUCHER INTELLIGENCE (Phase 3.5.2) */}
+      <VoucherBox
+        trackingId={idOrSourceId}
+        canonicalUrl={tracking?.CanonicalURL}
+        affiliateUrl={tracking?.AffiliateURL}
+      />
 
       {/* 2.5 CẢNH BÁO GIÁ THÔNG MINH (Phase 2) */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-4">
@@ -576,7 +590,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.lowest) : "6.050.000đ"}
+              {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
             </span>
           </div>
 
@@ -585,7 +599,7 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.average) : "7.090.000đ"}
+              {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
             </span>
           </div>
 
@@ -594,7 +608,7 @@ export default function ProductDetailPage() {
               {t.detail.highest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.highest) : "7.490.000đ"}
+              {stats ? formatVND(stats.highest) : (currentPrice ? formatVND(currentPrice) : "--")}
             </span>
           </div>
         </div>
@@ -624,7 +638,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-pine-900">
-                  {stats ? formatVND(stats.lowest) : "6.050.000đ"}
+                  {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneRecordedLow}</span>
               </div>
@@ -637,7 +651,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-700">
-                  {stats ? formatVND(stats.average) : "7.090.000đ"}
+                  {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneMedian}</span>
               </div>

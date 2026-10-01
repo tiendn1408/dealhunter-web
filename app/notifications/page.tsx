@@ -330,7 +330,7 @@ export default function NotificationsPage() {
                     )}
                     {notif.product_url && (
                       <a
-                        href={notif.product_url}
+                        href={notif.affiliate_url || notif.product_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}

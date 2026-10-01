@@ -298,7 +298,7 @@ export default function MyTrackingPage() {
                   <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
                     <div
                       className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${item.targetProgress || 60}%` }}
+                      style={{ width: `${item.targetProgress || 0}%` }}
                     />
                   </div>
                 </div>

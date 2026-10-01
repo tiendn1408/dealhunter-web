@@ -35,6 +35,7 @@ export interface PriceNotification {
   product_title?: string;
   platform?: string;
   product_url?: string;
+  affiliate_url?: string;
 }
 
 export interface UserProfile {
@@ -58,6 +59,7 @@ export interface SourcePrice {
   platform: string;
   seller_name: string;
   canonical_url: string;
+  affiliate_url?: string;
   listed_price: number;
   shipping_fee: number;
   effective_price: number;

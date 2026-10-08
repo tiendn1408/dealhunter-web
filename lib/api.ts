@@ -10,13 +10,16 @@ const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/
  * - Listeners are notified only when the signed-in identity changes (not on every token rotation).
  */
 const TOKEN_EXPIRY_SKEW_MS = 30_000;
+/** Identifies this tab in cross-tab locks and session announcements. */
+const tabLockId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
 let sessionUserId: string | null = null;
 let sessionIsMember = false;
-// False until the first session of this page load is applied: establishing it is not an identity change
-let sessionEstablished = false;
+// False until the page load's first ensureSession attempt has settled (succeeded or failed). The session
+// that attempt applies is not announced; any later identity change (or one after a failed first attempt) is.
+let initialSessionAttemptSettled = false;
 let sessionPromise: Promise<string> | null = null;
 const sessionListeners = new Set<(change: SessionChange) => void>();
 
@@ -37,7 +40,17 @@ export function onSessionChange(listener: (change: SessionChange) => void): () =
   return () => sessionListeners.delete(listener);
 }
 
-function applySession(session: AuthSession | null, memberSessionExpired = false) {
+function notifySessionChange(memberSessionExpired: boolean) {
+  sessionListeners.forEach((l) => l({ memberSessionExpired }));
+}
+
+/**
+ * Applies (or clears) the in-memory session. `announce: false` is used only for the session applied by
+ * the page load's first ensureSession: nothing is cached yet, and resetting the queries waiting for it
+ * would only send every request twice. Clearing (logout) is followed by a guest session, which is the
+ * change worth announcing.
+ */
+function applySession(session: AuthSession | null, memberSessionExpired = false, announce = true) {
   const prevUserId = sessionUserId;
   accessToken = session?.access_token ?? null;
   accessTokenExpiresAt = session ? Date.now() + session.expires_in * 1000 - TOKEN_EXPIRY_SKEW_MS : 0;
@@ -48,13 +61,92 @@ function applySession(session: AuthSession | null, memberSessionExpired = false)
       ? { accessToken: session.access_token, expiresAt: accessTokenExpiresAt, email: session.user.email, name: session.user.name }
       : null
   );
-  // Clearing (logout) is followed by a guest session, which is the change worth announcing. The first
-  // session of a page load is not announced: nothing is cached yet, and resetting the queries waiting for
-  // it would only send every request twice.
-  if (session && prevUserId !== sessionUserId && sessionEstablished) {
-    sessionListeners.forEach((l) => l({ memberSessionExpired }));
+  if (session && prevUserId !== sessionUserId && announce) {
+    notifySessionChange(memberSessionExpired);
   }
-  if (session) sessionEstablished = true;
+}
+
+/**
+ * Cross-tab session announcements: after a sign-in or sign-out in this tab, the other tabs drop their
+ * in-memory token, refresh once (under the cross-tab refresh lock, so the refresh cookie is never
+ * replayed) and reset their queries if the identity changed. Only explicit sign-in/sign-out is announced,
+ * never a refresh, so a tab reacting to an announcement cannot trigger further announcements.
+ */
+const SESSION_CHANNEL_NAME = "dealhunter-session";
+interface SessionBroadcast {
+  type: "session-changed";
+  from: string;
+  /** The identity the sending tab now has; null when it has none (e.g. the guest session failed to start). */
+  userId: string | null;
+}
+let sessionChannel: BroadcastChannel | null = null;
+
+function broadcastSessionChange() {
+  if (typeof window === "undefined") return;
+  const msg: SessionBroadcast = { type: "session-changed", from: tabLockId, userId: sessionUserId };
+  if (sessionChannel) {
+    try {
+      sessionChannel.postMessage(msg);
+      return;
+    } catch {
+      // fall through to the storage event
+    }
+  }
+  try {
+    // A unique value so every announcement fires a storage event in the other tabs
+    localStorage.setItem(SESSION_CHANNEL_NAME, JSON.stringify({ ...msg, at: Date.now(), nonce: Math.random() }));
+    localStorage.removeItem(SESSION_CHANNEL_NAME);
+  } catch {
+    // Storage unusable: the other tabs notice the change on their next refresh
+  }
+}
+
+function handleSessionBroadcast(data: unknown) {
+  const msg = data as Partial<SessionBroadcast> | null;
+  if (!msg || msg.type !== "session-changed" || typeof msg.from !== "string") return;
+  if (msg.from === tabLockId) return; // never act on our own announcement
+  const targetUserId = typeof msg.userId === "string" ? msg.userId : null;
+  if (targetUserId && targetUserId === sessionUserId) return; // already in sync
+  const resync = () => {
+    if (targetUserId && targetUserId === sessionUserId) return;
+    // Drop the in-memory token; the change was deliberate in another tab, so it is not shown as an
+    // expired member session.
+    accessToken = null;
+    accessTokenExpiresAt = 0;
+    sessionIsMember = false;
+    ensureSession().catch(() => {
+      // No session could be started: still clear the previous identity's data from this tab
+      notifySessionChange(false);
+    });
+  };
+  // A refresh already in flight may have run before the other tab's change: resync after it settles
+  if (sessionPromise) sessionPromise.then(resync, resync);
+  else resync();
+}
+
+if (typeof window !== "undefined") {
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      sessionChannel = new BroadcastChannel(SESSION_CHANNEL_NAME);
+      sessionChannel.onmessage = (e) => handleSessionBroadcast(e.data);
+    }
+  } catch {
+    sessionChannel = null;
+  }
+  if (!sessionChannel) {
+    try {
+      window.addEventListener("storage", (e) => {
+        if (e.key !== SESSION_CHANNEL_NAME || !e.newValue) return;
+        try {
+          handleSessionBroadcast(JSON.parse(e.newValue));
+        } catch {
+          // malformed value: ignore
+        }
+      });
+    } catch {
+      // no storage events: announcements from other tabs are not received
+    }
+  }
 }
 
 class HttpError extends Error {
@@ -94,7 +186,6 @@ const REFRESH_LOCK_NAME = "dealhunter-session-refresh";
 const STORAGE_LOCK_TTL_MS = 10_000;
 const STORAGE_LOCK_POLL_MS = 100;
 const STORAGE_LOCK_SETTLE_MS = 50;
-const tabLockId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 let storageLockSeq = 0;
 
 function withCrossTabLock<T>(fn: () => Promise<T>): Promise<T> {
@@ -150,10 +241,22 @@ async function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
       }
       await sleep(STORAGE_LOCK_POLL_MS);
     }
-    if (held) renew = setInterval(() => writeStorageLock(owner), STORAGE_LOCK_TTL_MS / 3);
+    if (held) {
+      // Renew only while the lock is still ours: if it expired and another tab took it, stop renewing
+      // instead of overwriting its claim (and the finally below leaves its lock in place).
+      renew = setInterval(() => {
+        if (readStorageLock()?.owner === owner) {
+          writeStorageLock(owner);
+        } else if (renew) {
+          clearInterval(renew);
+          renew = undefined;
+        }
+      }, STORAGE_LOCK_TTL_MS / 3);
+    }
     return await fn();
   } finally {
     if (renew) clearInterval(renew);
+    // Release only our own lock, never one another tab claimed after ours was lost
     if (held && readStorageLock()?.owner === owner) {
       try {
         localStorage.removeItem(REFRESH_LOCK_NAME);
@@ -162,23 +265,47 @@ async function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-function refreshOrStartGuest(): Promise<string> {
-  return withCrossTabLock(refreshOrStartGuestUnlocked);
+function refreshOrStartGuest(announce: boolean): Promise<string> {
+  return withCrossTabLock(() => refreshOrStartGuestUnlocked(announce));
 }
 
-async function refreshOrStartGuestUnlocked(): Promise<string> {
+/** A failed session start as a clear message (never the server's raw response text). */
+function sessionStartError(err: unknown): Error {
+  if (err instanceof HttpError) {
+    if (err.status === 429) {
+      return new Error("Máy chủ đang giới hạn số lần tạo phiên. Vui lòng thử lại sau ít phút.");
+    }
+    return new Error(`Không thể bắt đầu phiên làm việc với máy chủ (HTTP ${err.status}). Vui lòng thử lại sau.`);
+  }
+  return err instanceof Error ? err : new Error(CONNECTION_ERROR);
+}
+
+async function refreshOrStartGuestUnlocked(announce: boolean): Promise<string> {
   const wasMember = sessionIsMember;
   try {
     const session = await postAuth("/auth/refresh");
     // The cookie can belong to a guest when another tab logged out: the member session still ended here.
-    applySession(session, wasMember && session.user.auth_provider === "guest");
+    applySession(session, wasMember && session.user.auth_provider === "guest", announce);
     return session.access_token;
   } catch (err) {
-    if (!(err instanceof HttpError && err.status === 401)) throw err;
-    // No usable refresh cookie: continue as a fresh guest (and tell the UI if a member session ended)
+    // Not a definitive answer (network, 5xx, 429): keep the current session, report the failure
+    if (!(err instanceof HttpError && err.status === 401)) throw sessionStartError(err);
+  }
+  // No usable refresh cookie: the member session (if any) is definitively gone. Clear it before trying
+  // a guest session, so the UI stops treating this browser as signed in even if that attempt fails.
+  if (wasMember) applySession(null);
+  try {
     const guest = await postAuth("/auth/guest");
-    applySession(guest, wasMember);
+    // Tells the UI if a member session ended (prevUserId is null after the clear above, so this announces)
+    applySession(guest, wasMember, announce);
     return guest.access_token;
+  } catch (err) {
+    if (wasMember) {
+      // Show the session-expired banner and clear the member's data even without a guest session
+      notifySessionChange(true);
+      throw new SessionExpiredError();
+    }
+    throw sessionStartError(err);
   }
 }
 
@@ -190,7 +317,10 @@ function hasFreshToken(): boolean {
 export function ensureSession(forceRefresh = false): Promise<string> {
   if (!forceRefresh && hasFreshToken()) return Promise.resolve(accessToken as string);
   if (!sessionPromise) {
-    sessionPromise = refreshOrStartGuest().finally(() => {
+    // Only the page load's first attempt is silent; once it settled (even by failing) every change is announced
+    const announce = initialSessionAttemptSettled;
+    sessionPromise = refreshOrStartGuest(announce).finally(() => {
+      initialSessionAttemptSettled = true;
       sessionPromise = null;
     });
   }
@@ -791,6 +921,7 @@ export async function authGoogleLogin(idToken: string): Promise<AuthSession> {
     // (the lock is not re-entrant, so ensureSession above stays outside it)
     const session = await withCrossTabLock(() => postAuth("/auth/google", { id_token: idToken }, guestToken));
     applySession(session);
+    broadcastSessionChange();
     return session;
   } catch (err) {
     if (err instanceof HttpError) {
@@ -827,8 +958,10 @@ export async function authLogout(): Promise<void> {
   } catch {
     // The logout itself succeeded; only the follow-up guest session failed (e.g. 429). Clear the member's
     // data from the UI now (applySession(null) does not notify) and let the next request start the guest session.
-    sessionListeners.forEach((l) => l({ memberSessionExpired: false }));
+    notifySessionChange(false);
   }
+  // Announced after the guest session (if any) set its cookie, so the other tabs refresh into it
+  broadcastSessionChange();
 }
 
 export async function authGetMe(): Promise<AuthUser> {

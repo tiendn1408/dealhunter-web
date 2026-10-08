@@ -332,6 +332,7 @@ export const en: Dictionary = {
     zaloCodeLabel: "Verification code (6 digits)",
     zaloCodeSentTo: "A verification code was sent via Zalo to {phone}.",
     zaloCodeExpiresIn: "Code expires in {time}",
+    zaloCodeDiscarded: "This code can no longer be used. Please tap \"Resend code\" to get a new one.",
     zaloCodeExpired: "The code has expired. Please tap \"Resend code\".",
     zaloVerifyBtn: "Verify",
     zaloVerifying: "Verifying...",

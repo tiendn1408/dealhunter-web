@@ -70,13 +70,18 @@ export function ZaloConnectModal({
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // The server discarded the pending code (429 after too many wrong tries): only a new code helps
+  const [codeDiscarded, setCodeDiscarded] = useState(false);
+  // From Retry-After when the first code request was refused (429) before any code was sent
+  const [sendBlockedUntil, setSendBlockedUntil] = useState(0);
 
-  // Tick once a second while a code is pending, for the expiry and resend countdowns
+  const phoneStepWaiting = step === "phone" && sendBlockedUntil > now;
+  // Tick once a second while a code is pending or a send is blocked, for the countdowns
   useEffect(() => {
-    if (!isOpen || step !== "code") return;
+    if (!isOpen || (step !== "code" && !phoneStepWaiting)) return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, [isOpen, step]);
+  }, [isOpen, step, phoneStepWaiting]);
 
   if (!isOpen) return null;
 
@@ -87,6 +92,8 @@ export function ZaloConnectModal({
     setSent(null);
     setError(null);
     setInfo(null);
+    setCodeDiscarded(false);
+    setSendBlockedUntil(0);
     otpMutation.reset();
     connectMutation.reset();
   };
@@ -103,7 +110,9 @@ export function ZaloConnectModal({
   const applyRetryAfter = (err: unknown) => {
     if (err instanceof ApiError && err.status === 429 && err.retryAfterSeconds !== undefined) {
       const resendAt = Date.now() + err.retryAfterSeconds * 1000;
-      setSent((prev) => (prev ? { ...prev, resendAt } : prev));
+      setNow(Date.now());
+      if (sent) setSent({ ...sent, resendAt });
+      else setSendBlockedUntil(resendAt);
     }
   };
 
@@ -120,6 +129,8 @@ export function ZaloConnectModal({
       setSent(toSentOtp(res));
       setNow(Date.now());
       setCode("");
+      setCodeDiscarded(false);
+      setSendBlockedUntil(0);
       setStep("code");
       if (isResend) setInfo(t.settings.zaloResent);
     } catch (err) {
@@ -146,6 +157,12 @@ export function ZaloConnectModal({
       onConnected({ phone: res.phone, zalo_connected: true });
       handleClose();
     } catch (err) {
+      if (err instanceof ApiError && err.status === 429) {
+        // Too many wrong tries: the server discarded this code. Back to "request a new code".
+        setCodeDiscarded(true);
+        setCode("");
+        applyRetryAfter(err);
+      }
       setError(errorMessage(err, t.settings.zaloConnectFailed));
     }
   };
@@ -156,6 +173,7 @@ export function ZaloConnectModal({
     setSent(null);
     setError(null);
     setInfo(null);
+    setCodeDiscarded(false);
   };
 
   const sending = otpMutation.isPending;
@@ -163,6 +181,8 @@ export function ZaloConnectModal({
   const resendWaitMs = sent ? sent.resendAt - now : 0;
   const expiresInMs = sent ? sent.expiresAt - now : 0;
   const codeExpired = !!sent && expiresInMs <= 0;
+  // No usable code: the input is locked until a new code is requested
+  const codeUnusable = codeExpired || codeDiscarded;
   // The server returns the normalized phone; show it in local form
   const sentToPhone = sent ? formatPhoneLocal(sent.phone) : "";
 
@@ -267,10 +287,16 @@ export function ZaloConnectModal({
 
                 <button
                   type="submit"
-                  disabled={sending}
+                  disabled={sending || phoneStepWaiting}
                   className="w-full py-3 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
                 >
-                  <span>{sending ? t.settings.zaloSendingCode : t.settings.zaloSendCodeBtn}</span>
+                  <span>
+                    {sending
+                      ? t.settings.zaloSendingCode
+                      : phoneStepWaiting
+                      ? formatText(t.settings.zaloResendIn, { time: formatCountdown(sendBlockedUntil - now) })
+                      : t.settings.zaloSendCodeBtn}
+                  </span>
                 </button>
               </form>
             ) : (
@@ -293,18 +319,21 @@ export function ZaloConnectModal({
                       maxLength={6}
                       required
                       autoFocus
+                      disabled={codeUnusable}
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="123456"
-                      className={`${inputClass} font-mono tracking-[0.4em]`}
+                      className={`${inputClass} font-mono tracking-[0.4em] disabled:opacity-50 disabled:cursor-not-allowed`}
                     />
                   </div>
                   <p
                     className={`text-[11px] leading-relaxed ${
-                      codeExpired ? "text-rose-600" : "text-slate-400"
+                      codeUnusable ? "text-rose-600" : "text-slate-400"
                     }`}
                   >
-                    {codeExpired
+                    {codeDiscarded
+                      ? t.settings.zaloCodeDiscarded
+                      : codeExpired
                       ? t.settings.zaloCodeExpired
                       : formatText(t.settings.zaloCodeExpiresIn, {
                           time: formatCountdown(expiresInMs),
@@ -314,7 +343,7 @@ export function ZaloConnectModal({
 
                 <button
                   type="submit"
-                  disabled={verifying || code.length !== 6 || codeExpired}
+                  disabled={verifying || code.length !== 6 || codeUnusable}
                   className="w-full py-3 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
                 >
                   <span>{verifying ? t.settings.zaloVerifying : t.settings.zaloVerifyBtn}</span>

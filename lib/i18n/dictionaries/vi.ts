@@ -330,6 +330,7 @@ export const vi = {
     zaloCodeLabel: "Mã xác minh (6 chữ số)",
     zaloCodeSentTo: "Mã xác minh đã được gửi qua Zalo đến số {phone}.",
     zaloCodeExpiresIn: "Mã hết hạn sau {time}",
+    zaloCodeDiscarded: "Mã này không còn dùng được. Vui lòng bấm \"Gửi lại mã\" để nhận mã mới.",
     zaloCodeExpired: "Mã đã hết hạn. Vui lòng bấm \"Gửi lại mã\".",
     zaloVerifyBtn: "Xác minh",
     zaloVerifying: "Đang xác minh...",

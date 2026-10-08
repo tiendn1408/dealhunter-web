@@ -1,3 +1,5 @@
+import { pushSessionToExtension } from "./extension_bridge";
+
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1").replace(/\/+$/, "");
 
 /**
@@ -39,6 +41,11 @@ function applySession(session: AuthSession | null, memberSessionExpired = false)
   accessTokenExpiresAt = session ? Date.now() + session.expires_in * 1000 - TOKEN_EXPIRY_SKEW_MS : 0;
   sessionUserId = session?.user.id ?? null;
   sessionIsMember = !!session && session.user.auth_provider !== "guest";
+  pushSessionToExtension(
+    session && sessionIsMember
+      ? { accessToken: session.access_token, expiresAt: accessTokenExpiresAt, email: session.user.email, name: session.user.name }
+      : null
+  );
   // Clearing (logout) is followed by a guest session, which is the change worth announcing.
   if (session && prevUserId !== sessionUserId) {
     sessionListeners.forEach((l) => l({ memberSessionExpired }));

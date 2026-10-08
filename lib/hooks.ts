@@ -11,6 +11,8 @@ import {
   markNotificationAsRead,
   getZaloStatus,
   disconnectZalo,
+  requestZaloOtp,
+  connectZalo,
   getProductComparison,
   linkProductSource,
   pauseTracking,
@@ -264,6 +266,25 @@ export function useDisconnectZalo() {
     mutationFn: disconnectZalo,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["zalo", "profile"] });
+    },
+  });
+}
+
+/** Step 1 of Zalo linking: sends an OTP by ZNS to the given phone (members only). */
+export function useRequestZaloOtp() {
+  return useMutation({
+    mutationFn: (phone: string) => requestZaloOtp(phone),
+  });
+}
+
+/** Step 2 of Zalo linking: verifies the OTP and links the phone. */
+export function useConnectZalo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ phone, code }: { phone: string; code: string }) => connectZalo({ phone, code }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["zalo", "profile"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }

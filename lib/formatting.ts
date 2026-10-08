@@ -21,6 +21,22 @@ export function isKnownPrice(amount?: number | null): amount is number {
 }
 
 /**
+ * Shows a phone number in Vietnamese local form.
+ * Example: "84912345678" -> "0912 345 678". Input the function does not recognise is returned unchanged
+ * (never guessed); empty input returns "".
+ */
+export function formatPhoneLocal(phone?: string | null): string {
+  if (!phone) return "";
+  const digits = phone.replace(/[\s.\-()]/g, "").replace(/^\+/, "");
+  if (!/^\d+$/.test(digits)) return phone;
+  let local: string;
+  if (digits.startsWith("84") && digits.length === 11) local = `0${digits.slice(2)}`;
+  else if (digits.startsWith("0") && digits.length === 10) local = digits;
+  else return phone;
+  return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
+}
+
+/**
  * Compact VND format for chart axes & badges.
  * Example: 6290000 -> "6.29M", 450000 -> "450k"
  */

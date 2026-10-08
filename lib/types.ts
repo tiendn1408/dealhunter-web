@@ -46,9 +46,25 @@ export interface UserProfile {
   created_at: string;
 }
 
+/** Verify step of Zalo linking: the phone as typed (the server normalizes it) and the OTP code. */
 export interface ConnectZaloPayload {
-  zalo_id?: string;
-  phone?: string;
+  phone: string;
+  code: string;
+}
+
+export interface ConnectZaloResponse {
+  status: string;
+  /** Normalized as 84xxxxxxxxx */
+  phone: string;
+}
+
+export interface ZaloOtpResponse {
+  /** Normalized as 84xxxxxxxxx */
+  phone: string;
+  /** Seconds until the code expires */
+  expires_in: number;
+  /** Seconds before another code may be requested */
+  resend_after: number;
 }
 
 // Phase 3: Cross-platform Price Comparison types

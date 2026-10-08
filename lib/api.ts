@@ -15,6 +15,8 @@ let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
 let sessionUserId: string | null = null;
 let sessionIsMember = false;
+// False until the first session of this page load is applied: establishing it is not an identity change
+let sessionEstablished = false;
 let sessionPromise: Promise<string> | null = null;
 const sessionListeners = new Set<(change: SessionChange) => void>();
 
@@ -46,10 +48,13 @@ function applySession(session: AuthSession | null, memberSessionExpired = false)
       ? { accessToken: session.access_token, expiresAt: accessTokenExpiresAt, email: session.user.email, name: session.user.name }
       : null
   );
-  // Clearing (logout) is followed by a guest session, which is the change worth announcing.
-  if (session && prevUserId !== sessionUserId) {
+  // Clearing (logout) is followed by a guest session, which is the change worth announcing. The first
+  // session of a page load is not announced: nothing is cached yet, and resetting the queries waiting for
+  // it would only send every request twice.
+  if (session && prevUserId !== sessionUserId && sessionEstablished) {
     sessionListeners.forEach((l) => l({ memberSessionExpired }));
   }
+  if (session) sessionEstablished = true;
 }
 
 class HttpError extends Error {
@@ -308,6 +313,63 @@ async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
   }
 }
 
+/** A non-2xx API response carrying the server's own message (and the Retry-After wait for 429). */
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    /** Seconds from the Retry-After header; undefined when the server did not send one. */
+    public retryAfterSeconds?: number
+  ) {
+    super(message);
+  }
+}
+
+/** Parses Retry-After (delta-seconds or an HTTP date) into whole seconds; undefined when absent/invalid. */
+function parseRetryAfter(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) return parseInt(trimmed, 10);
+  const date = Date.parse(trimmed);
+  if (isNaN(date)) return undefined;
+  return Math.max(0, Math.ceil((date - Date.now()) / 1000));
+}
+
+/** "2 phút 5 giây" / "45 giây" */
+export function formatWaitVi(seconds: number): string {
+  const s = Math.max(0, Math.ceil(seconds));
+  const m = Math.floor(s / 60);
+  const rest = s % 60;
+  if (m === 0) return `${rest} giây`;
+  return rest === 0 ? `${m} phút` : `${m} phút ${rest} giây`;
+}
+
+/**
+ * Builds an ApiError from a failed response using the server's text (plain text or JSON {message|error}).
+ * On 429 the Retry-After wait is appended so the user knows how long to wait.
+ */
+async function apiErrorFrom(res: Response, fallback: string): Promise<ApiError> {
+  let msg = "";
+  try {
+    const text = (await res.text()).trim();
+    msg = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === "object") msg = parsed.message || parsed.error || text;
+    } catch {
+      // plain-text body
+    }
+  } catch {
+    // body unreadable: use the fallback below
+  }
+  const retryAfter = res.status === 429 ? parseRetryAfter(res.headers.get("Retry-After")) : undefined;
+  let message = msg || `${fallback} (HTTP ${res.status})`;
+  if (retryAfter !== undefined && retryAfter > 0) {
+    message = `${message} (Vui lòng thử lại sau ${formatWaitVi(retryAfter)}.)`;
+  }
+  return new ApiError(res.status, message, retryAfter);
+}
+
 /**
  * Track a new product by its URL.
  */
@@ -322,15 +384,8 @@ export async function trackProduct(url: string): Promise<TrackResponse> {
   });
 
   if (!res.ok) {
-    const errorText = await res.text();
-    let msg = errorText;
-    try {
-      const parsed = JSON.parse(errorText);
-      msg = parsed.message || parsed.error || errorText;
-    } catch {
-      // use raw text
-    }
-    throw new Error(msg || "Không thể theo dõi sản phẩm. Vui lòng kiểm tra lại đường link.");
+    // 429 = per-user rate limit (message + Retry-After wait)
+    throw await apiErrorFrom(res, "Không thể theo dõi sản phẩm. Vui lòng kiểm tra lại đường link.");
   }
 
   const data: TrackResponse = await res.json();
@@ -433,6 +488,8 @@ import {
   PriceNotification,
   UserProfile,
   ConnectZaloPayload,
+  ConnectZaloResponse,
+  ZaloOtpResponse,
   ComparisonResult,
   LinkSourceResponse,
   ProductGroupSummary,
@@ -625,11 +682,27 @@ export async function getZaloStatus(): Promise<UserProfile> {
 }
 
 /**
- * Connect Zalo account using phone number or Zalo ID.
+ * Step 1 of Zalo linking (members only): ask the server to send a 6-digit OTP by ZNS to `phone`.
+ * Errors carry the server's message: 400 invalid phone, 403 guest, 429 too many / resend too early
+ * (retryAfterSeconds), 503 Zalo OA not configured, 502 Zalo failed to send.
  */
-export async function connectZalo(
-  payload: ConnectZaloPayload
-): Promise<{ status: string; zalo_id?: string; phone?: string }> {
+export async function requestZaloOtp(phone: string): Promise<ZaloOtpResponse> {
+  const res = await safeFetch(`${API_BASE_URL}/users/me/zalo/otp`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ phone }),
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res, "Không thể gửi mã xác minh qua Zalo");
+  }
+  return res.json();
+}
+
+/**
+ * Step 2 of Zalo linking: verify the OTP and link `phone` to the signed-in member.
+ * Errors carry the server's message: 400 wrong/expired code, 429 too many wrong attempts, 403 guest.
+ */
+export async function connectZalo(payload: ConnectZaloPayload): Promise<ConnectZaloResponse> {
   const res = await safeFetch(`${API_BASE_URL}/users/me/zalo`, {
     method: "POST",
     headers: getAuthHeaders({
@@ -639,13 +712,7 @@ export async function connectZalo(
   });
 
   if (!res.ok) {
-    const errorText = await res.text();
-    let msg = errorText;
-    try {
-      const parsed = JSON.parse(errorText);
-      msg = parsed.message || parsed.error || errorText;
-    } catch {}
-    throw new Error(msg || "Không thể liên kết tài khoản Zalo");
+    throw await apiErrorFrom(res, "Không thể liên kết tài khoản Zalo");
   }
 
   return res.json();
@@ -657,7 +724,9 @@ export async function connectZalo(
 export async function disconnectZalo(): Promise<{ status: string }> {
   const res = await safeFetch(`${API_BASE_URL}/auth/zalo/disconnect`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    // POST /auth/* only accepts JSON (CSRF guard)
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: "{}",
   });
 
   if (!res.ok) {
@@ -692,10 +761,10 @@ export async function linkProductSource(
       body: JSON.stringify({ url }),
     }
   );
-  if (res.status === 409) throw new Error("URL nay da duoc lien ket voi san pham roi");
+  // 409 = already linked or a shared group only auto-match may change; 429 = rate limited.
+  // Both carry the server's message, which is shown as-is.
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Khong the lien ket san");
+    throw await apiErrorFrom(res, "Không thể liên kết sàn");
   }
   return res.json();
 }
@@ -718,7 +787,9 @@ export async function authGoogleLogin(idToken: string): Promise<AuthSession> {
   // A fresh guest token is required for the server to migrate this browser's guest data.
   const guestToken = sessionIsMember ? null : await ensureSession().catch(() => null);
   try {
-    const session = await postAuth("/auth/google", { id_token: idToken }, guestToken);
+    // Under the refresh lock: a guest refresh in another tab must not overwrite the new member cookie
+    // (the lock is not re-entrant, so ensureSession above stays outside it)
+    const session = await withCrossTabLock(() => postAuth("/auth/google", { id_token: idToken }, guestToken));
     applySession(session);
     return session;
   } catch (err) {
@@ -736,11 +807,14 @@ export async function authGoogleLogin(idToken: string): Promise<AuthSession> {
 export async function authLogout(): Promise<void> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
+    // Under the refresh lock, so a refresh in another tab cannot rotate the cookie mid-logout
+    res = await withCrossTabLock(() =>
+      fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      })
+    );
   } catch {
     throw new Error(CONNECTION_ERROR);
   }
@@ -816,8 +890,9 @@ export async function acceptMatchSuggestion(
       headers: getAuthHeaders(),
     }
   );
+  // 409 = shared comparison group (only auto-match may change it); 429 = rate limited
   if (!res.ok) {
-    throw new Error("Không thể chấp nhận liên kết gợi ý");
+    throw await apiErrorFrom(res, "Không thể chấp nhận liên kết gợi ý");
   }
   return await res.json();
 }
@@ -833,8 +908,9 @@ export async function dismissMatchSuggestion(
       headers: getAuthHeaders(),
     }
   );
+  // 409 = shared comparison group (only auto-match may change it)
   if (!res.ok) {
-    throw new Error("Không thể bỏ qua gợi ý");
+    throw await apiErrorFrom(res, "Không thể bỏ qua gợi ý");
   }
   return await res.json();
 }
@@ -844,8 +920,9 @@ export async function triggerAutoMatch(idOrProductId: string): Promise<AutoMatch
     method: "POST",
     headers: getAuthHeaders(),
   });
+  // 409 = the product has no price yet; 429 = rate limited (with Retry-After)
   if (!res.ok) {
-    throw new Error("Tìm kiếm tự động thất bại");
+    throw await apiErrorFrom(res, "Tìm kiếm tự động thất bại");
   }
   return await res.json();
 }

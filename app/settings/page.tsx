@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { useLanguage } from "@/lib/i18n";
+import { formatPhoneLocal } from "@/lib/formatting";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
   Settings,
@@ -33,7 +34,7 @@ export default function SettingsPage() {
   const qc = useQueryClient();
   const { user, sessionUser, isAuthenticated, logout } = useAuth();
   const userId = sessionUser?.id ?? "";
-  const { data: zaloProfile = null } = useZaloProfile();
+  const { data: zaloProfile = null, error: zaloError, refetch: refetchZalo } = useZaloProfile();
   const disconnectMutation = useDisconnectZalo();
   const zaloDisconnecting = disconnectMutation.isPending;
 
@@ -185,8 +186,19 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Liên kết Zalo (Phase 2) */}
-        {zaloProfile?.zalo_connected ? (
+        {/* Liên kết Zalo (Phase 2): a failed load is an error, not "not linked" */}
+        {zaloError ? (
+          <div className="flex items-center justify-between gap-3 p-4 sm:p-4.5">
+            <span className="text-[11px] text-rose-600">{(zaloError as Error).message}</span>
+            <button
+              type="button"
+              onClick={() => refetchZalo()}
+              className="shrink-0 text-xs font-bold text-pine-700 hover:underline"
+            >
+              {t.common.retry}
+            </button>
+          </div>
+        ) : zaloProfile?.zalo_connected ? (
           <div className="flex items-center justify-between p-4 sm:p-4.5 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
@@ -196,7 +208,11 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-900 block">
                     {formatText(t.settings.zaloActiveTitle, {
-                      identifier: zaloProfile.phone || zaloProfile.zalo_id || "",
+                      // phone comes normalized (84xxxxxxxxx); shown in local form
+                      identifier:
+                        formatPhoneLocal(zaloProfile.phone) ||
+                        zaloProfile.zalo_id ||
+                        t.settings.zaloIdentifierUnknown,
                     })}
                   </span>
                   <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
@@ -333,6 +349,7 @@ export default function SettingsPage() {
         onConnected={() => {
           qc.invalidateQueries({ queryKey: ["zalo", "profile"] });
         }}
+        onRequestLogin={() => setShowLoginModal(true)}
       />
 
       {/* Login Modal (GAP-02) */}

@@ -73,6 +73,24 @@ npm run build
 
 ---
 
+## Trien Khai Production & Docker (Deployment)
+
+### 1. Chay Standalone truc tiep tren may chu Node.js:
+Next.js da duoc cau hinh `output: "standalone"` de tao ra ban build doc lap nhe:
+```bash
+NEXT_PUBLIC_API_URL=https://dealhunter.vn/api/v1 npm run build
+NODE_ENV=production PORT=3000 node .next/standalone/server.js
+```
+
+### 2. Dong goi Docker Image:
+```bash
+docker build --build-arg NEXT_PUBLIC_API_URL=https://dealhunter.vn/api/v1 -t dealhunter-web:latest .
+docker run -d -p 3000:3000 --name dealhunter-web dealhunter-web:latest
+```
+Hoac khoi chay dong bo cung he thong Go backend qua `docker-compose.prod.yml` tai thu muc `dealhunter`.
+
+---
+
 ## Cau Truc Thu Muc
 
 ```

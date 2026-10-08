@@ -139,6 +139,14 @@ flowchart TD
 | **Bang so sanh da san** | `GET /api/v1/tracked-products/{id}/comparison` | `useComparison(id)` | `["comparison", id]` |
 | **Lien ket them URL san** | `POST /api/v1/products/{id}/link-source` | `useLinkSource(trackingId)` | Invalidate `["comparison", id]`, `["trackings"]` |
 | **Nhom san pham da san** | `GET /api/v1/product-groups` | `listProductGroups()` | `["product-groups"]` |
+| **Khoi tao / khoi phuc phien** | `POST /api/v1/auth/refresh` → `POST /api/v1/auth/guest` | `ensureSession()` | Access token trong bo nho, refresh token cookie HttpOnly |
+| **Dang nhap Google (GIS)** | `POST /api/v1/auth/google` (kem token guest de di tru du lieu) | `authGoogleLogin(idToken)` | Doi danh tinh → reset toan bo query |
+| **Dang xuat** | `POST /api/v1/auth/logout` | `authLogout()` | Doi danh tinh → reset toan bo query |
+| **Thong tin tai khoan** | `GET /api/v1/auth/me` | `useCurrentUser()` | `["auth", "me"]` |
+| **Goi y so khop da san** | `GET /api/v1/products/{id}/match-suggestions` | `useMatchSuggestions(id)` | `["match-suggestions", id]` |
+| **Chap nhan so khop** | `POST /api/v1/products/{id}/match-suggestions/{sugId}/accept` | `useAcceptSuggestion()` | Invalidate `["comparison", id]`, `["trackings"]` |
+| **Danh sach voucher san pham** | `GET /api/v1/tracked-products/{id}/vouchers` | `useVouchers(trackingId)` | `["vouchers", trackingId]` |
+| **Them voucher moi** | `POST /api/v1/tracked-products/{id}/vouchers` | `useCreateVoucher()` | Invalidate `["vouchers", trackingId]` |
 
 ---
 

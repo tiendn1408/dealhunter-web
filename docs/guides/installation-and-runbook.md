@@ -273,5 +273,12 @@ Sau khi cả 4 tab Terminal đã hoạt động, thực hiện kịch bản 5 b�
 
 ---
 
+## 8. Hướng Dẫn Triển Khai Môi Trường Sản Xuất (Production Deployment)
+
+Đối với việc triển khai toàn diện lên máy chủ Production bằng Docker Compose (toàn bộ 6 services), Systemd, Nginx SSL hoặc thiết lập sao lưu dữ liệu, tham khảo tài liệu chuyên biệt:
+- [**Cẩm Nang Triển Khai Sản Xuất DealHunter (Production Deployment Guide)**](file:///Users/tien.dang/Workplace/reference/dealhunter/docs/deployment/production-deployment-guide.md)
+
+---
+
 *Tài liệu được lưu trữ tại:* `dealhunter-web/docs/guides/installation-and-runbook.md`  
 *Trạng thái:* **HOÀN THIỆN & SẴN SÀNG SỬ DỤNG**

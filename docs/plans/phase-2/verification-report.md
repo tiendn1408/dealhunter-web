@@ -1,4 +1,7 @@
 # Deal Hunter Web — Phase 2: Báo Cáo Triển Khai & Kiểm Định Hoàn Thiện 100%
+
+> **Cập nhật 2026-10-07:** Các tính năng giả lập mô tả trong tài liệu này (nút "Giả lập giảm giá", nút "Dùng số thử nghiệm (Sandbox)", link sản phẩm mẫu `mock.dealhunter.vn`) **đã bị gỡ bỏ** theo nguyên tắc "dữ liệu thật, việc thật" — xem `dealhunter/docs/plans/hardening-before-phase-4.md` (nhóm NOMOCK). Tài liệu được giữ nguyên làm lịch sử.
+
 # [Alert Engine UI & Zalo Notification Integration]
 
 > **Tài liệu chuẩn hóa**: Tổng hợp toàn bộ hạng mục đã hoàn thành, chi tiết các bước kỹ thuật, ma trận kiểm định chất lượng Phase 2 (Alert Engine UI, Zalo OA Notification Integration, Dynamic Notification Feed, Navigation Badges), biên bản nghiệm thu Frontend ↔ Backend và bộ khung mẫu (blueprint template) chuẩn bị cho Phase 3.

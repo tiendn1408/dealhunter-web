@@ -1,0 +1,51 @@
+# .dockerignore — DealHunter Web (Next.js)
+# Prevent unnecessary files from being sent to Docker build context
+
+# Version control
+.git
+.gitignore
+
+# Local environment secrets (never bake into image)
+.env
+.env*.local
+
+# Node dependencies (reinstalled inside image)
+node_modules
+
+# Next.js build output (rebuilt inside image)
+.next/
+out/
+build/
+
+# Documentation (not needed in production image)
+docs/
+
+# Docker files themselves
+Dockerfile
+docker-compose*.yml
+
+# OS junk
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
+*.tsbuildinfo
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# README
+README.md

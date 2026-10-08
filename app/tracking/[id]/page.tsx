@@ -67,7 +67,8 @@ export default function ProductDetailPage() {
   const [showCreateAlertModal, setShowCreateAlertModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [targetInput, setTargetInput] = useState<number>(0);
-  const [savedTarget, setSavedTarget] = useState<number | null>(null);
+  const [targetError, setTargetError] = useState<string | null>(null);
+  const [savingTarget, setSavingTarget] = useState(false);
   const [copyNotice, setCopyNotice] = useState(false);
 
   const loading = trackingLoading || priceLoading;
@@ -78,32 +79,12 @@ export default function ProductDetailPage() {
     : null;
 
   useEffect(() => {
-    if (alertsData.length > 0) {
-      setAlerts(alertsData);
-      const targetRule = alertsData.find(
-        (r) => r.rule_type === "target_price" && r.active
-      );
-      if (targetRule) {
-        setSavedTarget(targetRule.threshold_value);
-        setTargetInput(targetRule.threshold_value);
-        return;
-      }
-    }
+    setAlerts(alertsData);
+  }, [alertsData]);
 
-    try {
-      const raw =
-        localStorage.getItem("dealhunter-targets") ||
-        localStorage.getItem("dealhunter_targets") ||
-        localStorage.getItem("deal-hunter-targets");
-      if (raw) {
-        const store = JSON.parse(raw);
-        if (store[idOrSourceId] && !savedTarget) {
-          setSavedTarget(store[idOrSourceId]);
-          setTargetInput(store[idOrSourceId]);
-        }
-      }
-    } catch {}
-  }, [alertsData, idOrSourceId, savedTarget]);
+  // The target price is the user's active target_price alert rule on the server; nothing else
+  const savedTarget: number | null =
+    alerts.find((r) => r.rule_type === "target_price" && r.active)?.threshold_value ?? null;
 
   const stats = useMemo(() => {
     return calculatePriceStats(snapshots);
@@ -121,49 +102,34 @@ export default function ProductDetailPage() {
 
   const changePercent = stats ? stats.changePercent : undefined;
 
-  // Set default target if not set
-  useEffect(() => {
-    if (currentPrice && !savedTarget) {
-      const defTarget = Math.round(currentPrice * 0.95);
-      setSavedTarget(defTarget);
-      setTargetInput(defTarget);
-    }
-  }, [currentPrice, savedTarget]);
+  const openTargetModal = () => {
+    // Pre-fill the input with the saved target, or a suggestion the user still has to confirm
+    setTargetInput(savedTarget ?? (currentPrice ? Math.round(currentPrice * 0.95) : 0));
+    setTargetError(null);
+    setShowTargetModal(true);
+  };
 
-  // Handle saving target price (Screen 8)
+  // Handle saving target price (Screen 8): only reported as saved once the server has stored it
   const handleSaveTarget = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetInput || targetInput <= 0) return;
 
-    setSavedTarget(targetInput);
+    setSavingTarget(true);
+    setTargetError(null);
     try {
-      const raw =
-        localStorage.getItem("dealhunter-targets") ||
-        localStorage.getItem("dealhunter_targets") ||
-        localStorage.getItem("deal-hunter-targets");
-      const store = raw ? JSON.parse(raw) : {};
-      store[idOrSourceId] = targetInput;
-      if (tracking?.ProductSourceID) store[tracking.ProductSourceID] = targetInput;
-      if (tracking?.ID) store[tracking.ID] = targetInput;
-      localStorage.setItem("dealhunter-targets", JSON.stringify(store));
-
-      // Persist to backend alert rules as target_price rule
-      createAlert(idOrSourceId, {
+      const newRule = await createAlert(idOrSourceId, {
         rule_type: "target_price",
         threshold_value: targetInput,
         expires_in_days: 60,
-      })
-        .then((newRule) => {
-          setAlerts((prev) => [
-            newRule,
-            ...prev.filter((r) => r.rule_type !== "target_price"),
-          ]);
-          refetchAlerts();
-        })
-        .catch(() => {});
-    } catch {}
-
-    setShowTargetModal(false);
+      });
+      setAlerts((prev) => [newRule, ...prev.filter((r) => r.rule_type !== "target_price")]);
+      refetchAlerts();
+      setShowTargetModal(false);
+    } catch (err: any) {
+      setTargetError(err?.message || "Không lưu được giá mục tiêu. Vui lòng thử lại.");
+    } finally {
+      setSavingTarget(false);
+    }
   };
 
   // Quick discount buttons (-5%, -10%, -15%, -20%)
@@ -363,7 +329,7 @@ export default function ProductDetailPage() {
             <span>{t.detail.targetProgress}</span>
             <button
               type="button"
-              onClick={() => setShowTargetModal(true)}
+              onClick={() => openTargetModal()}
               className="font-bold text-pine-900 hover:underline"
             >
               {t.detail.editTarget}
@@ -664,7 +630,7 @@ export default function ProductDetailPage() {
       <div className="fixed bottom-14 md:bottom-6 left-0 right-0 p-4 max-w-md mx-auto pointer-events-none z-30">
         <button
           type="button"
-          onClick={() => setShowTargetModal(true)}
+          onClick={() => openTargetModal()}
           className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-full text-sm shadow-xl pointer-events-auto transition-all flex items-center justify-center gap-2"
         >
           <Target className="w-4 h-4" />
@@ -723,11 +689,16 @@ export default function ProductDetailPage() {
                 ))}
               </div>
 
+              {targetError && (
+                <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5">{targetError}</p>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all"
+                disabled={savingTarget}
+                className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 disabled:opacity-50 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all"
               >
-                {t.detail.startTrackingBtn}
+                {savingTarget ? t.common.loading : t.detail.startTrackingBtn}
               </button>
             </form>
 
@@ -752,11 +723,8 @@ export default function ProductDetailPage() {
         productId={idOrSourceId}
         currentPrice={currentPrice || 0}
         onAlertCreated={(newRule) => {
+          // savedTarget is derived from alerts, so a new target_price rule shows up immediately
           setAlerts((prev) => [newRule, ...prev]);
-          if (newRule.rule_type === "target_price") {
-            setSavedTarget(newRule.threshold_value);
-            setTargetInput(newRule.threshold_value);
-          }
         }}
       />
 

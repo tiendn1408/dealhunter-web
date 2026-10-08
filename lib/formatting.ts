@@ -160,7 +160,7 @@ export function calculatePriceStats(snapshots: PriceSnapshot[]): PriceStats | nu
   };
 }
 
-export type SupportedPlatform = "shopee" | "lazada" | "tiktok" | "tiki" | "mock" | "other";
+export type SupportedPlatform = "shopee" | "lazada" | "tiktok" | "tiki" | "other";
 
 /**
  * Detect platform name and branding colors.
@@ -210,16 +210,6 @@ export function detectPlatform(platformOrUrl?: string): {
       badgeBorder: "border-sky-200",
     };
   }
-  if (str.includes("mock")) {
-    return {
-      id: "mock",
-      name: "Mock Store",
-      badgeBg: "bg-purple-50",
-      badgeText: "text-purple-700",
-      badgeBorder: "border-purple-200",
-    };
-  }
-
   return {
     id: "other",
     name: "Sàn TMĐT",

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUserId } from "@/lib/api";
-import { useZaloProfile, useDisconnectZalo, useAuth } from "@/lib/hooks";
+import { useZaloProfile, useDisconnectZalo, useAuth, useTrackings } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { ZaloConnectModal } from "@/components/settings/ZaloConnectModal";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -27,47 +26,38 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const [userId, setUserId] = useState("");
-  const [interval, setInterval] = useState("1800");
-  const [showIntervalModal, setShowIntervalModal] = useState(false);
-  const [savedNotice, setSavedNotice] = useState(false);
   const [showZaloModal, setShowZaloModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { t, formatText } = useLanguage();
   const qc = useQueryClient();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, sessionUser, isAuthenticated, logout } = useAuth();
+  const userId = sessionUser?.id ?? "";
   const { data: zaloProfile = null } = useZaloProfile();
   const disconnectMutation = useDisconnectZalo();
   const zaloDisconnecting = disconnectMutation.isPending;
 
-  useEffect(() => {
-    setUserId(getUserId());
-    const saved =
-      localStorage.getItem("dealhunter-poll-interval") ||
-      localStorage.getItem("dealhunter_poll_interval") ||
-      localStorage.getItem("deal-hunter-poll-interval");
-    if (saved) setInterval(saved);
-  }, []);
+  // The scan interval is decided by the server per tracking (no user-editable setting exists yet);
+  // show the real value from the user's trackings.
+  const { data: trackings = [] } = useTrackings();
+  const intervalSeconds = trackings.find((p) => p.PollingIntervalSeconds > 0)?.PollingIntervalSeconds;
 
-  const handleSaveInterval = (val: string) => {
-    setInterval(val);
-    localStorage.setItem("dealhunter-poll-interval", val);
-    setShowIntervalModal(false);
-    setSavedNotice(true);
-    setTimeout(() => setSavedNotice(false), 2500);
-  };
-
-  const handleResetUser = () => {
+  const handleResetUser = async () => {
     if (confirm(t.settings.resetConfirm)) {
-      localStorage.removeItem("dealhunter-token");
-      localStorage.removeItem("dealhunter-user-id");
-      localStorage.removeItem("dealhunter_user_id");
-      localStorage.removeItem("deal-hunter-user-id");
-      localStorage.removeItem("dealhunter-products-meta");
-      localStorage.removeItem("dealhunter_products_meta");
-      localStorage.removeItem("deal-hunter-products-meta");
-      window.location.reload();
+      // Clear data older versions kept in the browser
+      for (const key of [
+        "dealhunter-products-meta", "dealhunter_products_meta", "deal-hunter-products-meta",
+        "dealhunter-targets", "dealhunter_targets", "deal-hunter-targets",
+        "dealhunter-poll-interval", "dealhunter_poll_interval", "deal-hunter-poll-interval",
+      ]) {
+        localStorage.removeItem(key);
+      }
+      try {
+        await logout();
+        window.location.reload();
+      } catch (err: any) {
+        alert(err?.message || "Đăng xuất thất bại");
+      }
     }
   };
 
@@ -88,22 +78,7 @@ export default function SettingsPage() {
         <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
           {t.settings.title}
         </h1>
-        <button
-          type="button"
-          onClick={() => setShowIntervalModal(true)}
-          className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
-          title={t.settings.title}
-        >
-          <Settings className="w-5 h-5" />
-        </button>
       </div>
-
-      {savedNotice && (
-        <div className="p-3.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>{t.settings.scanUpdated}</span>
-        </div>
-      )}
 
       {/* User Profile Card matching Screen 10 */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-2xs">
@@ -133,7 +108,7 @@ export default function SettingsPage() {
             {isAuthenticated ? (
               <button
                 type="button"
-                onClick={logout}
+                onClick={() => logout().catch((err: any) => alert(err?.message || "Đăng xuất thất bại"))}
                 className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all flex items-center gap-1.5"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -183,12 +158,8 @@ export default function SettingsPage() {
           </div>
         </Link>
 
-        {/* Cài đặt thông báo & Chu kỳ quét */}
-        <button
-          type="button"
-          onClick={() => setShowIntervalModal(true)}
-          className="w-full flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group text-left"
-        >
+        {/* Chu kỳ quét (giá trị thật do máy chủ quyết định, chỉ hiển thị) */}
+        <div className="w-full flex items-center justify-between p-4 sm:p-4.5 text-left">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center">
               <Clock className="w-4 h-4" />
@@ -198,14 +169,13 @@ export default function SettingsPage() {
                 {t.settings.scanSection}
               </span>
               <span className="text-[11px] text-slate-400 block">
-                {formatText(t.settings.currentInterval, {
-                  minutes: Math.round(parseInt(interval, 10) / 60),
-                })}
+                {intervalSeconds
+                  ? formatText(t.settings.currentInterval, { minutes: Math.round(intervalSeconds / 60) })
+                  : t.settings.intervalNoTrackings}
               </span>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-        </button>
+        </div>
 
         {/* Liên kết Zalo (Phase 2) */}
         {zaloProfile?.zalo_connected ? (
@@ -245,7 +215,7 @@ export default function SettingsPage() {
         ) : (
           <button
             type="button"
-            onClick={() => setShowZaloModal(true)}
+            onClick={() => (isAuthenticated ? setShowZaloModal(true) : setShowLoginModal(true))}
             className="w-full flex items-center justify-between p-4 sm:p-4.5 hover:bg-slate-50 transition-colors group text-left"
           >
             <div className="flex items-center gap-3">
@@ -347,50 +317,6 @@ export default function SettingsPage() {
           <ChevronRight className="w-4 h-4 text-rose-300 group-hover:text-rose-500 transition-colors" />
         </button>
       </div>
-
-      {/* Interval Modal */}
-      {showIntervalModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-xl space-y-4 animate-scaleUp">
-            <h3 className="text-lg font-bold text-pine-900">
-              {t.settings.intervalModalTitle}
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {t.settings.intervalModalDesc}
-            </p>
-
-            <div className="space-y-2 pt-2">
-              {[
-                { val: "1800", label: t.settings.interval30m },
-                { val: "3600", label: t.settings.interval1h },
-                { val: "7200", label: t.settings.interval2h },
-                { val: "21600", label: t.settings.interval6h },
-              ].map((opt) => (
-                <button
-                  key={opt.val}
-                  type="button"
-                  onClick={() => handleSaveInterval(opt.val)}
-                  className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold border transition-all ${
-                    interval === opt.val
-                      ? "bg-pine-900 text-white border-pine-900 shadow-2xs"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowIntervalModal(false)}
-              className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold"
-            >
-              {t.common.cancel}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Zalo Connect Modal (Phase 2) */}
       <ZaloConnectModal

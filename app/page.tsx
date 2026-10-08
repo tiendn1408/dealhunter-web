@@ -29,7 +29,6 @@ function HomeContent() {
 
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const { data: userTrackings = [] } = useTrackings();
   const [showInputModal, setShowInputModal] = useState(false);
@@ -43,7 +42,7 @@ function HomeContent() {
 
   // Check URL query parameters
   useEffect(() => {
-    const urlParam = searchParams.get("url") || searchParams.get("sample");
+    const urlParam = searchParams.get("url");
     if (urlParam) {
       setUrl(urlParam);
       setShowInputModal(true);
@@ -58,11 +57,7 @@ function HomeContent() {
     if (!cleanUrl) return;
 
     setLoading(true);
-    setLoadingStep(0);
     setError(null);
-
-    const timer1 = setTimeout(() => setLoadingStep(1), 500);
-    const timer2 = setTimeout(() => setLoadingStep(2), 1000);
 
     try {
       const res = await trackProduct(cleanUrl);
@@ -76,41 +71,12 @@ function HomeContent() {
     } catch (err: any) {
       setError(err.message || t.home.defaultError);
     } finally {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
       setLoading(false);
     }
   };
 
-  const sampleLinks = [
-    {
-      title: "Tai nghe Sony WH-1000XM6",
-      url: "https://mock.dealhunter.vn/product/sony-wh-1000xm6",
-      platform: "shopee",
-      sub: "Tai nghe chống ồn cao cấp",
-      price: 6190000,
-      oldPrice: 7090000,
-      drop: "-12,7%",
-    },
-    {
-      title: "Ổ cứng SSD Samsung 2TB 990 Pro",
-      url: "https://mock.dealhunter.vn/product/samsung-ssd-2tb",
-      platform: "lazada",
-      sub: "PCIe 4.0 NVMe siêu tốc",
-      price: 2790000,
-      oldPrice: 3340000,
-      drop: "-16,4%",
-    },
-    {
-      title: "Điện thoại iPhone 16 Pro Max 256GB",
-      url: "https://mock.dealhunter.vn/product/iphone-16-pro-max",
-      platform: "tiktok",
-      sub: "Titan Tự Nhiên - Chính hãng VN/A",
-      price: 31990000,
-      oldPrice: 34990000,
-      drop: "-8,5%",
-    },
-  ];
+  // Hero card shows the visitor's own most recent tracked product with its real price, never sample data
+  const latestTracked = userTrackings.find((p) => p.Title && (p.LastPrice ?? 0) > 0);
 
   return (
     <div className="space-y-12 sm:space-y-16 py-4 sm:py-8 max-w-6xl mx-auto">
@@ -136,7 +102,7 @@ function HomeContent() {
                 </p>
               </div>
 
-              {/* Main Paste Input Box matching mockup */}
+              {/* Main Paste Input Box */}
               <div className="bg-white border border-slate-200 rounded-2xl p-2 sm:p-2.5 shadow-sm space-y-2">
                 <form
                   onSubmit={handleSubmit}
@@ -173,63 +139,27 @@ function HomeContent() {
                   </button>
                 </form>
 
-                {/* Step feedback when analyzing */}
+                {/* Real in-progress state: the request is reading the product from the marketplace */}
                 {loading && (
-                  <div className="pt-2 px-2 text-[11px] text-slate-600 space-y-1.5 border-t border-slate-100">
-                    <div className="flex items-center gap-2 font-medium">
-                      <span className="text-emerald-600">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 8.5 6.5 12 13 4" />
-                        </svg>
-                      </span>
-                      <span>
-                        {formatText(t.home.stepDetectPlatform, {
-                          platform: detected?.name || t.common.appName,
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 font-medium">
-                      {loadingStep >= 1 ? (
-                        <span className="text-emerald-600">
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 8.5 6.5 12 13 4" />
-                          </svg>
-                        </span>
-                      ) : (
-                        <span className="inline-block w-3 h-3 border-2 border-pine-800 border-t-transparent rounded-full animate-spin" />
-                      )}
-                      <span className={loadingStep >= 1 ? "text-slate-700" : "text-pine-900 font-bold"}>
-                        {t.home.stepReadData}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 font-medium">
-                      {loadingStep >= 2 ? (
-                        <span className="text-emerald-600">
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 8.5 6.5 12 13 4" />
-                          </svg>
-                        </span>
-                      ) : (
-                        <span className="text-slate-300">●</span>
-                      )}
-                      <span className={loadingStep >= 2 ? "text-pine-900 font-bold" : "text-slate-400"}>
-                        {t.home.stepScheduleJob}
-                      </span>
-                    </div>
+                  <div className="pt-2 px-2 text-[11px] text-pine-900 font-semibold border-t border-slate-100 flex items-center gap-2">
+                    <span className="inline-block w-3 h-3 border-2 border-pine-800 border-t-transparent rounded-full animate-spin" />
+                    <span>
+                      {formatText(t.home.stepReadingFrom, { platform: detected?.name || t.common.appName })}
+                    </span>
                   </div>
                 )}
               </div>
 
               {/* Sub-action: "Hoặc: Tìm sản phẩm bạn muốn mua" */}
               <div className="flex items-center gap-2 text-xs text-slate-500 pt-1">
-                <span>{t.home.orChooseSample}</span>
+                <span>{t.home.orPasteLink}</span>
                 <button
                   type="button"
                   onClick={() => setShowInputModal(true)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-all shadow-2xs"
                 >
                   <Search className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{t.home.sampleLinksBtn}</span>
+                  <span>{t.home.pasteLinkBtn}</span>
                 </button>
               </div>
 
@@ -254,47 +184,38 @@ function HomeContent() {
                 </svg>
               </div>
 
-              {/* Card visual from mockup */}
+              {/* Signature card: latest real tracked product */}
               <div className="w-full max-w-sm bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xl relative z-10 transition-transform hover:-translate-y-1 duration-300">
-                {/* Badge top right */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 uppercase">
-                    {t.home.illustrationBadge}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <TrendingDown className="w-3 h-3" />
-                    {t.home.justDroppedBadge}
-                  </span>
-                </div>
+                {latestTracked && (
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 uppercase">
+                      {t.home.latestTrackedBadge}
+                    </span>
+                  </div>
+                )}
 
-                {/* Headphone image mockup */}
+                {/* Product icon */}
                 <div className="w-full h-36 bg-gradient-to-tr from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center mb-4 relative overflow-hidden">
                   <svg className="w-20 h-20 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" />
                   </svg>
                 </div>
 
-                {/* Product Title */}
-                <h3 className="font-bold text-slate-900 text-sm mb-1 truncate">
-                  Sony WH-1000XM6
-                </h3>
-                <p className="text-[11px] text-slate-400 line-through mb-1">
-                  7.090.000đ
-                </p>
-
-                {/* Price & Drop */}
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-2xl font-black text-pine-900">
-                    6.190.000đ
-                  </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500 text-white">
-                    -12,7%
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-slate-500 font-medium">
-                  {formatText(t.home.lowest90d, { price: "6.050.000đ" })}
-                </p>
+                {latestTracked ? (
+                  <Link href={`/tracking/${latestTracked.ID}`} className="block">
+                    <div className="mb-1">
+                      <PlatformBadge platformOrUrl={latestTracked.Platform || latestTracked.CanonicalURL || ""} />
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-2 line-clamp-2">{latestTracked.Title}</h3>
+                    <span className="text-2xl font-black text-pine-900">{formatVND(latestTracked.LastPrice ?? 0)}</span>
+                    <p className="text-[11px] text-slate-500 font-medium mt-2">{t.home.latestTrackedHint}</p>
+                  </Link>
+                ) : (
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">{t.home.noTrackedTitle}</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">{t.home.noTrackedHint}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -492,35 +413,15 @@ function HomeContent() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {sampleLinks.map((sample) => (
-            <button
-              key={sample.title}
-              type="button"
-              onClick={() => {
-                setUrl(sample.url);
-                setShowInputModal(true);
-              }}
-              className="bg-white border border-slate-200/90 hover:border-pine-300 rounded-2xl p-4 text-left transition-all hover:shadow-xs group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <PlatformBadge platformOrUrl={sample.platform} />
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {sample.drop}
-                </span>
-              </div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-pine-900 transition-colors line-clamp-1">
-                {sample.title}
-              </h3>
-              <div className="flex items-baseline justify-between pt-1">
-                <span className="text-xs font-black text-slate-900">
-                  {formatVND(sample.price)}
-                </span>
-                <span className="text-[11px] font-medium text-pine-900 flex items-center gap-1 group-hover:underline">
-                  {t.home.tryNow}
-                  <ArrowRight className="w-3 h-3" />
-                </span>
-              </div>
-            </button>
+          {[
+            { platform: "shopee", howTo: t.home.howToShopee },
+            { platform: "lazada", howTo: t.home.howToLazada },
+            { platform: "tiktok", howTo: t.home.howToTikTok },
+          ].map((item) => (
+            <div key={item.platform} className="bg-white border border-slate-200/90 rounded-2xl p-4 text-left space-y-2">
+              <PlatformBadge platformOrUrl={item.platform} />
+              <p className="text-xs text-slate-600 leading-relaxed">{item.howTo}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -583,25 +484,9 @@ function HomeContent() {
               </button>
             </form>
 
-            <div className="pt-3 border-t border-slate-100">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                {t.home.orSelectPlatform}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {sampleLinks.map((s) => (
-                  <button
-                    key={s.platform}
-                    type="button"
-                    onClick={() => setUrl(s.url)}
-                    className="p-2.5 rounded-xl border border-slate-200 hover:border-pine-800 text-center transition-all bg-slate-50 hover:bg-pine-50"
-                  >
-                    <span className="text-xs font-bold text-slate-800 block capitalize">
-                      {s.platform}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <p className="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+              {t.home.supportedPlatformsNote}
+            </p>
           </div>
         </div>
       )}

@@ -67,11 +67,6 @@ export function ZaloConnectModal({
     }
   };
 
-  const handleUseDemo = () => {
-    setConnectType("phone");
-    setPhone("0988123456");
-  };
-
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp relative">
@@ -172,18 +167,6 @@ export function ZaloConnectModal({
               </p>
             </div>
           )}
-
-          {/* Quick Demo Pill */}
-          <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={handleUseDemo}
-              className="text-[11px] text-pine-900 font-semibold hover:underline flex items-center gap-1"
-            >
-              <Sparkles className="w-3 h-3 text-pine-800" />
-              <span>{t.settings.useDemoSandbox}</span>
-            </button>
-          </div>
 
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5 text-xs text-slate-600">
             <div className="flex items-center gap-1.5 font-bold text-slate-800">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import {
   listTrackings,
   getTracking,
@@ -15,13 +15,12 @@ import {
   linkProductSource,
   pauseTracking,
   resumeTracking,
-  authDemoLogin,
   authGoogleLogin,
-  authMigrateGuestData,
   authGetMe,
-  getAuthToken,
-  setAuthToken,
-  getUserId,
+  authLogout,
+  listUserAlerts,
+  ensureSession,
+  onSessionChange,
   getMatchSuggestions,
   acceptMatchSuggestion,
   dismissMatchSuggestion,
@@ -60,16 +59,15 @@ export function useTrackings() {
 
 export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
   const data = await listTrackings();
-  let localTargets: Record<string, number> = {};
-  if (typeof window !== "undefined") {
-    try {
-      const raw =
-        localStorage.getItem("dealhunter-targets") ||
-        localStorage.getItem("dealhunter_targets") ||
-        localStorage.getItem("deal-hunter-targets");
-      if (raw) localTargets = JSON.parse(raw);
-    } catch {}
-  }
+  // Target prices come from the user's active target_price alert rules on the server
+  const targetBySource: Record<string, number> = {};
+  try {
+    for (const rule of await listUserAlerts()) {
+      if (rule.rule_type === "target_price" && rule.active) {
+        targetBySource[rule.product_source_id] = rule.threshold_value;
+      }
+    }
+  } catch {}
 
   return Promise.all(
     data.map(async (item) => {
@@ -90,8 +88,7 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
           : undefined;
       const changePercent = stats ? stats.changePercent : undefined;
 
-      const key = item.ProductSourceID || item.ID;
-      const targetPrice = localTargets[key] || undefined;
+      const targetPrice = targetBySource[item.ProductSourceID] || undefined;
       const diffFromTarget =
         currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : 0;
 
@@ -290,88 +287,66 @@ export function useLinkSource(trackingId: string) {
 
 // ---- GAP-02: Authentication & Guest Migration Hook ----
 
+const SESSION_EXPIRED_KEY = ["auth", "sessionExpired"] as const;
+const boundQueryClients = new WeakSet<QueryClient>();
+
+/**
+ * Binds session changes to the query cache once per client: whenever the signed-in identity changes
+ * (login, logout, member session expiry) every query is reset so no previous user's data stays on screen.
+ */
+function bindSessionToQueryClient(qc: QueryClient) {
+  if (boundQueryClients.has(qc)) return;
+  boundQueryClients.add(qc);
+  onSessionChange(({ memberSessionExpired }) => {
+    qc.setQueryData(SESSION_EXPIRED_KEY, memberSessionExpired);
+    qc.resetQueries({ predicate: (q) => q.queryKey[1] !== "sessionExpired" });
+  });
+}
+
 export function useAuth() {
   const qc = useQueryClient();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    bindSessionToQueryClient(qc);
     setMounted(true);
-  }, []);
-
-  const token = mounted && typeof window !== "undefined" ? getAuthToken() : null;
+    // Restore the session from the refresh cookie, or start a guest session
+    ensureSession().catch(() => undefined);
+  }, [qc]);
 
   const { data: user, isLoading, refetch } = useQuery({
     queryKey: ["auth", "me"],
     queryFn: authGetMe,
-    enabled: mounted && !!token,
+    enabled: mounted,
     staleTime: 60_000,
     retry: false,
   });
 
-  const demoLoginMutation = useMutation({
-    mutationFn: async ({ email, name }: { email?: string; name?: string } = {}) => {
-      const oldGuestId = getUserId();
-      const res = await authDemoLogin(email, name);
-      // Auto-migrate if guest ID differs from authenticated user ID
-      if (oldGuestId && oldGuestId !== res.user.id) {
-        try {
-          await authMigrateGuestData(oldGuestId);
-        } catch (mErr) {
-          console.warn("Guest data migration note:", mErr);
-        }
-      }
-      localStorage.setItem("dealhunter-user-id", res.user.id);
-      return res;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["auth", "me"] });
-      qc.invalidateQueries({ queryKey: ["trackings"] });
-      qc.invalidateQueries({ queryKey: ["notifications"] });
-    },
+  const { data: sessionExpired = false } = useQuery({
+    queryKey: SESSION_EXPIRED_KEY,
+    queryFn: () => false,
+    enabled: false,
+    initialData: false,
   });
 
+  // Login changes the identity, so bindSessionToQueryClient resets every query (including migrated guest data).
   const googleLoginMutation = useMutation({
-    mutationFn: async (idToken: string) => {
-      const oldGuestId = getUserId();
-      const res = await authGoogleLogin(idToken);
-      if (oldGuestId && oldGuestId !== res.user.id) {
-        try {
-          await authMigrateGuestData(oldGuestId);
-        } catch (mErr) {
-          console.warn("Guest data migration note:", mErr);
-        }
-      }
-      localStorage.setItem("dealhunter-user-id", res.user.id);
-      return res;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["auth", "me"] });
-      qc.invalidateQueries({ queryKey: ["trackings"] });
-      qc.invalidateQueries({ queryKey: ["notifications"] });
-    },
+    mutationFn: (idToken: string) => authGoogleLogin(idToken),
+    onSuccess: () => qc.setQueryData(SESSION_EXPIRED_KEY, false),
   });
 
-  const logout = () => {
-    setAuthToken(null);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("dealhunter-user-id");
-      localStorage.removeItem("dealhunter_user_id");
-      localStorage.removeItem("deal-hunter-user-id");
-    }
-    qc.clear();
-    qc.invalidateQueries({ queryKey: ["trackings"] });
-  };
+  const logout = () => authLogout();
 
-  const isAuthenticated = !!token && !!user && user.auth_provider !== "guest";
+  const isAuthenticated = !!user && user.auth_provider !== "guest";
 
   return {
     user: isAuthenticated ? user : null,
-    token,
+    sessionUser: user ?? null,
     isAuthenticated,
-    isLoading,
-    loginWithDemo: demoLoginMutation.mutateAsync,
+    isLoading: !mounted || isLoading,
+    sessionExpired,
     loginWithGoogle: googleLoginMutation.mutateAsync,
-    isLoggingIn: demoLoginMutation.isPending || googleLoginMutation.isPending,
+    isLoggingIn: googleLoginMutation.isPending,
     logout,
     refetchUser: refetch,
   };

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { PriceNotification, getUserId } from "@/lib/api";
+import { PriceNotification } from "@/lib/api";
 import {
   useNotifications,
   useMarkNotificationAsRead,
@@ -184,31 +184,6 @@ export default function NotificationsPage() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
-            <button
-              type="button"
-              onClick={() => {
-                const sampleNotif: PriceNotification = {
-                  id: "sample-" + Date.now(),
-                  user_id: getUserId(),
-                  alert_rule_id: "sample-rule-1",
-                  channel: "zalo",
-                  recipient: "0988123456",
-                  status: "sent",
-                  price_before: 6190000,
-                  price_after: 5450000,
-                  created_at: new Date().toISOString(),
-                  sent_at: new Date().toISOString(),
-                  product_title: "Tai nghe Sony WH-1000XM6 Chính Hãng",
-                  platform: "shopee",
-                  product_url: "/tracking",
-                };
-                qc.setQueryData<PriceNotification[]>(["notifications", 50], (prev = []) => [sampleNotif, ...prev]);
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-semibold transition-all border border-slate-200"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-pine-900" />
-              <span>{t.notifications.simulateBtn}</span>
-            </button>
           </div>
         </div>
       ) : (

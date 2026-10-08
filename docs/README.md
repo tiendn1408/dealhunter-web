@@ -45,6 +45,8 @@ docs/
 
 | Thu muc | Tep tai lieu | Mo ta noi dung | Trang thai |
 |---|---|---|:---:|
+| **api/** | [**rest-api-reference.md**](file:///Users/tien.dang/Workplace/reference/dealhunter/docs/api/rest-api-reference.md) | **Dac ta toan dien 24+ REST API endpoints, auth token va curl test** | **SAN SANG** |
+| **deployment/** | [**production-deployment-guide.md**](file:///Users/tien.dang/Workplace/reference/dealhunter/docs/deployment/production-deployment-guide.md) | **Cam nang trien khai Production toan dien (Docker Compose Prod, Systemd, Nginx SSL, Backup)** | **SAN SANG** |
 | **guides/** | [`guides/installation-and-runbook.md`](./guides/installation-and-runbook.md) | **Huong dan cai dat & van hanh toan dien (Fullstack Runbook)** | **SAN SANG** |
 | **specs/** | [`specs/master-ui-ux.md`](./specs/master-ui-ux.md) | Dac ta trai nghiem nguoi dung goc (toan bo 6 phase) | Tai lieu goc |
 | **specs/** | [`specs/phase-1-ui-ux-improve.md`](./specs/phase-1-ui-ux-improve.md) | Quy chuan chi tiet mau sac, layout, 10 man hinh mockup | Chuan thiet ke |
@@ -61,10 +63,11 @@ docs/
 ## 3. Lo Trinh Phat Trien (Roadmap)
 
 ```text
-Phase 1  Core Price Tracking          [HOAN THANH 100% - DA KIEM DINH]
-Phase 2  Alert Engine + Zalo UX       [HOAN THANH 100% - DA KIEM DINH]
-Phase 3  Cross-platform Comparison    [HOAN THANH 100% - DA KIEM DINH]
-Phase 4  Price Intelligence           [Du kien]
-Phase 5  Discovery / Auto Hunt        [Du kien]
-Phase 6  Advanced Consumer Product    [Du kien]
+Phase 1    Core Price Tracking          [HOAN THANH 100% - DA KIEM DINH]
+Phase 2    Alert Engine + Zalo UX       [HOAN THANH 100% - DA KIEM DINH]
+Phase 3    Cross-platform Comparison    [HOAN THANH 100% - DA KIEM DINH]
+Phase 3.5  Monetization & Voucher Box   [HOAN THANH 100% - DA KIEM DINH]
+Phase 4    Price Intelligence           [Du kien]
+Phase 5    Discovery / Auto Hunt        [Du kien]
+Phase 6    Advanced Consumer Product    [Du kien]
 ```

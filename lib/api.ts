@@ -1,45 +1,127 @@
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1").replace(/\/+$/, "");
 
-export function getUserId(): string {
-  if (typeof window === "undefined") {
-    return "00000000-0000-0000-0000-000000000001";
-  }
-  let uid =
-    localStorage.getItem("dealhunter-user-id") ||
-    localStorage.getItem("dealhunter_user_id") ||
-    localStorage.getItem("deal-hunter-user-id");
-  if (!uid) {
-    uid = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : "00000000-0000-0000-0000-000000000001";
-    localStorage.setItem("dealhunter-user-id", uid);
-  }
-  return uid;
+/**
+ * Session handling (GAP-02 / SEC-05)
+ * - The access token (15 min) lives only in memory, with its expiry.
+ * - The refresh token is an HttpOnly cookie set by the backend on /auth/*.
+ * - Visitors without an account get a server-issued guest session.
+ * - Listeners are notified only when the signed-in identity changes (not on every token rotation).
+ */
+const TOKEN_EXPIRY_SKEW_MS = 30_000;
+
+let accessToken: string | null = null;
+let accessTokenExpiresAt = 0;
+let sessionUserId: string | null = null;
+let sessionIsMember = false;
+let sessionPromise: Promise<string> | null = null;
+const sessionListeners = new Set<(change: SessionChange) => void>();
+
+export interface SessionChange {
+  /** True when a signed-in member session ended (expired/revoked) and the app fell back to a guest. */
+  memberSessionExpired: boolean;
 }
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("dealhunter-token") || localStorage.getItem("dealhunter_token");
+/** Thrown when a signed-in member's session can no longer be refreshed; the request was NOT retried as a guest. */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }
 }
 
-export function setAuthToken(token: string | null) {
-  if (typeof window === "undefined") return;
-  if (token) {
-    localStorage.setItem("dealhunter-token", token);
-  } else {
-    localStorage.removeItem("dealhunter-token");
-    localStorage.removeItem("dealhunter_token");
+export function onSessionChange(listener: (change: SessionChange) => void): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
+function applySession(session: AuthSession | null, memberSessionExpired = false) {
+  const prevUserId = sessionUserId;
+  accessToken = session?.access_token ?? null;
+  accessTokenExpiresAt = session ? Date.now() + session.expires_in * 1000 - TOKEN_EXPIRY_SKEW_MS : 0;
+  sessionUserId = session?.user.id ?? null;
+  sessionIsMember = !!session && session.user.auth_provider !== "guest";
+  // Clearing (logout) is followed by a guest session, which is the change worth announcing.
+  if (session && prevUserId !== sessionUserId) {
+    sessionListeners.forEach((l) => l({ memberSessionExpired }));
   }
+}
+
+class HttpError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+const CONNECTION_ERROR = `Không thể kết nối đến máy chủ Backend (${API_BASE_URL}). Vui lòng đảm bảo backend Go đang được khởi chạy.`;
+
+async function postAuth(path: string, body?: unknown, bearer?: string | null): Promise<AuthSession> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (bearer) headers["Authorization"] = `Bearer ${bearer}`;
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(CONNECTION_ERROR);
+  }
+  if (!res.ok) {
+    throw new HttpError(res.status, (await res.text()) || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
+ * Refresh tokens rotate strictly (a replayed token revokes every session), so refreshes are serialized
+ * across tabs with the Web Locks API: a tab waiting on the lock sends the cookie the previous tab just set.
+ */
+function withCrossTabLock<T>(fn: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== "undefined" && navigator.locks?.request) {
+    return navigator.locks.request("dealhunter-session-refresh", fn) as Promise<T>;
+  }
+  return fn();
+}
+
+function refreshOrStartGuest(): Promise<string> {
+  return withCrossTabLock(refreshOrStartGuestUnlocked);
+}
+
+async function refreshOrStartGuestUnlocked(): Promise<string> {
+  const wasMember = sessionIsMember;
+  try {
+    const session = await postAuth("/auth/refresh");
+    applySession(session);
+    return session.access_token;
+  } catch (err) {
+    if (!(err instanceof HttpError && err.status === 401)) throw err;
+    // No usable refresh cookie: continue as a fresh guest (and tell the UI if a member session ended)
+    const guest = await postAuth("/auth/guest");
+    applySession(guest, wasMember);
+    return guest.access_token;
+  }
+}
+
+function hasFreshToken(): boolean {
+  return !!accessToken && Date.now() < accessTokenExpiresAt;
+}
+
+/** Returns a valid access token, restoring the session from the refresh cookie or starting a guest session. */
+export function ensureSession(forceRefresh = false): Promise<string> {
+  if (!forceRefresh && hasFreshToken()) return Promise.resolve(accessToken as string);
+  if (!sessionPromise) {
+    sessionPromise = refreshOrStartGuest().finally(() => {
+      sessionPromise = null;
+    });
+  }
+  return sessionPromise;
 }
 
 export function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
-  const headers: Record<string, string> = {
-    "X-User-ID": getUserId(),
-    ...extraHeaders,
-  };
-  const token = getAuthToken();
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
   return headers;
 }
@@ -56,9 +138,11 @@ export interface AuthUser {
   updated_at: string;
 }
 
-export interface AuthLoginResponse {
-  token: string;
+export interface AuthSession {
+  access_token: string;
+  expires_in: number;
   user: AuthUser;
+  migration?: MigrationResult;
 }
 
 export interface MigrationResult {
@@ -108,51 +192,31 @@ export interface TrackResponse {
 }
 
 // Client-side cache for product metadata (fallback if backend only provides UUIDs)
-interface LocalProductMeta {
-  url?: string;
-  title?: string;
-  platform?: string;
-  savedAt?: number;
+
+function withBearer(init: RequestInit | undefined, token: string): RequestInit {
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  return { ...init, headers };
 }
 
-function getLocalMetaStore(): Record<string, LocalProductMeta> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw =
-      localStorage.getItem("dealhunter-products-meta") ||
-      localStorage.getItem("dealhunter_products_meta") ||
-      localStorage.getItem("deal-hunter-products-meta");
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-export function saveLocalProductMeta(sourceOrTrackingId: string, meta: LocalProductMeta) {
-  if (typeof window === "undefined" || !sourceOrTrackingId) return;
-  try {
-    const store = getLocalMetaStore();
-    store[sourceOrTrackingId] = {
-      ...store[sourceOrTrackingId],
-      ...meta,
-      savedAt: Date.now(),
-    };
-    localStorage.setItem("dealhunter-products-meta", JSON.stringify(store));
-  } catch (err) {
-    console.warn("Failed to save local product meta:", err);
-  }
-}
-
-export function getLocalProductMeta(sourceOrTrackingId: string): LocalProductMeta | undefined {
-  if (typeof window === "undefined" || !sourceOrTrackingId) return undefined;
-  const store = getLocalMetaStore();
-  return store[sourceOrTrackingId];
-}
-
+/**
+ * fetch wrapper for API calls: attaches the access token and, on 401,
+ * refreshes the session once and retries.
+ */
 async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
   try {
-    return await fetch(url, init);
+    const token = await ensureSession();
+    const res = await fetch(url, withBearer(init, token));
+    if (res.status !== 401) return res;
+    const wasMember = sessionIsMember;
+    const fresh = await ensureSession(true);
+    if (wasMember && !sessionIsMember) {
+      // The member session ended; do not replay the request in an anonymous account.
+      throw new SessionExpiredError();
+    }
+    return await fetch(url, withBearer(init, fresh));
   } catch (err: any) {
+    if (err instanceof SessionExpiredError) throw err;
     if (
       err?.name === "TypeError" ||
       err?.message?.includes("fetch") ||
@@ -194,12 +258,6 @@ export async function trackProduct(url: string): Promise<TrackResponse> {
 
   const data: TrackResponse = await res.json();
 
-  // Save metadata to local store so we can immediately show URL & platform
-  saveLocalProductMeta(data.product_source_id, { url: cleanUrl });
-  if (data.id) {
-    saveLocalProductMeta(data.id, { url: cleanUrl });
-  }
-
   return data;
 }
 
@@ -219,20 +277,7 @@ export async function listTrackings(): Promise<TrackedProduct[]> {
   const data = await res.json();
   const trackings: TrackedProduct[] = data.data || [];
 
-  // Merge with any client-side cached metadata if title/url missing
-  return trackings.map((t) => {
-    const localMeta = getLocalProductMeta(t.ProductSourceID) || getLocalProductMeta(t.ID);
-    if (!t.Title && localMeta?.title) {
-      t.Title = localMeta.title;
-    }
-    if (!t.CanonicalURL && localMeta?.url) {
-      t.CanonicalURL = localMeta.url;
-    }
-    if (!t.Platform && localMeta?.platform) {
-      t.Platform = localMeta.platform;
-    }
-    return t;
-  });
+  return trackings;
 }
 
 /**
@@ -248,17 +293,7 @@ export async function getTracking(id: string): Promise<TrackedProduct> {
     throw new Error("Không tìm thấy thông tin sản phẩm theo dõi");
   }
 
-  const tracked: TrackedProduct = await res.json();
-  const localMeta = getLocalProductMeta(tracked.ProductSourceID) || getLocalProductMeta(tracked.ID);
-
-  if (!tracked.Title && localMeta?.title) {
-    tracked.Title = localMeta.title;
-  }
-  if (!tracked.CanonicalURL && localMeta?.url) {
-    tracked.CanonicalURL = localMeta.url;
-  }
-
-  return tracked;
+  return (await res.json()) as TrackedProduct;
 }
 
 /**
@@ -556,44 +591,41 @@ export async function listProductGroups(): Promise<ProductGroupSummary[]> {
  * GAP-02: Authentication & Guest Migration API functions
  */
 
-export async function authDemoLogin(email?: string, name?: string): Promise<AuthLoginResponse> {
-  const res = await safeFetch(`${API_BASE_URL}/auth/demo-login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email || "", name: name || "" }),
-  });
-  if (!res.ok) {
-    throw new Error("Đăng nhập thử nghiệm thất bại");
+/** Google login with an ID token from Google Identity Services. Migrates the current guest data. */
+export async function authGoogleLogin(idToken: string): Promise<AuthSession> {
+  // A fresh guest token is required for the server to migrate this browser's guest data.
+  const guestToken = sessionIsMember ? null : await ensureSession().catch(() => null);
+  try {
+    const session = await postAuth("/auth/google", { id_token: idToken }, guestToken);
+    applySession(session);
+    return session;
+  } catch (err) {
+    if (err instanceof HttpError) {
+      if (err.status === 401) throw new Error("Google từ chối xác thực. Vui lòng thử đăng nhập lại.");
+      if (err.status === 503) throw new Error("Đăng nhập Google chưa được cấu hình trên máy chủ.");
+      throw new Error(`Đăng nhập Google thất bại (HTTP ${err.status}).`);
+    }
+    throw err;
   }
-  const data: AuthLoginResponse = await res.json();
-  setAuthToken(data.token);
-  return data;
 }
 
-export async function authGoogleLogin(idToken: string): Promise<AuthLoginResponse> {
-  const res = await safeFetch(`${API_BASE_URL}/auth/google`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id_token: idToken }),
-  });
-  if (!res.ok) {
-    throw new Error("Đăng nhập Google thất bại hoặc phiên đã hết hạn");
+/** Revokes the refresh cookie, then continues as a new guest. Throws (keeping the session) if the server did not confirm. */
+export async function authLogout(): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    throw new Error(CONNECTION_ERROR);
   }
-  const data: AuthLoginResponse = await res.json();
-  setAuthToken(data.token);
-  return data;
-}
-
-export async function authMigrateGuestData(guestUserId: string): Promise<MigrationResult> {
-  const res = await safeFetch(`${API_BASE_URL}/auth/migrate`, {
-    method: "POST",
-    headers: getAuthHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ guest_user_id: guestUserId }),
-  });
   if (!res.ok) {
-    throw new Error("Đồng bộ dữ liệu khách vãng lai thất bại");
+    throw new Error("Đăng xuất thất bại. Vui lòng thử lại.");
   }
-  return await res.json();
+  applySession(null);
+  await ensureSession();
 }
 
 export async function authGetMe(): Promise<AuthUser> {

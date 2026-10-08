@@ -39,7 +39,7 @@ export default function SettingsPage() {
 
   // The scan interval is decided by the server per tracking (no user-editable setting exists yet);
   // show the real value from the user's trackings.
-  const { data: trackings = [] } = useTrackings();
+  const { data: trackings = [], isLoading: trackingsLoading, error: trackingsError } = useTrackings();
   const intervalSeconds = trackings.find((p) => p.PollingIntervalSeconds > 0)?.PollingIntervalSeconds;
 
   const handleResetUser = async () => {
@@ -168,11 +168,19 @@ export default function SettingsPage() {
               <span className="text-sm font-semibold text-slate-800 block">
                 {t.settings.scanSection}
               </span>
-              <span className="text-[11px] text-slate-400 block">
-                {intervalSeconds
-                  ? formatText(t.settings.currentInterval, { minutes: Math.round(intervalSeconds / 60) })
-                  : t.settings.intervalNoTrackings}
-              </span>
+              {trackingsError ? (
+                <span className="text-[11px] text-rose-600 block">
+                  {(trackingsError as Error).message}
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-400 block">
+                  {trackingsLoading
+                    ? t.common.loading
+                    : intervalSeconds
+                    ? formatText(t.settings.currentInterval, { minutes: Math.round(intervalSeconds / 60) })
+                    : t.settings.intervalNoTrackings}
+                </span>
+              )}
             </div>
           </div>
         </div>

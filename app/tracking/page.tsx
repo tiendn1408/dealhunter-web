@@ -26,6 +26,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+// "Near target" needs a real target and price: products without one are never near it
+const isNearTarget = (item: { diffFromTarget?: number }) =>
+  item.diffFromTarget !== undefined && item.diffFromTarget <= 300000;
+
 export default function MyTrackingPage() {
   const { t, formatText } = useLanguage();
   const { data: trackings = [], isLoading: loading, error: queryError, refetch } = useEnrichedTrackings();
@@ -55,7 +59,7 @@ export default function MyTrackingPage() {
   const filteredTrackings = useMemo(() => {
     return trackings.filter((item) => {
       if (filterTab === "dropped" && (item.changePercent || 0) >= 0) return false;
-      if (filterTab === "target" && (item.diffFromTarget || 0) > 300000) return false;
+      if (filterTab === "target" && !isNearTarget(item)) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -120,7 +124,7 @@ export default function MyTrackingPage() {
             {
               id: "target",
               label: t.tracking.filterTarget,
-              count: trackings.filter((item) => (item.diffFromTarget || 0) <= 300000).length,
+              count: trackings.filter(isNearTarget).length,
             },
           ].map((tab) => (
             <button
@@ -287,9 +291,11 @@ export default function MyTrackingPage() {
                         {t.tracking.distanceLabel}
                       </span>
                       <span className="text-xs sm:text-sm font-bold text-pine-900">
-                        {item.diffFromTarget !== undefined
+                        {!item.targetPrice
+                          ? t.tracking.noTarget
+                          : item.diffFromTarget !== undefined
                           ? formatVND(item.diffFromTarget)
-                          : "—"}
+                          : t.common.unknown}
                       </span>
                     </div>
                   </div>

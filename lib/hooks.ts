@@ -19,6 +19,7 @@ import {
   authGetMe,
   authLogout,
   listUserAlerts,
+  pickActiveTargetRule,
   ensureSession,
   onSessionChange,
   getMatchSuggestions,
@@ -34,7 +35,7 @@ import {
   VoucherResponse,
   ProductVoucher,
 } from "./api";
-import { CreateAlertPayload } from "./types";
+import { AlertRule, CreateAlertPayload } from "./types";
 import { calculatePriceStats } from "./formatting";
 
 export interface EnrichedTrackingCard extends TrackedProduct {
@@ -43,6 +44,7 @@ export interface EnrichedTrackingCard extends TrackedProduct {
   oldPrice?: number;
   changePercent?: number;
   targetPrice?: number;
+  /** Undefined when there is no target or no known current price. */
   diffFromTarget?: number;
   targetProgress?: number;
 }
@@ -58,19 +60,17 @@ export function useTrackings() {
 }
 
 export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
-  const data = await listTrackings();
-  // Target prices come from the user's active target_price alert rules on the server
-  const targetBySource: Record<string, number> = {};
-  try {
-    for (const rule of await listUserAlerts()) {
-      if (rule.rule_type === "target_price" && rule.active) {
-        targetBySource[rule.product_source_id] = rule.threshold_value;
-      }
-    }
-  } catch {}
+  // Target prices come from the user's target_price alert rules on the server. A failure here fails the
+  // whole list: showing "not set" for every product would hide the error.
+  const [data, rules] = await Promise.all([listTrackings(), listUserAlerts()]);
+  const rulesBySource: Record<string, AlertRule[]> = {};
+  for (const rule of rules) {
+    (rulesBySource[rule.product_source_id] ??= []).push(rule);
+  }
 
   return Promise.all(
     data.map(async (item) => {
+      // Price history is per item and non-fatal: without it the history-based fields stay unknown.
       let snapshots: PriceSnapshot[] = [];
       try {
         snapshots = await getPriceHistory(item.ProductSourceID || item.ID);
@@ -88,9 +88,10 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
           : undefined;
       const changePercent = stats ? stats.changePercent : undefined;
 
-      const targetPrice = targetBySource[item.ProductSourceID] || undefined;
+      const targetPrice = pickActiveTargetRule(rulesBySource[item.ProductSourceID] ?? [])?.threshold_value;
+      // Unknown (undefined) without a target or a current price; never a made-up 0
       const diffFromTarget =
-        currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : 0;
+        currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : undefined;
 
       let targetProgress = 0;
       if (oldPrice && currentPrice && targetPrice && oldPrice > targetPrice) {
@@ -235,9 +236,15 @@ export function useMarkAllNotificationsAsRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (unreadIds: string[]) => {
-      return Promise.allSettled(unreadIds.map((id) => markNotificationAsRead(id)));
+      const results = await Promise.allSettled(unreadIds.map((id) => markNotificationAsRead(id)));
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        throw new Error(`Không thể đánh dấu đã đọc ${failed}/${unreadIds.length} thông báo. Vui lòng thử lại.`);
+      }
+      return results;
     },
-    onSuccess: () => {
+    // Refresh either way: some notifications may have been marked before the failure.
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });

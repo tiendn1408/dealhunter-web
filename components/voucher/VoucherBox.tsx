@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { useProductVouchers } from "@/lib/hooks";
-import { formatVND, formatDateTime } from "@/lib/formatting";
+import { formatVND, formatDateTime, isKnownPrice } from "@/lib/formatting";
 import { ProductVoucher } from "@/lib/api";
 import {
   Ticket,
@@ -15,6 +15,7 @@ import {
   Sparkles,
   Layers,
   Tag,
+  AlertCircle,
 } from "lucide-react";
 
 interface VoucherBoxProps {
@@ -29,7 +30,7 @@ export function VoucherBox({
   affiliateUrl,
 }: VoucherBoxProps) {
   const { t, formatText } = useLanguage();
-  const { data: voucherData, isLoading } = useProductVouchers(trackingId);
+  const { data: voucherData, isLoading, error, refetch } = useProductVouchers(trackingId);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [openedCollectId, setOpenedCollectId] = useState<string | null>(null);
 
@@ -39,6 +40,30 @@ export function VoucherBox({
         <div className="h-6 bg-slate-200 rounded w-1/3"></div>
         <div className="h-4 bg-slate-100 rounded w-2/3"></div>
         <div className="h-24 bg-slate-100 rounded-2xl"></div>
+      </div>
+    );
+  }
+
+  // A failed load is shown as an error, not hidden like "no vouchers"
+  if (error) {
+    return (
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-3">
+        <h2 className="text-lg font-black text-pine-900 tracking-tight">
+          {t.voucher.sectionTitle}
+        </h2>
+        <div className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <span>{(error as Error).message}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="font-semibold underline shrink-0"
+          >
+            {t.common.retry}
+          </button>
+        </div>
       </div>
     );
   }
@@ -53,6 +78,11 @@ export function VoucherBox({
   }
 
   const { calculation, vouchers } = voucherData;
+  // null/0 means the product has no price yet: show "unknown", never "0 ₫"
+  // calculation is null until the product has a price
+  const effectivePrice = isKnownPrice(calculation?.effective_price) ? calculation!.effective_price : null;
+  const listedPrice = isKnownPrice(calculation?.listed_price) ? calculation!.listed_price : null;
+  const totalSavings = calculation?.total_savings ?? 0;
   const primaryOutboundUrl =
     affiliateUrl ||
     voucherData.affiliate_url ||
@@ -119,13 +149,13 @@ export function VoucherBox({
           </p>
         </div>
 
-        {calculation.total_savings > 0 && (
+        {totalSavings > 0 && (
           <div className="shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-2xl text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider block text-emerald-600">
               {t.voucher.totalSavingsLabel}
             </span>
             <span className="text-sm sm:text-base font-black">
-              -{formatVND(calculation.total_savings)}
+              -{formatVND(totalSavings)}
             </span>
           </div>
         )}
@@ -254,28 +284,35 @@ export function VoucherBox({
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>{t.voucher.listedPriceLabel}</span>
                 <span className="font-semibold text-slate-800">
-                  {formatVND(calculation.listed_price)}
+                  {listedPrice !== null ? formatVND(listedPrice) : t.common.unknown}
                 </span>
               </div>
 
-              {calculation.shop_discount > 0 && (
+              {(calculation?.shop_discount ?? 0) > 0 && (
                 <div className="flex items-center justify-between text-xs text-rose-600 font-medium">
                   <span>{t.voucher.shopDiscountLabel}</span>
-                  <span>-{formatVND(calculation.shop_discount)}</span>
+                  <span>-{formatVND(calculation!.shop_discount)}</span>
                 </div>
               )}
 
-              {calculation.platform_coupon > 0 && (
+              {(calculation?.platform_coupon ?? 0) > 0 && (
                 <div className="flex items-center justify-between text-xs text-rose-600 font-medium">
                   <span>{t.voucher.platformCouponLabel}</span>
-                  <span>-{formatVND(calculation.platform_coupon)}</span>
+                  <span>-{formatVND(calculation!.platform_coupon)}</span>
                 </div>
               )}
 
-              {calculation.shipping_fee > 0 && (
+              {(calculation?.shipping_fee ?? 0) > 0 && (
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>{t.voucher.shippingFeeLabel}</span>
-                  <span>+{formatVND(calculation.shipping_fee)}</span>
+                  <span>+{formatVND(calculation!.shipping_fee)}</span>
+                </div>
+              )}
+
+              {calculation && !voucherData.shipping_fee_known && (
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>{t.voucher.shippingFeeLabel}</span>
+                  <span>{t.voucher.shippingUnknown}</span>
                 </div>
               )}
 
@@ -284,13 +321,15 @@ export function VoucherBox({
                   <span className="text-xs font-bold text-slate-900 block">
                     {t.voucher.effectivePriceLabel}
                   </span>
-                  <span className="text-[11px] text-emerald-700 font-medium">
-                    {formatText(t.voucher.totalSavingsLabel)}: -{formatVND(calculation.total_savings)}
-                  </span>
+                  {totalSavings > 0 && (
+                    <span className="text-[11px] text-emerald-700 font-medium">
+                      {formatText(t.voucher.totalSavingsLabel)}: -{formatVND(totalSavings)}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <span className="text-xl sm:text-2xl font-black text-emerald-700">
-                    {formatVND(calculation.effective_price)}
+                    {effectivePrice !== null ? formatVND(effectivePrice) : t.common.unknown}
                   </span>
                 </div>
               </div>
@@ -307,9 +346,9 @@ export function VoucherBox({
             >
               <ShoppingBag className="w-4 h-4" />
               <span>
-                {formatText(t.voucher.buyNowBtn, {
-                  price: formatVND(calculation.effective_price),
-                })}
+                {effectivePrice !== null
+                  ? formatText(t.voucher.buyNowBtn, { price: formatVND(effectivePrice) })
+                  : t.voucher.openProductBtn}
               </span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </a>

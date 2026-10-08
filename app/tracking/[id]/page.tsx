@@ -4,7 +4,9 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  createAlert,
+  replaceTargetPriceRule,
+  pickActiveTargetRule,
+  TargetCleanupError,
   AlertRule,
   PriceSnapshot,
   TrackedProduct,
@@ -59,7 +61,8 @@ export default function ProductDetailPage() {
 
   const { data: tracking, isLoading: trackingLoading, error: trackingError } = useTracking(idOrSourceId);
   const { data: snapshots = [], isLoading: priceLoading, error: priceError } = usePriceHistory(idOrSourceId);
-  const { data: alertsData = [], refetch: refetchAlerts } = useAlerts(idOrSourceId);
+  // No `= []` default: a new array every render would re-run the effect below forever.
+  const { data: alertsData, error: alertsError, refetch: refetchAlerts } = useAlerts(idOrSourceId);
 
   const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("90d");
@@ -79,12 +82,13 @@ export default function ProductDetailPage() {
     : null;
 
   useEffect(() => {
-    setAlerts(alertsData);
+    if (alertsData) setAlerts(alertsData);
   }, [alertsData]);
 
-  // The target price is the user's active target_price alert rule on the server; nothing else
-  const savedTarget: number | null =
-    alerts.find((r) => r.rule_type === "target_price" && r.active)?.threshold_value ?? null;
+  // The target price is the user's newest active, non-expired target_price rule on the server
+  // (same rule as the tracking list); nothing else
+  const savedTarget: number | null = pickActiveTargetRule(alerts)?.threshold_value ?? null;
+  const alertsErrorMessage = alertsError ? (alertsError as Error).message : null;
 
   const stats = useMemo(() => {
     return calculatePriceStats(snapshots);
@@ -103,8 +107,8 @@ export default function ProductDetailPage() {
   const changePercent = stats ? stats.changePercent : undefined;
 
   const openTargetModal = () => {
-    // Pre-fill the input with the saved target, or a suggestion the user still has to confirm
-    setTargetInput(savedTarget ?? (currentPrice ? Math.round(currentPrice * 0.95) : 0));
+    // Pre-fill only the saved target; otherwise the user types it (or picks a quick discount)
+    setTargetInput(savedTarget ?? 0);
     setTargetError(null);
     setShowTargetModal(true);
   };
@@ -117,7 +121,8 @@ export default function ProductDetailPage() {
     setSavingTarget(true);
     setTargetError(null);
     try {
-      const newRule = await createAlert(idOrSourceId, {
+      // Creates the new rule and deletes the previous target rules, so only one target exists
+      const newRule = await replaceTargetPriceRule(idOrSourceId, {
         rule_type: "target_price",
         threshold_value: targetInput,
         expires_in_days: 60,
@@ -126,6 +131,11 @@ export default function ProductDetailPage() {
       refetchAlerts();
       setShowTargetModal(false);
     } catch (err: any) {
+      if (err instanceof TargetCleanupError) {
+        // The new target was saved; show the server's real rule list (old targets may remain)
+        setAlerts((prev) => [err.rule, ...prev]);
+        refetchAlerts();
+      }
       setTargetError(err?.message || "Không lưu được giá mục tiêu. Vui lòng thử lại.");
     } finally {
       setSavingTarget(false);
@@ -177,12 +187,14 @@ export default function ProductDetailPage() {
     }));
   }, [filteredSnapshots]);
 
-  const diffFromTarget = savedTarget && currentPrice ? Math.max(0, currentPrice - savedTarget) : 0;
+  // Unknown (undefined) without a target or a current price; never a made-up 0
+  const diffFromTarget =
+    savedTarget && currentPrice ? Math.max(0, currentPrice - savedTarget) : undefined;
   const targetProgress = useMemo(() => {
     if (!savedTarget || !currentPrice || !oldPrice || oldPrice <= savedTarget) return 0;
     const drop = oldPrice - currentPrice;
     const total = oldPrice - savedTarget;
-    return Math.min(100, Math.max(10, Math.round((drop / total) * 100)));
+    return Math.min(100, Math.max(0, Math.round((drop / total) * 100)));
   }, [savedTarget, currentPrice, oldPrice]);
 
   if (loading) {
@@ -265,7 +277,7 @@ export default function ProductDetailPage() {
         {/* Price Row matching Screen 6 */}
         <div className="pt-2 border-t border-slate-100 flex items-baseline gap-3">
           <span className="text-3xl sm:text-4xl font-black text-pine-900">
-            {formatVND(currentPrice)}
+            {currentPrice ? formatVND(currentPrice) : t.common.unknown}
           </span>
           {oldPrice && (
             <span className="text-sm text-slate-400 line-through">
@@ -303,7 +315,7 @@ export default function ProductDetailPage() {
                 {t.detail.targetPrice}
               </span>
               <span className="text-sm sm:text-base font-black text-slate-800">
-                {savedTarget ? formatVND(savedTarget) : t.detail.notSet}
+                {alertsErrorMessage ? t.common.unknown : savedTarget ? formatVND(savedTarget) : t.detail.notSet}
               </span>
             </div>
 
@@ -312,7 +324,13 @@ export default function ProductDetailPage() {
                 {t.detail.distanceFromTarget}
               </span>
               <span className="text-sm sm:text-base font-black text-pine-900">
-                {formatVND(diffFromTarget)}
+                {alertsErrorMessage
+                  ? t.common.unknown
+                  : !savedTarget
+                  ? t.detail.noTarget
+                  : diffFromTarget !== undefined
+                  ? formatVND(diffFromTarget)
+                  : t.common.unknown}
               </span>
             </div>
           </div>
@@ -344,7 +362,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
+              {stats ? formatVND(stats.lowest) : t.common.unknown}
             </span>
           </div>
 
@@ -353,7 +371,7 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
+              {stats ? formatVND(stats.average) : t.common.unknown}
             </span>
           </div>
         </div>
@@ -393,7 +411,21 @@ export default function ProductDetailPage() {
           </button>
         </div>
 
-        {alerts.length === 0 ? (
+        {alertsErrorMessage && alerts.length === 0 ? (
+          <div className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{alertsErrorMessage}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => refetchAlerts()}
+              className="font-semibold underline shrink-0"
+            >
+              {t.common.retry}
+            </button>
+          </div>
+        ) : alerts.length === 0 ? (
           <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
             <p className="text-xs text-slate-600 font-medium">
               {t.detail.noAlertsTitle}
@@ -556,7 +588,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
+              {stats ? formatVND(stats.lowest) : t.common.unknown}
             </span>
           </div>
 
@@ -565,7 +597,7 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
+              {stats ? formatVND(stats.average) : t.common.unknown}
             </span>
           </div>
 
@@ -574,7 +606,7 @@ export default function ProductDetailPage() {
               {t.detail.highest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.highest) : (currentPrice ? formatVND(currentPrice) : "--")}
+              {stats ? formatVND(stats.highest) : t.common.unknown}
             </span>
           </div>
         </div>
@@ -592,7 +624,7 @@ export default function ProductDetailPage() {
                 <span className="font-semibold text-slate-800">{t.detail.milestoneJustDropped}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-bold text-pine-900">{formatVND(currentPrice)}</span>
+                <span className="font-bold text-pine-900">{currentPrice ? formatVND(currentPrice) : t.common.unknown}</span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneRecent}</span>
               </div>
             </div>
@@ -604,7 +636,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-pine-900">
-                  {stats ? formatVND(stats.lowest) : (currentPrice ? formatVND(currentPrice) : "--")}
+                  {stats ? formatVND(stats.lowest) : t.common.unknown}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneRecordedLow}</span>
               </div>
@@ -617,7 +649,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-700">
-                  {stats ? formatVND(stats.average) : (currentPrice ? formatVND(currentPrice) : "--")}
+                  {stats ? formatVND(stats.average) : t.common.unknown}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneMedian}</span>
               </div>
@@ -665,14 +697,16 @@ export default function ProductDetailPage() {
                   type="number"
                   step="10000"
                   required
-                  value={targetInput}
+                  value={targetInput > 0 ? targetInput : ""}
                   onChange={(e) => setTargetInput(Number(e.target.value))}
                   placeholder="6.000.000"
                   className="w-full px-4 py-3.5 text-2xl font-black rounded-2xl border border-slate-200 bg-slate-50 text-pine-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-center"
                 />
-                <span className="text-xs font-semibold text-slate-400 block text-center mt-1">
-                  {formatText(t.detail.displayPrice, { price: formatVND(targetInput) })}
-                </span>
+                {targetInput > 0 && (
+                  <span className="text-xs font-semibold text-slate-400 block text-center mt-1">
+                    {formatText(t.detail.displayPrice, { price: formatVND(targetInput) })}
+                  </span>
+                )}
               </div>
 
               {/* Quick discount pills (-5%, -10%, -15%, -20%) matching Screen 8 */}
@@ -682,7 +716,8 @@ export default function ProductDetailPage() {
                     key={pct}
                     type="button"
                     onClick={() => handleQuickPercent(pct)}
-                    className="py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-pine-50 hover:border-pine-300 text-xs font-bold text-slate-700 hover:text-pine-900 transition-colors"
+                    disabled={!currentPrice}
+                    className="disabled:opacity-40 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-pine-50 hover:border-pine-300 text-xs font-bold text-slate-700 hover:text-pine-900 transition-colors"
                   >
                     -{pct}%
                   </button>
@@ -721,10 +756,12 @@ export default function ProductDetailPage() {
         isOpen={showCreateAlertModal}
         onClose={() => setShowCreateAlertModal(false)}
         productId={idOrSourceId}
-        currentPrice={currentPrice || 0}
+        currentPrice={currentPrice || undefined}
         onAlertCreated={(newRule) => {
-          // savedTarget is derived from alerts, so a new target_price rule shows up immediately
+          // savedTarget is derived from alerts, so a new target_price rule shows up immediately;
+          // the refetch drops target rules the modal replaced on the server
           setAlerts((prev) => [newRule, ...prev]);
+          refetchAlerts();
         }}
       />
 

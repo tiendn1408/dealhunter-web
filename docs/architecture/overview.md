@@ -88,7 +88,7 @@ flowchart TD
     end
     
     subgraph ApiClient ["lib/api.ts (safeFetch)"]
-        HTTPReq["HTTP Request (X-User-ID, JSON)"]
+        HTTPReq["HTTP Request (Authorization: Bearer access token trong bo nho, JSON)"]
     end
     
     subgraph BackendGo ["Backend Go API (/api/v1/*)"]
@@ -112,6 +112,10 @@ flowchart TD
     Mutate --> Invalidate
     Invalidate -->|Refetch ngam| CacheMiss
 ```
+
+### Phien dang nhap & nguon du lieu
+- Access token (15 phut) chi nam trong bo nho (`lib/api.ts`), khong luu `localStorage`. Refresh token la HttpOnly cookie do backend dat tren `/auth/*`; khi access token het han / bi 401, `safeFetch` goi `/auth/refresh` (khach chua co cookie se duoc cap phien guest qua `/auth/guest`). Cac lan refresh duoc khoa cheo tab (Web Locks, du phong bang khoa `localStorage`).
+- Moi du lieu hien thi (gia, gia muc tieu, chu ky quet, voucher...) lay tu server; khong co cache metadata phia client ngoai cache TanStack Query. Khi chua co du lieu, UI hien "Chua co du lieu" hoac loi that, khong hien so gia dinh.
 
 ### Nguyen Tac Khoi Tao QueryClient (SSR Hydration Safety):
 - `QueryClient` duoc khoi tao ben trong `useState` tai Client Component [`components/QueryProvider.tsx`](file:///Users/tien.dang/Workplace/reference/dealhunter-web/components/QueryProvider.tsx).

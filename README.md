@@ -41,7 +41,7 @@ Giao diện web người dùng của hệ thống **Deal Hunter** — Theo dõi 
 - **Styling**: [Tailwind CSS 3](https://tailwindcss.com/)
 - **Charts**: [Recharts 2](https://recharts.org/) (ResponsiveContainer, AreaChart, ReferenceLine)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **HTTP Client**: Native `fetch` with typed API client & `localStorage` metadata caching
+- **HTTP Client**: Native `fetch` with a typed API client (`lib/api.ts`): access token kept in memory only, refresh token in an HttpOnly cookie (guest or Google session), all displayed data comes from the server (no client-side data cache besides TanStack Query)
 
 ---
 

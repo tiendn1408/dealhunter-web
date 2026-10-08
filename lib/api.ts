@@ -76,12 +76,78 @@ async function postAuth(path: string, body?: unknown, bearer?: string | null): P
 /**
  * Refresh tokens rotate strictly (a replayed token revokes every session), so refreshes are serialized
  * across tabs with the Web Locks API: a tab waiting on the lock sends the cookie the previous tab just set.
+ * Browsers without Web Locks fall back to a localStorage lock with the same guarantee (best effort).
  */
+const REFRESH_LOCK_NAME = "dealhunter-session-refresh";
+const STORAGE_LOCK_TTL_MS = 10_000;
+const STORAGE_LOCK_POLL_MS = 100;
+const STORAGE_LOCK_SETTLE_MS = 50;
+const tabLockId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+let storageLockSeq = 0;
+
 function withCrossTabLock<T>(fn: () => Promise<T>): Promise<T> {
   if (typeof navigator !== "undefined" && navigator.locks?.request) {
-    return navigator.locks.request("dealhunter-session-refresh", fn) as Promise<T>;
+    return navigator.locks.request(REFRESH_LOCK_NAME, fn) as Promise<T>;
   }
-  return fn();
+  return withStorageLock(fn);
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function readStorageLock(): { owner: string; expiresAt: number } | null {
+  try {
+    const raw = localStorage.getItem(REFRESH_LOCK_NAME);
+    if (!raw) return null;
+    const lock = JSON.parse(raw);
+    return typeof lock?.owner === "string" && typeof lock?.expiresAt === "number" ? lock : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Writes the lock; false when storage is unusable (private mode, quota, no window). */
+function writeStorageLock(owner: string): boolean {
+  try {
+    localStorage.setItem(REFRESH_LOCK_NAME, JSON.stringify({ owner, expiresAt: Date.now() + STORAGE_LOCK_TTL_MS }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * localStorage has no atomic compare-and-set: a tab claims a free (or expired) lock, waits briefly and
+ * re-reads it, so of two tabs claiming at once only the last writer proceeds. The holder renews the
+ * expiry while its refresh runs; a crashed tab's lock expires after STORAGE_LOCK_TTL_MS.
+ */
+async function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
+  const owner = `${tabLockId}:${++storageLockSeq}`;
+  let held = false;
+  let renew: ReturnType<typeof setInterval> | undefined;
+  try {
+    for (;;) {
+      const lock = readStorageLock();
+      if (!lock || lock.expiresAt <= Date.now()) {
+        // Without usable storage the tabs cannot coordinate: refresh unlocked, as before.
+        if (!writeStorageLock(owner)) break;
+        await sleep(STORAGE_LOCK_SETTLE_MS);
+        if (readStorageLock()?.owner === owner) {
+          held = true;
+          break;
+        }
+      }
+      await sleep(STORAGE_LOCK_POLL_MS);
+    }
+    if (held) renew = setInterval(() => writeStorageLock(owner), STORAGE_LOCK_TTL_MS / 3);
+    return await fn();
+  } finally {
+    if (renew) clearInterval(renew);
+    if (held && readStorageLock()?.owner === owner) {
+      try {
+        localStorage.removeItem(REFRESH_LOCK_NAME);
+      } catch {}
+    }
+  }
 }
 
 function refreshOrStartGuest(): Promise<string> {
@@ -92,7 +158,8 @@ async function refreshOrStartGuestUnlocked(): Promise<string> {
   const wasMember = sessionIsMember;
   try {
     const session = await postAuth("/auth/refresh");
-    applySession(session);
+    // The cookie can belong to a guest when another tab logged out: the member session still ended here.
+    applySession(session, wasMember && session.user.auth_provider === "guest");
     return session.access_token;
   } catch (err) {
     if (!(err instanceof HttpError && err.status === 401)) throw err;
@@ -177,10 +244,10 @@ export interface PriceSnapshot {
   ID: number;
   ProductSourceID: string;
   Price: number;
-  ShippingFee: number;
+  ShippingFee: number | null; // null = shipping fee not stated
   EffectivePrice: number;
   Currency: string;
-  InStock: boolean;
+  InStock: boolean | null;
   CapturedAt: string;
 }
 
@@ -189,9 +256,9 @@ export interface TrackResponse {
   product_source_id: string;
   next_fetch_at: string;
   url?: string;
+  /** Real scan interval of the new tracking; absent when the server does not return it. */
+  polling_interval_seconds?: number;
 }
-
-// Client-side cache for product metadata (fallback if backend only provides UUIDs)
 
 function withBearer(init: RequestInit | undefined, token: string): RequestInit {
   const headers = new Headers(init?.headers);
@@ -205,15 +272,18 @@ function withBearer(init: RequestInit | undefined, token: string): RequestInit {
  */
 async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
   try {
+    // A member's request must never be sent under another identity: neither when the proactive
+    // refresh before sending falls back to a guest, nor when the retry after a 401 does.
+    const memberId = sessionIsMember ? sessionUserId : null;
     const token = await ensureSession();
+    if (memberId && sessionUserId !== memberId) throw new SessionExpiredError();
+
+    const sentAs = sessionIsMember ? sessionUserId : null;
     const res = await fetch(url, withBearer(init, token));
     if (res.status !== 401) return res;
-    const wasMember = sessionIsMember;
-    const fresh = await ensureSession(true);
-    if (wasMember && !sessionIsMember) {
-      // The member session ended; do not replay the request in an anonymous account.
-      throw new SessionExpiredError();
-    }
+    // Another request may already have refreshed the token; only force a refresh when it has not.
+    const fresh = await ensureSession(token === accessToken);
+    if (sentAs && sessionUserId !== sentAs) throw new SessionExpiredError();
     return await fetch(url, withBearer(init, fresh));
   } catch (err: any) {
     if (err instanceof SessionExpiredError) throw err;
@@ -450,6 +520,51 @@ export async function deleteAlert(
 }
 
 /**
+ * The target price shown everywhere is the newest active, non-expired target_price rule,
+ * so the list and the detail page always agree.
+ */
+export function pickActiveTargetRule(rules: AlertRule[], now = Date.now()): AlertRule | undefined {
+  let picked: AlertRule | undefined;
+  for (const rule of rules) {
+    if (rule.rule_type !== "target_price" || !rule.active) continue;
+    if (rule.expires_at && new Date(rule.expires_at).getTime() <= now) continue;
+    if (!picked || new Date(rule.created_at).getTime() > new Date(picked.created_at).getTime()) {
+      picked = rule;
+    }
+  }
+  return picked;
+}
+
+/** Thrown when the new target rule was saved but the previous target rules could not be removed. */
+export class TargetCleanupError extends Error {
+  constructor(public rule: AlertRule) {
+    super("Đã lưu giá mục tiêu mới nhưng không xóa được giá mục tiêu cũ. Vui lòng thử lại.");
+  }
+}
+
+/**
+ * Saves a target price: creates the new target_price rule, then deletes the user's other active
+ * target_price rules for this tracking so only one target exists. Throws TargetCleanupError
+ * (carrying the saved rule) when the old rules could not all be deleted.
+ */
+export async function replaceTargetPriceRule(
+  trackedProductIdOrSourceId: string,
+  payload: CreateAlertPayload
+): Promise<AlertRule> {
+  const rule = await createAlert(trackedProductIdOrSourceId, payload);
+  try {
+    const stale = (await listAlerts(trackedProductIdOrSourceId)).filter(
+      (r) => r.rule_type === "target_price" && r.active && r.id !== rule.id
+    );
+    const results = await Promise.allSettled(stale.map((r) => deleteAlert(r.id)));
+    if (results.some((r) => r.status === "rejected")) throw new Error("cleanup failed");
+  } catch {
+    throw new TargetCleanupError(rule);
+  }
+  return rule;
+}
+
+/**
  * List price notifications for the current user.
  */
 export async function listNotifications(
@@ -603,6 +718,7 @@ export async function authGoogleLogin(idToken: string): Promise<AuthSession> {
     if (err instanceof HttpError) {
       if (err.status === 401) throw new Error("Google từ chối xác thực. Vui lòng thử đăng nhập lại.");
       if (err.status === 503) throw new Error("Đăng nhập Google chưa được cấu hình trên máy chủ.");
+      if (err.status === 409) throw new Error("Email này đã gắn với một tài khoản Google khác.");
       throw new Error(`Đăng nhập Google thất bại (HTTP ${err.status}).`);
     }
     throw err;
@@ -625,7 +741,13 @@ export async function authLogout(): Promise<void> {
     throw new Error("Đăng xuất thất bại. Vui lòng thử lại.");
   }
   applySession(null);
-  await ensureSession();
+  try {
+    await ensureSession();
+  } catch {
+    // The logout itself succeeded; only the follow-up guest session failed (e.g. 429). Clear the member's
+    // data from the UI now (applySession(null) does not notify) and let the next request start the guest session.
+    sessionListeners.forEach((l) => l({ memberSessionExpired: false }));
+  }
 }
 
 export async function authGetMe(): Promise<AuthUser> {
@@ -668,8 +790,9 @@ export async function getMatchSuggestions(idOrProductId: string): Promise<MatchS
   const res = await safeFetch(`${API_BASE_URL}/tracked-products/${idOrProductId}/match-suggestions`, {
     headers: getAuthHeaders(),
   });
+  // "No suggestions" is a 200 with an empty list; any non-2xx (incl. 404 = tracking not accessible) is an error.
   if (!res.ok) {
-    return [];
+    throw new Error("Không thể tải gợi ý sản phẩm tương đồng");
   }
   const data = await res.json();
   return data.suggestions || [];
@@ -743,7 +866,8 @@ export interface VoucherCalculation {
   shop_discount: number;
   platform_coupon: number;
   shipping_fee: number;
-  effective_price: number;
+  /** null (or 0 from older servers) when the product has no price yet. */
+  effective_price: number | null;
   total_savings: number;
   best_shop_voucher?: ProductVoucher;
   best_platform_voucher?: ProductVoucher;
@@ -757,17 +881,21 @@ export interface VoucherResponse {
   platform: string;
   canonical_url?: string;
   affiliate_url?: string;
-  calculation: VoucherCalculation;
+  /** null until a price has been fetched */
+  calculation: VoucherCalculation | null;
+  /** false when the shipping fee is unknown and left out of the calculation */
+  shipping_fee_known: boolean;
   vouchers: ProductVoucher[];
 }
 
-export async function getTrackedProductVouchers(id: string): Promise<VoucherResponse | null> {
+export async function getTrackedProductVouchers(id: string): Promise<VoucherResponse> {
   const res = await safeFetch(`${API_BASE_URL}/tracked-products/${id}/vouchers`, {
     headers: getAuthHeaders(),
     cache: "no-store",
   });
+  // "No vouchers" is a 200 with an empty list; any non-2xx (incl. 404 = tracking not accessible) is an error.
   if (!res.ok) {
-    return null;
+    throw new Error("Không thể tải mã giảm giá của sản phẩm");
   }
   return await res.json();
 }

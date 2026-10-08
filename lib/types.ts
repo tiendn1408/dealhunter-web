@@ -60,17 +60,18 @@ export interface SourcePrice {
   seller_name: string;
   canonical_url: string;
   affiliate_url?: string;
-  listed_price: number;
-  shipping_fee: number;
-  effective_price: number;
-  in_stock: boolean;
+  listed_price: number | null;
+  shipping_fee: number | null;
+  /** null (or 0 from older servers) when the source has no price yet. */
+  effective_price: number | null;
+  in_stock: boolean | null; // null = the marketplace did not state availability
   is_best_deal: boolean;
   captured_at: string | null;
 }
 
 export interface BestDealSummary {
   platform: string;
-  effective_price: number;
+  effective_price: number | null;
   saving_vs_most_expensive: number;
   saving_percent: number;
 }

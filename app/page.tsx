@@ -30,7 +30,12 @@ function HomeContent() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { data: userTrackings = [] } = useTrackings();
+  const {
+    data: userTrackings = [],
+    isLoading: trackingsLoading,
+    error: trackingsError,
+    refetch: refetchTrackings,
+  } = useTrackings();
   const [showInputModal, setShowInputModal] = useState(false);
 
   // Success state matching Screen 4
@@ -38,6 +43,7 @@ function HomeContent() {
     id: string;
     productSourceId: string;
     url: string;
+    pollingIntervalSeconds?: number;
   } | null>(null);
 
   // Check URL query parameters
@@ -66,6 +72,7 @@ function HomeContent() {
         id: res.id,
         productSourceId: res.product_source_id,
         url: cleanUrl,
+        pollingIntervalSeconds: res.polling_interval_seconds,
       });
       setShowInputModal(false);
     } catch (err: any) {
@@ -210,6 +217,28 @@ function HomeContent() {
                     <span className="text-2xl font-black text-pine-900">{formatVND(latestTracked.LastPrice ?? 0)}</span>
                     <p className="text-[11px] text-slate-500 font-medium mt-2">{t.home.latestTrackedHint}</p>
                   </Link>
+                ) : trackingsLoading ? (
+                  <p className="text-[11px] text-slate-500 font-medium">{t.common.loading}</p>
+                ) : trackingsError ? (
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-rose-700 font-medium flex items-start gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-px" />
+                      <span>{(trackingsError as Error).message}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => refetchTrackings()}
+                      className="text-[11px] font-bold text-pine-900 hover:underline"
+                    >
+                      {t.common.retry}
+                    </button>
+                  </div>
+                ) : userTrackings.length > 0 ? (
+                  /* Products exist but none has a fetched price yet: say so instead of "no products" */
+                  <Link href="/tracking" className="block">
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">{t.tracking.checking}</h3>
+                    <p className="text-[11px] text-pine-900 font-semibold">{t.home.viewTrackedBtn}</p>
+                  </Link>
                 ) : (
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm mb-1">{t.home.noTrackedTitle}</h3>
@@ -250,9 +279,14 @@ function HomeContent() {
               <h3 className="font-bold text-slate-900 text-sm">
                 {t.home.newTrackingProduct}
               </h3>
-              <p className="text-xs text-slate-500">
-                {t.home.scanIntervalDesc}
-              </p>
+              {/* Only the interval the server actually returned; omitted when unknown */}
+              {successData.pollingIntervalSeconds && successData.pollingIntervalSeconds > 0 ? (
+                <p className="text-xs text-slate-500">
+                  {formatText(t.home.scanIntervalDesc, {
+                    minutes: Math.round(successData.pollingIntervalSeconds / 60),
+                  })}
+                </p>
+              ) : null}
             </div>
           </div>
 

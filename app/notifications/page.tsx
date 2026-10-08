@@ -22,22 +22,30 @@ import {
   Check,
   Sparkles,
   ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
   const { t, formatText } = useLanguage();
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "drop" | "zalo">("all");
-  const { data: notifications = [], isLoading: loading } = useNotifications(50);
+  const {
+    data: notifications = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useNotifications(50);
   const markReadMutation = useMarkNotificationAsRead();
   const markAllMutation = useMarkAllNotificationsAsRead();
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    setActionError(null);
     try {
       await markReadMutation.mutateAsync(id);
-    } catch (err) {
-      console.error("Failed to mark as read:", err);
+    } catch (err: any) {
+      setActionError(err?.message || t.common.error);
     }
   };
 
@@ -45,10 +53,11 @@ export default function NotificationsPage() {
     const unread = notifications.filter((n) => !n.read_at);
     if (unread.length === 0) return;
 
+    setActionError(null);
     try {
       await markAllMutation.mutateAsync(unread.map((n) => n.id));
-    } catch (err) {
-      console.error("Failed to mark all as read:", err);
+    } catch (err: any) {
+      setActionError(err?.message || t.common.error);
     }
   };
 
@@ -139,6 +148,13 @@ export default function NotificationsPage() {
         ))}
       </div>
 
+      {actionError && (
+        <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+          <span>{actionError}</span>
+        </div>
+      )}
+
       {/* Content list or Loading Skeleton */}
       {loading ? (
         <div className="space-y-3">
@@ -154,6 +170,18 @@ export default function NotificationsPage() {
               </div>
             </div>
           ))}
+        </div>
+      ) : queryError ? (
+        <div className="p-6 bg-rose-50 text-rose-700 border border-rose-200 rounded-3xl text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+          <p className="text-xs sm:text-sm font-semibold">{(queryError as Error).message}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-semibold hover:bg-rose-700"
+          >
+            {t.common.retry}
+          </button>
         </div>
       ) : filteredNotifications.length === 0 ? (
         /* Empty State */

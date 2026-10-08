@@ -15,6 +15,11 @@ export function formatVND(amount?: number | null): string {
   }).format(amount);
 }
 
+/** A price is known only when the server returned a positive amount; null/0 mean "no price yet". */
+export function isKnownPrice(amount?: number | null): amount is number {
+  return typeof amount === "number" && !isNaN(amount) && amount > 0;
+}
+
 /**
  * Compact VND format for chart axes & badges.
  * Example: 6290000 -> "6.29M", 450000 -> "450k"

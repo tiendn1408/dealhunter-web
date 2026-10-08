@@ -5,6 +5,8 @@ import {
   AlertConditionType,
   CreateAlertPayload,
   createAlert,
+  replaceTargetPriceRule,
+  TargetCleanupError,
   AlertRule,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
@@ -24,7 +26,8 @@ interface CreateAlertModalProps {
   isOpen: boolean;
   onClose: () => void;
   productId: string;
-  currentPrice: number;
+  /** Real current price; undefined while the product has no price yet. */
+  currentPrice?: number;
   onAlertCreated: (rule: AlertRule) => void;
 }
 
@@ -41,9 +44,8 @@ export function CreateAlertModal({
 
   // Inputs for different condition types
   const [dropPercent, setDropPercent] = useState<number>(10);
-  const [targetPrice, setTargetPrice] = useState<number>(
-    Math.round(currentPrice * 0.9)
-  );
+  // No pre-filled target: the user types it or picks an explicit quick discount
+  const [targetPrice, setTargetPrice] = useState<number>(0);
   const [lowestDays, setLowestDays] = useState<number>(30);
 
   // Expiration option (null = permanent/default)
@@ -84,10 +86,16 @@ export function CreateAlertModal({
         expires_in_days: expiresInDays,
       };
 
-      const createdRule = await createAlert(productId, payload);
+      // A new target replaces the previous target rules, so only one target exists per tracking
+      const createdRule =
+        conditionType === "target_price"
+          ? await replaceTargetPriceRule(productId, payload)
+          : await createAlert(productId, payload);
       onAlertCreated(createdRule);
       onClose();
     } catch (err: any) {
+      // The new target was saved even though old ones could not be removed: show it, keep the error visible
+      if (err instanceof TargetCleanupError) onAlertCreated(err.rule);
       setError(err.message || t.alerts.createError);
     } finally {
       setLoading(false);
@@ -209,7 +217,9 @@ export function CreateAlertModal({
                 <span className="text-xs text-slate-500">
                   {t.alerts.triggerPriceLabel}{" "}
                   <strong className="text-pine-900">
-                    {formatVND(Math.round(currentPrice * (1 - dropPercent / 100)))}
+                    {currentPrice
+                      ? formatVND(Math.round(currentPrice * (1 - dropPercent / 100)))
+                      : t.common.unknown}
                   </strong>
                 </span>
               </div>
@@ -234,7 +244,7 @@ export function CreateAlertModal({
                     key={pct}
                     type="button"
                     onClick={() => setDropPercent(pct)}
-                    className={`py-1.5 rounded-lg border text-xs font-bold transition-colors ${
+                    className={`py-1.5 rounded-lg border text-xs font-bold transition-colors disabled:opacity-40 ${
                       dropPercent === pct
                         ? "bg-pine-900 text-white border-pine-900"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -256,7 +266,7 @@ export function CreateAlertModal({
                 <span className="text-xs text-slate-500">
                   {t.alerts.currentPriceLabel}{" "}
                   <strong className="text-slate-800">
-                    {formatVND(currentPrice)}
+                    {currentPrice ? formatVND(currentPrice) : t.common.unknown}
                   </strong>
                 </span>
               </div>
@@ -265,25 +275,29 @@ export function CreateAlertModal({
                 type="number"
                 step="10000"
                 min="1000"
-                value={targetPrice}
+                value={targetPrice > 0 ? targetPrice : ""}
                 onChange={(e) => setTargetPrice(Number(e.target.value))}
                 className="w-full px-4 py-3 text-2xl font-black rounded-xl border border-slate-200 bg-white text-pine-900 focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-center"
               />
 
-              <div className="text-center text-xs font-semibold text-slate-500">
-                {t.alerts.displayPriceLabel} {formatVND(targetPrice)}
-              </div>
+              {targetPrice > 0 && (
+                <div className="text-center text-xs font-semibold text-slate-500">
+                  {t.alerts.displayPriceLabel} {formatVND(targetPrice)}
+                </div>
+              )}
 
               <div className="grid grid-cols-4 gap-2 pt-1">
                 {[5, 10, 15, 20].map((pct) => {
-                  const val = Math.round(currentPrice * (1 - pct / 100));
+                  // Quick discounts need a real current price; disabled without one
+                  const val = currentPrice ? Math.round(currentPrice * (1 - pct / 100)) : 0;
                   return (
                     <button
                       key={pct}
                       type="button"
+                      disabled={!currentPrice}
                       onClick={() => setTargetPrice(val)}
-                      className={`py-1.5 rounded-lg border text-xs font-bold transition-colors ${
-                        targetPrice === val
+                      className={`py-1.5 rounded-lg border text-xs font-bold transition-colors disabled:opacity-40 ${
+                        val > 0 && targetPrice === val
                           ? "bg-pine-900 text-white border-pine-900"
                           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}

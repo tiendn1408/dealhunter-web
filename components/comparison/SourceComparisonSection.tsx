@@ -11,7 +11,7 @@ import {
 import { MatchSuggestion } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
 import { PlatformBadge } from "@/components/ui/Badge";
-import { formatVND, formatRelativeTime } from "@/lib/formatting";
+import { formatVND, formatRelativeTime, isKnownPrice } from "@/lib/formatting";
 import {
   ExternalLink,
   Plus,
@@ -39,7 +39,11 @@ export function SourceComparisonSection({
   const { data: comparison, isLoading, error } = useComparison(trackingId);
 
   const effectiveProductId = productId || comparison?.product_id;
-  const { data: suggestions = [] } = useMatchSuggestions(trackingId);
+  const {
+    data: suggestions = [],
+    error: suggestionsError,
+    refetch: refetchSuggestions,
+  } = useMatchSuggestions(trackingId);
   const acceptMutation = useAcceptMatchSuggestion(trackingId);
   const dismissMutation = useDismissMatchSuggestion(trackingId);
   const autoMatchMutation = useTriggerAutoMatch(trackingId);
@@ -47,19 +51,25 @@ export function SourceComparisonSection({
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  // Failures of auto-match / accept / dismiss are shown, never reported as "nothing found"
+  const [suggestionActionError, setSuggestionActionError] = useState<string | null>(null);
 
   const sortedSources = useMemo(() => {
     if (!comparison?.sources || comparison.sources.length === 0) return [];
     return [...comparison.sources].sort((a, b) => {
       if (a.is_best_deal && !b.is_best_deal) return -1;
       if (!a.is_best_deal && b.is_best_deal) return 1;
-      return a.effective_price - b.effective_price;
+      // Sources without a known price sort last
+      const pa = isKnownPrice(a.effective_price) ? a.effective_price : Number.MAX_SAFE_INTEGER;
+      const pb = isKnownPrice(b.effective_price) ? b.effective_price : Number.MAX_SAFE_INTEGER;
+      return pa - pb;
     });
   }, [comparison?.sources]);
 
   const handleTriggerAutoMatch = async () => {
     setIsScanning(true);
     setScanMessage(null);
+    setSuggestionActionError(null);
     try {
       const res = await autoMatchMutation.mutateAsync();
       if (res.new_suggestions.length > 0 || res.auto_linked_sources.length > 0) {
@@ -68,9 +78,8 @@ export function SourceComparisonSection({
         setScanMessage(t.comparison.autoMatchNone);
       }
       setTimeout(() => setScanMessage(null), 4000);
-    } catch {
-      setScanMessage(t.comparison.autoMatchNone);
-      setTimeout(() => setScanMessage(null), 4000);
+    } catch (err: any) {
+      setSuggestionActionError(err?.message || t.common.error);
     } finally {
       setIsScanning(false);
     }
@@ -78,26 +87,28 @@ export function SourceComparisonSection({
 
   const handleAccept = async (sugg: MatchSuggestion) => {
     setAcceptingId(sugg.id);
+    setSuggestionActionError(null);
     try {
       await acceptMutation.mutateAsync({
         productId: sugg.product_id || effectiveProductId || trackingId,
         suggestionId: sugg.id,
       });
-    } catch (err) {
-      console.error("Failed to accept suggestion:", err);
+    } catch (err: any) {
+      setSuggestionActionError(err?.message || t.common.error);
     } finally {
       setAcceptingId(null);
     }
   };
 
   const handleDismiss = async (sugg: MatchSuggestion) => {
+    setSuggestionActionError(null);
     try {
       await dismissMutation.mutateAsync({
         productId: sugg.product_id || effectiveProductId || trackingId,
         suggestionId: sugg.id,
       });
-    } catch (err) {
-      console.error("Failed to dismiss suggestion:", err);
+    } catch (err: any) {
+      setSuggestionActionError(err?.message || t.common.error);
     }
   };
 
@@ -149,82 +160,105 @@ export function SourceComparisonSection({
 
   // Suggestions Component for both single and multi-source modes
   const renderSuggestions = () => {
-    if (!suggestions || suggestions.length === 0) return null;
+    const errorMessage =
+      suggestionActionError || (suggestionsError ? (suggestionsError as Error).message : null);
+    const errorBox = errorMessage && (
+      <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+          <span>{errorMessage}</span>
+        </span>
+        {!suggestionActionError && (
+          <button
+            type="button"
+            onClick={() => refetchSuggestions()}
+            className="font-semibold underline shrink-0"
+          >
+            {t.common.retry}
+          </button>
+        )}
+      </div>
+    );
+
+    if (!suggestions || suggestions.length === 0) return errorBox || null;
 
     return (
-      <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-pine-900" />
-            <h3 className="text-xs sm:text-sm font-bold text-pine-900">
-              {t.comparison.suggestionsTitle}
-            </h3>
+      <>
+        {errorBox}
+        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-pine-900" />
+              <h3 className="text-xs sm:text-sm font-bold text-pine-900">
+                {t.comparison.suggestionsTitle}
+              </h3>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+              {suggestions.length}
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
-            {suggestions.length}
-          </span>
-        </div>
-        <p className="text-[11px] text-slate-500">
-          {t.comparison.suggestionsDesc}
-        </p>
+          <p className="text-[11px] text-slate-500">
+            {t.comparison.suggestionsDesc}
+          </p>
 
-        <div className="space-y-2.5 pt-1">
-          {suggestions.map((sugg) => (
-            <div
-              key={sugg.id}
-              className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-all"
-            >
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <PlatformBadge platformOrUrl={sugg.candidate_platform} />
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
-                    {formatText(t.comparison.matchConfidence, {
-                      percent: Math.round(sugg.match_score * 100),
-                    })}
-                  </span>
-                  {sugg.candidate_seller && (
-                    <span className="text-[11px] text-slate-400 truncate">
-                      {sugg.candidate_seller}
+          <div className="space-y-2.5 pt-1">
+            {suggestions.map((sugg) => (
+              <div
+                key={sugg.id}
+                className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-all"
+              >
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <PlatformBadge platformOrUrl={sugg.candidate_platform} />
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+                      {formatText(t.comparison.matchConfidence, {
+                        percent: Math.round(sugg.match_score * 100),
+                      })}
                     </span>
+                    {sugg.candidate_seller && (
+                      <span className="text-[11px] text-slate-400 truncate">
+                        {sugg.candidate_seller}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-semibold text-pine-900 truncate">
+                    {sugg.candidate_title}
+                  </h4>
+                  {sugg.candidate_price > 0 && (
+                    <div className="text-xs font-bold text-slate-700">
+                      {formatVND(sugg.candidate_price)}
+                    </div>
                   )}
                 </div>
-                <h4 className="text-xs sm:text-sm font-semibold text-pine-900 truncate">
-                  {sugg.candidate_title}
-                </h4>
-                {sugg.candidate_price > 0 && (
-                  <div className="text-xs font-bold text-slate-700">
-                    {formatVND(sugg.candidate_price)}
-                  </div>
-                )}
-              </div>
 
-              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => handleAccept(sugg)}
-                  disabled={acceptingId === sugg.id}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold transition-all disabled:opacity-50 shadow-2xs"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>
-                    {acceptingId === sugg.id
-                      ? t.comparison.acceptingSuggestion
-                      : t.comparison.acceptSuggestionBtn}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDismiss(sugg)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
-                  title={t.comparison.dismissSuggestionBtn}
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleAccept(sugg)}
+                    disabled={acceptingId === sugg.id}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold transition-all disabled:opacity-50 shadow-2xs"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>
+                      {acceptingId === sugg.id
+                        ? t.comparison.acceptingSuggestion
+                        : t.comparison.acceptSuggestionBtn}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDismiss(sugg)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+                    title={t.comparison.dismissSuggestionBtn}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     );
   };
 
@@ -384,7 +418,7 @@ export function SourceComparisonSection({
               {t.comparison.bestEffectivePrice}
             </span>
             <span className="text-xl sm:text-2xl font-black text-emerald-950 block">
-              {formatVND(bestDeal.effective_price)}
+              {isKnownPrice(bestDeal.effective_price) ? formatVND(bestDeal.effective_price) : t.common.unknown}
             </span>
           </div>
         </div>
@@ -394,7 +428,7 @@ export function SourceComparisonSection({
       <div className="space-y-3 pt-1">
         {sortedSources.map((source) => {
           const isWinningDeal = source.is_best_deal && comparison.comparison_available;
-          const hasPrice = source.effective_price > 0 && source.captured_at !== null;
+          const hasPrice = isKnownPrice(source.effective_price) && source.captured_at !== null;
 
           return (
             <div
@@ -419,13 +453,15 @@ export function SourceComparisonSection({
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                       !hasPrice
                         ? "bg-amber-50 text-amber-800 border-amber-200"
-                        : source.in_stock
-                        ? "bg-slate-100 text-slate-600 border-slate-200"
-                        : "bg-rose-50 text-rose-700 border-rose-200"
+                        : source.in_stock === false
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-slate-100 text-slate-600 border-slate-200"
                     }`}
                   >
                     {!hasPrice
                       ? t.comparison.scanning
+                      : source.in_stock === null
+                      ? t.comparison.stockUnknown
                       : source.in_stock
                       ? t.comparison.inStock
                       : t.comparison.outOfStock}
@@ -451,7 +487,9 @@ export function SourceComparisonSection({
                     <span>
                       {t.comparison.shippingFee}{" "}
                       <span className="font-semibold text-slate-700">
-                        {source.shipping_fee > 0
+                        {source.shipping_fee === null
+                          ? t.common.unknown
+                          : source.shipping_fee > 0
                           ? formatVND(source.shipping_fee)
                           : t.comparison.free}
                       </span>

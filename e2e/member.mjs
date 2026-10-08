@@ -3,7 +3,10 @@ import puppeteer from "puppeteer-core";
 import { execSync } from "node:child_process";
 import { createHash, randomUUID, randomBytes } from "node:crypto";
 
-const psql = (sql) => execSync(`docker exec dealhunter-postgres psql -U dealuser -d dealdb -tAc "${sql.replace(/"/g, '\\"')}"`).toString().trim();
+// Test rows go to the E2E database only, never to the development data (dealdb)
+const DB = process.env.E2E_DB || "dealdb_test";
+if (!DB.endsWith("_test")) throw new Error(`E2E_DB must be a *_test database, got "${DB}"`);
+const psql = (sql) => execSync(`docker exec dealhunter-postgres psql -U dealuser -d ${DB} -tAc "${sql.replace(/"/g, '\\"')}"`).toString().trim();
 const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 

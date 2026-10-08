@@ -138,6 +138,35 @@ export interface PriceStats {
 /**
  * Calculate key statistics from a list of price snapshots.
  */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Snapshots captured within the last `days` days (by CapturedAt); unparseable dates are left out. */
+export function snapshotsWithinDays(snapshots: PriceSnapshot[], days: number, now = Date.now()): PriceSnapshot[] {
+  const cutoff = now - days * DAY_MS;
+  return (snapshots || []).filter((s) => {
+    const at = new Date(s.CapturedAt).getTime();
+    return !isNaN(at) && at >= cutoff;
+  });
+}
+
+/**
+ * Progress (0-100) from the reference high price towards the target. 100 once the current price is at or
+ * below the target (target reached); undefined when the target or the current price is unknown; 0 when
+ * there is no higher reference price to measure a drop from.
+ */
+export function computeTargetProgress(
+  currentPrice: number | undefined,
+  targetPrice: number | null | undefined,
+  referenceHigh: number | undefined
+): number | undefined {
+  if (!targetPrice || !currentPrice) return undefined;
+  if (currentPrice <= targetPrice) return 100;
+  if (!referenceHigh || referenceHigh <= targetPrice) return 0;
+  const drop = referenceHigh - currentPrice;
+  const total = referenceHigh - targetPrice;
+  return Math.min(100, Math.max(0, Math.round((drop / total) * 100)));
+}
+
 export function calculatePriceStats(snapshots: PriceSnapshot[]): PriceStats | null {
   if (!snapshots || snapshots.length === 0) {
     return null;

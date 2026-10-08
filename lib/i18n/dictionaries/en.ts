@@ -146,6 +146,7 @@ export const en: Dictionary = {
     range30d: "30 Days",
     range90d: "90 Days",
     rangeAll: "All",
+    noDataInRange: "No data in this range yet",
     accumulatingData: "Accumulating price snapshot data over time...",
     listedPriceLabel: "Listed price:",
     targetPriceLabel: "Target: {price}",

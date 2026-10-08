@@ -8,6 +8,9 @@
  * Requires NEXT_PUBLIC_EXTENSION_ID and the extension's `externally_connectable` to list this origin.
  */
 const EXTENSION_ID = process.env.NEXT_PUBLIC_EXTENSION_ID || "";
+// Same base as lib/api.ts. Sent with every session message so the extension calls this deployment's API
+// and links back to this site (it validates both and keeps its localhost defaults otherwise).
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1").replace(/\/+$/, "");
 
 export interface ExtensionSession {
   accessToken: string;
@@ -24,7 +27,13 @@ export function pushSessionToExtension(session: ExtensionSession | null): void {
   try {
     runtime.sendMessage(
       EXTENSION_ID,
-      { type: "DH_WEB_SESSION", accessToken: session?.accessToken ?? null, ...session },
+      {
+        type: "DH_WEB_SESSION",
+        accessToken: session?.accessToken ?? null,
+        ...session,
+        apiUrl: API_URL,
+        webUrl: window.location.origin,
+      },
       () => void runtime.lastError // extension not installed or disabled: nothing to do
     );
   } catch {

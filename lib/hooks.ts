@@ -38,7 +38,7 @@ import {
   ProductVoucher,
 } from "./api";
 import { AlertRule, CreateAlertPayload } from "./types";
-import { calculatePriceStats } from "./formatting";
+import { calculatePriceStats, computeTargetProgress } from "./formatting";
 
 export interface EnrichedTrackingCard extends TrackedProduct {
   snapshots?: PriceSnapshot[];
@@ -95,15 +95,8 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
       const diffFromTarget =
         currentPrice && targetPrice ? Math.max(0, currentPrice - targetPrice) : undefined;
 
-      let targetProgress = 0;
-      if (oldPrice && currentPrice && targetPrice && oldPrice > targetPrice) {
-        const totalDropNeeded = oldPrice - targetPrice;
-        const currentDrop = oldPrice - currentPrice;
-        targetProgress = Math.min(
-          100,
-          Math.max(0, Math.round((currentDrop / totalDropNeeded) * 100))
-        );
-      }
+      // 100 once the target is reached; 0 when unknown (the list shows the bar empty, never a made-up value)
+      const targetProgress = computeTargetProgress(currentPrice, targetPrice, oldPrice) ?? 0;
 
       return {
         ...item,

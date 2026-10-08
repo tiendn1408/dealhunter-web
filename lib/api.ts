@@ -341,7 +341,6 @@ export interface AuthUser {
   name?: string;
   avatar_url?: string;
   auth_provider: string;
-  zalo_id?: string;
   phone?: string;
   created_at: string;
   updated_at: string;

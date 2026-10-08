@@ -24,6 +24,8 @@ import {
   formatDateTime,
   formatRelativeTime,
   calculatePriceStats,
+  computeTargetProgress,
+  snapshotsWithinDays,
 } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { DetailSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -90,8 +92,14 @@ export default function ProductDetailPage() {
   const savedTarget: number | null = pickActiveTargetRule(alerts)?.threshold_value ?? null;
   const alertsErrorMessage = alertsError ? (alertsError as Error).message : null;
 
+  // Whole history: latest snapshot and overall change
   const stats = useMemo(() => {
     return calculatePriceStats(snapshots);
+  }, [snapshots]);
+  // The "90 ngày" lowest/average/highest: only real snapshots captured in the last 90 days
+  // (null = no snapshot in that window, shown as unknown)
+  const stats90 = useMemo(() => {
+    return calculatePriceStats(snapshotsWithinDays(snapshots, 90));
   }, [snapshots]);
 
   const currentPrice =
@@ -168,9 +176,8 @@ export default function ProductDetailPage() {
     if (timeRange === "all") return snapshots;
 
     const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const filtered = snapshots.filter((s) => new Date(s.CapturedAt).getTime() >= cutoff);
-    return filtered.length > 0 ? filtered : snapshots;
+    // No fallback to the full history: an empty range shows its own empty state
+    return snapshotsWithinDays(snapshots, days);
   }, [snapshots, timeRange]);
 
   const chartData = useMemo(() => {
@@ -190,12 +197,8 @@ export default function ProductDetailPage() {
   // Unknown (undefined) without a target or a current price; never a made-up 0
   const diffFromTarget =
     savedTarget && currentPrice ? Math.max(0, currentPrice - savedTarget) : undefined;
-  const targetProgress = useMemo(() => {
-    if (!savedTarget || !currentPrice || !oldPrice || oldPrice <= savedTarget) return 0;
-    const drop = oldPrice - currentPrice;
-    const total = oldPrice - savedTarget;
-    return Math.min(100, Math.max(0, Math.round((drop / total) * 100)));
-  }, [savedTarget, currentPrice, oldPrice]);
+  // 100% once the current price is at or below the target; empty bar when unknown
+  const targetProgress = computeTargetProgress(currentPrice, savedTarget, oldPrice) ?? 0;
 
   if (loading) {
     return (
@@ -292,14 +295,14 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Badges matching Screen 6 */}
-        {(Boolean(changePercent && changePercent < 0) || Boolean(stats && currentPrice && currentPrice <= stats.lowest)) && (
+        {(Boolean(changePercent && changePercent < 0) || Boolean(stats90 && currentPrice && currentPrice <= stats90.lowest)) && (
           <div className="flex items-center gap-2 flex-wrap">
             {changePercent !== undefined && changePercent < 0 && (
               <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
                 {t.detail.justDropped}
               </span>
             )}
-            {stats && currentPrice && currentPrice <= stats.lowest && (
+            {stats90 && currentPrice && currentPrice <= stats90.lowest && (
               <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 {t.detail.lowest90dBadge}
               </span>
@@ -362,7 +365,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.lowest) : t.common.unknown}
+              {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
             </span>
           </div>
 
@@ -371,7 +374,7 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-base font-extrabold text-slate-900 block">
-              {stats ? formatVND(stats.average) : t.common.unknown}
+              {stats90 ? formatVND(stats90.average) : t.common.unknown}
             </span>
           </div>
         </div>
@@ -504,7 +507,7 @@ export default function ProductDetailPage() {
         <div className="h-64 sm:h-72 w-full pt-2">
           {chartData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              {t.detail.accumulatingData}
+              {snapshots.length === 0 ? t.detail.accumulatingData : t.detail.noDataInRange}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -588,7 +591,7 @@ export default function ProductDetailPage() {
               {t.detail.lowest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.lowest) : t.common.unknown}
+              {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
             </span>
           </div>
 
@@ -597,7 +600,7 @@ export default function ProductDetailPage() {
               {t.detail.average90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.average) : t.common.unknown}
+              {stats90 ? formatVND(stats90.average) : t.common.unknown}
             </span>
           </div>
 
@@ -606,7 +609,7 @@ export default function ProductDetailPage() {
               {t.detail.highest90d}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats ? formatVND(stats.highest) : t.common.unknown}
+              {stats90 ? formatVND(stats90.highest) : t.common.unknown}
             </span>
           </div>
         </div>
@@ -636,7 +639,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-pine-900">
-                  {stats ? formatVND(stats.lowest) : t.common.unknown}
+                  {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneRecordedLow}</span>
               </div>
@@ -649,7 +652,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-700">
-                  {stats ? formatVND(stats.average) : t.common.unknown}
+                  {stats90 ? formatVND(stats90.average) : t.common.unknown}
                 </span>
                 <span className="text-[10px] text-slate-400">{t.detail.milestoneMedian}</span>
               </div>

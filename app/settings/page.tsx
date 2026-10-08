@@ -51,7 +51,11 @@ export default function SettingsPage() {
         "dealhunter-targets", "dealhunter_targets", "deal-hunter-targets",
         "dealhunter-poll-interval", "dealhunter_poll_interval", "deal-hunter-poll-interval",
       ]) {
-        localStorage.removeItem(key);
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          // Storage unavailable (private mode, blocked site data): still sign out below
+        }
       }
       try {
         await logout();
@@ -210,9 +214,7 @@ export default function SettingsPage() {
                     {formatText(t.settings.zaloActiveTitle, {
                       // phone comes normalized (84xxxxxxxxx); shown in local form
                       identifier:
-                        formatPhoneLocal(zaloProfile.phone) ||
-                        zaloProfile.zalo_id ||
-                        t.settings.zaloIdentifierUnknown,
+                        formatPhoneLocal(zaloProfile.phone) || t.settings.zaloIdentifierUnknown,
                     })}
                   </span>
                   <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">

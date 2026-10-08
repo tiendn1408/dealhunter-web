@@ -144,6 +144,7 @@ export const vi = {
     range30d: "30 ngày",
     range90d: "90 ngày",
     rangeAll: "Tất cả",
+    noDataInRange: "Chưa có dữ liệu trong khoảng này",
     accumulatingData: "Đang tích lũy dữ liệu snapshot theo thời gian...",
     listedPriceLabel: "Giá niêm yết:",
     targetPriceLabel: "Giá mục tiêu: {price}",

@@ -40,7 +40,6 @@ export interface PriceNotification {
 
 export interface UserProfile {
   user_id: string;
-  zalo_id?: string;
   phone?: string;
   zalo_connected: boolean;
   created_at: string;

@@ -26,6 +26,7 @@ import {
   calculatePriceStats,
   computeTargetProgress,
   snapshotsWithinDays,
+  snapshotsSince,
 } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { DetailSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -69,8 +70,10 @@ export default function ProductDetailPage() {
 
   const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("90d");
-  // "Tất cả" = since the tracking was created. Only a tracking older than the 90-day window needs a second
-  // request (fetched when that tab is opened); otherwise the 90-day history already is the whole history.
+  // "Tất cả" = since the tracking was created. A tracking older than the 90-day window needs a second request
+  // (fetched when that tab is opened; an unparseable CreatedAt is reported as an error there). A younger one
+  // uses the 90-day history clipped to CreatedAt: the source may be shared, so that window can hold snapshots
+  // from before this tracking existed.
   const createdAtMs = tracking ? new Date(tracking.CreatedAt).getTime() : NaN;
   const needsFullHistory =
     !!tracking && (isNaN(createdAtMs) || createdAtMs < Date.now() - PRICE_HISTORY_DAYS * 24 * 60 * 60 * 1000);
@@ -181,15 +184,21 @@ export default function ProductDetailPage() {
     }
   };
 
+  // The "Tất cả" history: the full-history request, or the 90-day history from CreatedAt on
+  const allSnapshots = useMemo(
+    () => (needsFullHistory ? fullSnapshots ?? [] : snapshotsSince(snapshots, createdAtMs)),
+    [needsFullHistory, fullSnapshots, snapshots, createdAtMs]
+  );
+
   // Filter snapshots by time range
   const filteredSnapshots = useMemo(() => {
-    if (timeRange === "all") return needsFullHistory ? fullSnapshots ?? [] : snapshots;
+    if (timeRange === "all") return allSnapshots;
     if (!snapshots || snapshots.length === 0) return [];
 
     const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
     // No fallback to the full history: an empty range shows its own empty state
     return snapshotsWithinDays(snapshots, days);
-  }, [snapshots, fullSnapshots, needsFullHistory, timeRange]);
+  }, [snapshots, allSnapshots, timeRange]);
   // Loading/failure of the "Tất cả" history: shown in the chart, never as an empty history
   const rangeLoading = timeRange === "all" && needsFullHistory && fullLoading;
   const rangeError = timeRange === "all" && needsFullHistory && fullError ? (fullError as Error).message : null;
@@ -537,7 +546,7 @@ export default function ProductDetailPage() {
             </div>
           ) : chartData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              {(timeRange === "all" && needsFullHistory ? (fullSnapshots ?? []) : snapshots).length === 0
+              {(timeRange === "all" ? allSnapshots : snapshots).length === 0
                 ? t.detail.accumulatingData
                 : t.detail.noDataInRange}
             </div>

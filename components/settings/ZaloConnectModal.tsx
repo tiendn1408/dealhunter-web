@@ -77,8 +77,10 @@ export function ZaloConnectModal({
   const [now, setNow] = useState(() => Date.now());
   // The server discarded the pending code (429 after too many wrong tries): only a new code helps
   const [codeDiscarded, setCodeDiscarded] = useState(false);
-  // From Retry-After when the first code request was refused (429) before any code was sent. The server's
-  // cooldown/quota is per number, so the block applies only to the number it was given for.
+  // From Retry-After when the first code request was refused (429) before any code was sent. The block is kept
+  // only for the number it was given for: most server limits are per number (resend cooldown, codes per
+  // member+number, codes per number). The server also limits each member to 5 codes/hour across all numbers;
+  // a request for another number refused by that quota gets its own 429 + Retry-After when it is sent.
   const [sendBlock, setSendBlock] = useState<{ phoneKey: string; until: number } | null>(null);
 
   const sendBlockedUntil = sendBlock && sendBlock.phoneKey === phoneKey(phone) ? sendBlock.until : 0;

@@ -615,13 +615,16 @@ function toRfc3339(date: Date): string {
  * `from` is required: without it the backend silently returns only its default window (30 days).
  * A range the backend rejects (e.g. longer than it allows) is an error, never an empty history.
  */
+/** The requested price-history range is not a valid date range (e.g. an unparseable CreatedAt): never retried. */
+export class InvalidPriceHistoryRangeError extends Error {}
+
 export async function getPriceHistory(
   sourceOrTrackingId: string,
   from: Date,
   to?: Date
 ): Promise<PriceSnapshot[]> {
   if (isNaN(from.getTime()) || (to && isNaN(to.getTime()))) {
-    throw new Error("Không thể tải lịch sử giá: khoảng thời gian không hợp lệ");
+    throw new InvalidPriceHistoryRangeError("Không thể tải lịch sử giá: khoảng thời gian không hợp lệ");
   }
   const params = new URLSearchParams({ from: toRfc3339(from) });
   if (to) params.set("to", toRfc3339(to));

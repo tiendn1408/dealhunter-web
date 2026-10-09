@@ -149,6 +149,14 @@ export function snapshotsWithinDays(snapshots: PriceSnapshot[], days: number, no
   });
 }
 
+/** Snapshots captured at or after `sinceMs` (snapshots with an unparseable CapturedAt are left out). */
+export function snapshotsSince(snapshots: PriceSnapshot[], sinceMs: number): PriceSnapshot[] {
+  return (snapshots || []).filter((s) => {
+    const at = new Date(s.CapturedAt).getTime();
+    return !isNaN(at) && at >= sinceMs;
+  });
+}
+
 /**
  * Progress (0-100) from the reference high price towards the target. 100 once the current price is at or
  * below the target (target reached); undefined when the target or the current price is unknown; 0 when

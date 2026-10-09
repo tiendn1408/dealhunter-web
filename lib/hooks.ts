@@ -37,6 +37,7 @@ import {
   VoucherResponse,
   ProductVoucher,
   ApiError,
+  InvalidPriceHistoryRangeError,
 } from "./api";
 import { AlertRule, CreateAlertPayload } from "./types";
 import { calculatePriceStats, computeTargetProgress } from "./formatting";
@@ -177,8 +178,12 @@ export function useFullPriceHistory(id: string, since: string | undefined, enabl
     queryFn: () => getPriceHistory(id, new Date(since ?? NaN)),
     enabled: !!id && enabled,
     staleTime: 60_000,
-    // A rejected range stays rejected: show the error at once instead of retrying it
-    retry: (failureCount, err) => !(err instanceof ApiError && err.status === 400) && failureCount < 3,
+    // An invalid range (unparseable CreatedAt) or one the backend rejected stays invalid: show the error at
+    // once instead of retrying it
+    retry: (failureCount, err) =>
+      !(err instanceof InvalidPriceHistoryRangeError) &&
+      !(err instanceof ApiError && err.status === 400) &&
+      failureCount < 3,
   });
 }
 

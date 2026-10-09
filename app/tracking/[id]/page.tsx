@@ -287,9 +287,16 @@ export default function ProductDetailPage() {
               {formatVND(oldPrice)}
             </span>
           )}
-          {changePercent !== undefined && (
-            <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
-              ↓ {Math.abs(changePercent)}%
+          {changePercent !== undefined && changePercent !== 0 && (
+            // Direction follows the real change: a drop is highlighted, a rise is shown neutrally
+            <span
+              className={`text-xs font-bold px-2 py-0.5 rounded-md border ${
+                changePercent < 0
+                  ? "text-rose-600 bg-rose-50 border-rose-100"
+                  : "text-slate-600 bg-slate-100 border-slate-200"
+              }`}
+            >
+              {changePercent < 0 ? "↓" : "↑"} {Math.abs(changePercent)}%
             </span>
           )}
         </div>

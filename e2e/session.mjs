@@ -1,8 +1,9 @@
 // Real-browser E2E of the Step 1 session flow (headless Chrome against local web + API).
 import puppeteer from "puppeteer-core";
+import { API, assertApiUsesTestDb } from "./preflight.mjs";
 
 const WEB = "http://localhost:3100";
-const API = "http://localhost:18080/api/v1";
+await assertApiUsesTestDb();
 const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 

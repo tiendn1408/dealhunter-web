@@ -4,7 +4,7 @@ Kiểm thử luồng phiên đăng nhập và nguyên tắc "không dữ liệu 
 
 ## Chuẩn bị
 Các script tạo guest, user test và gọi API ghi dữ liệu, nên API phải chạy trên **DB test** (`dealdb_test`, Redis DB 15),
-không bao giờ trên DB dev `dealdb` (chỉ chứa dữ liệu thật). `member.mjs` từ chối chạy nếu `E2E_DB` không kết thúc bằng `_test`.
+không bao giờ trên DB dev `dealdb` (chỉ chứa dữ liệu thật). Mọi script chạy `preflight.mjs` trước: tạo một guest qua API và kiểm tra guest đó nằm trong `E2E_DB` (mặc định `dealdb_test`, API mặc định `E2E_API=http://localhost:18080/api/v1`); nếu API đang chạy trên DB khác, script dừng ngay.
 ```bash
 cd e2e && npm init -y && npm install puppeteer-core@23
 # Backend (thư mục dealhunter), Postgres/Redis local đang chạy:

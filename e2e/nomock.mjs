@@ -1,5 +1,7 @@
 import puppeteer from "puppeteer-core";
+import { assertApiUsesTestDb } from "./preflight.mjs";
 const WEB = "http://localhost:3100";
+await assertApiUsesTestDb();
 const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 const browser = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true });

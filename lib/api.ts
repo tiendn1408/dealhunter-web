@@ -1125,7 +1125,13 @@ export async function triggerAutoMatch(idOrProductId: string): Promise<AutoMatch
   if (!res.ok) {
     throw await apiErrorFrom(res, "Tìm kiếm tự động thất bại");
   }
-  return await res.json();
+  const data = ((await res.json()) ?? {}) as Partial<AutoMatchResult>;
+  // A missing/null list (e.g. Go's nil slice serialised as null) means "none"
+  return {
+    ...data,
+    auto_linked_sources: Array.isArray(data.auto_linked_sources) ? data.auto_linked_sources : [],
+    new_suggestions: Array.isArray(data.new_suggestions) ? data.new_suggestions : [],
+  } as AutoMatchResult;
 }
 
 /**

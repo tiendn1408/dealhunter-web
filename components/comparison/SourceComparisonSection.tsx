@@ -77,7 +77,9 @@ export function SourceComparisonSection({
       const res = await autoMatchMutation.mutateAsync();
       const incomplete = res.incomplete === true;
       setScanIncomplete(incomplete);
-      if (res.new_suggestions.length > 0 || res.auto_linked_sources.length > 0) {
+      // Defensive: a null/missing list means none (also normalised in triggerAutoMatch)
+      const found = (res?.new_suggestions?.length ?? 0) > 0 || (res?.auto_linked_sources?.length ?? 0) > 0;
+      if (found) {
         setScanMessage(t.comparison.autoMatchFound);
       } else if (!incomplete) {
         // "Nothing found" only for a complete run; a partial run cannot say that

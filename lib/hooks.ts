@@ -36,6 +36,7 @@ import {
   getTrackedProductVouchers,
   VoucherResponse,
   ProductVoucher,
+  ApiError,
 } from "./api";
 import { AlertRule, CreateAlertPayload } from "./types";
 import { calculatePriceStats, computeTargetProgress } from "./formatting";
@@ -52,6 +53,16 @@ export interface EnrichedTrackingCard extends TrackedProduct {
 }
 
 // ---- Phase 1: Trackings hooks ----
+
+/**
+ * The window the price stats are computed over (list card and detail page "90 ngày"). Requested
+ * explicitly: without `from` the backend returns only its 30-day default.
+ */
+export const PRICE_HISTORY_DAYS = 90;
+
+function daysAgo(days: number): Date {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
 
 export function useTrackings() {
   return useQuery({
@@ -72,10 +83,11 @@ export async function getEnrichedTrackings(): Promise<EnrichedTrackingCard[]> {
 
   return Promise.all(
     data.map(async (item) => {
-      // Price history is per item and non-fatal: without it the history-based fields stay unknown.
+      // Price history (last PRICE_HISTORY_DAYS days, same window as the detail page) is per item and
+      // non-fatal: without it the history-based fields stay unknown.
       let snapshots: PriceSnapshot[] = [];
       try {
-        snapshots = await getPriceHistory(item.ProductSourceID || item.ID);
+        snapshots = await getPriceHistory(item.ProductSourceID || item.ID, daysAgo(PRICE_HISTORY_DAYS));
       } catch {}
 
       const stats = calculatePriceStats(snapshots);
@@ -145,12 +157,28 @@ export function useTracking(id: string) {
   });
 }
 
-export function usePriceHistory(id: string) {
+/** Snapshots of the last `days` days. */
+export function usePriceHistory(id: string, days = PRICE_HISTORY_DAYS) {
   return useQuery({
-    queryKey: ["prices", id],
-    queryFn: () => getPriceHistory(id),
+    queryKey: ["prices", id, "days", days],
+    queryFn: () => getPriceHistory(id, daysAgo(days)),
     enabled: !!id,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * The whole history since `since` (the tracking's CreatedAt), for the "Tất cả" range. Only fetched when
+ * enabled; an invalid `since` or a range the backend rejects is reported as an error.
+ */
+export function useFullPriceHistory(id: string, since: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ["prices", id, "since", since],
+    queryFn: () => getPriceHistory(id, new Date(since ?? NaN)),
+    enabled: !!id && enabled,
+    staleTime: 60_000,
+    // A rejected range stays rejected: show the error at once instead of retrying it
+    retry: (failureCount, err) => !(err instanceof ApiError && err.status === 400) && failureCount < 3,
   });
 }
 

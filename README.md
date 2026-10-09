@@ -19,7 +19,7 @@ Giao diện web người dùng của hệ thống **Deal Hunter** — Theo dõi 
 ## Tinh Nang Phase 2 (Alert Engine & Zalo Notification)
 
 - **Quy Tac Canh Bao Thong Minh**: Form dat canh bao theo % giam, gia muc tieu, hoac day N ngay.
-- **Tich Hop Zalo OA / ZNS**: Ket noi So dien thoai / Zalo ID de nhan tin nhan canh bao bien dong gia.
+- **Tich Hop Zalo OA / ZNS**: Lien ket so dien thoai bang ma OTP gui qua Zalo (ZNS), roi nhan tin nhan canh bao bien dong gia qua Zalo (chi danh cho tai khoan da dang nhap; khong dung Zalo ID).
 - **Trung Tam Thong Bao**: Feed thong bao dong, bo loc da che do, danh dau da doc.
 
 ---
@@ -155,9 +155,10 @@ Du an nay ket noi truc tiep voi he thong Go backend tai `dealhunter`:
 - `DELETE /api/v1/alerts/:id`: Xoa quy tac canh bao
 - `GET  /api/v1/notifications`: Feed lich su thong bao bien dong gia
 - `POST /api/v1/notifications/:id/read`: Danh dau thong bao da doc
-- `POST /api/v1/user/zalo/connect`: Lien ket so dien thoai / Zalo ID nhan tin ZNS
-- `GET  /api/v1/user/zalo/status`: Kiem tra trang thai ket noi Zalo
-- `DELETE /api/v1/user/zalo`: Huy ket noi Zalo
+- `POST /api/v1/users/me/zalo/otp`: Gui ma OTP qua Zalo ZNS toi so dien thoai (`{phone}`); tra ve so da chuan hoa, thoi han ma va thoi gian cho gui lai (429 + `Retry-After` khi bi gioi han)
+- `POST /api/v1/users/me/zalo`: Xac minh OTP va lien ket so dien thoai (`{phone, code}`; khong co `zalo_id`)
+- `GET  /api/v1/auth/zalo/status`: Kiem tra trang thai ket noi Zalo
+- `POST /api/v1/auth/zalo/disconnect`: Huy ket noi Zalo
 
 ### Phase 3: Cross-Platform Price Comparison
 - `GET  /api/v1/tracked-products/:id/comparison`: Bang so sanh gia da san va Best Deal

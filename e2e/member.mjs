@@ -3,8 +3,8 @@ import puppeteer from "puppeteer-core";
 import { createHash, randomUUID, randomBytes } from "node:crypto";
 
 // Test rows go to the E2E database only, never to the development data (dealdb)
-import { psql, assertApiUsesTestDb } from "./preflight.mjs";
-await assertApiUsesTestDb();
+import { psql, assertApiUsesTestEnv } from "./preflight.mjs";
+await assertApiUsesTestEnv();
 const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 

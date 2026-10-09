@@ -51,6 +51,8 @@ export function SourceComparisonSection({
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  // The last scan partly failed: its result may be missing candidates (kept until the next scan)
+  const [scanIncomplete, setScanIncomplete] = useState(false);
   // Failures of auto-match / accept / dismiss are shown, never reported as "nothing found"
   const [suggestionActionError, setSuggestionActionError] = useState<string | null>(null);
 
@@ -69,12 +71,16 @@ export function SourceComparisonSection({
   const handleTriggerAutoMatch = async () => {
     setIsScanning(true);
     setScanMessage(null);
+    setScanIncomplete(false);
     setSuggestionActionError(null);
     try {
       const res = await autoMatchMutation.mutateAsync();
+      const incomplete = res.incomplete === true;
+      setScanIncomplete(incomplete);
       if (res.new_suggestions.length > 0 || res.auto_linked_sources.length > 0) {
         setScanMessage(t.comparison.autoMatchFound);
-      } else {
+      } else if (!incomplete) {
+        // "Nothing found" only for a complete run; a partial run cannot say that
         setScanMessage(t.comparison.autoMatchNone);
       }
       setTimeout(() => setScanMessage(null), 4000);
@@ -310,6 +316,12 @@ export function SourceComparisonSection({
             <span>{scanMessage}</span>
           </div>
         )}
+        {scanIncomplete && (
+          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>{t.comparison.autoMatchIncomplete}</span>
+          </div>
+        )}
 
         <div className="p-5 rounded-2xl bg-slate-50/90 border border-dashed border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -388,6 +400,12 @@ export function SourceComparisonSection({
         <div className="p-3 bg-cyan-50 border border-cyan-200 text-cyan-900 rounded-2xl text-xs font-medium flex items-center gap-2 animate-fadeIn">
           <Sparkles className="w-4 h-4 text-cyan-700 shrink-0" />
           <span>{scanMessage}</span>
+        </div>
+      )}
+      {scanIncomplete && (
+        <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+          <span>{t.comparison.autoMatchIncomplete}</span>
         </div>
       )}
 

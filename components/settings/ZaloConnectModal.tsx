@@ -43,6 +43,11 @@ function formatCountdown(ms: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** Compares numbers as the server does: "0912 345 678", "+84912345678" and "84912345678" are one number. */
+function phoneKey(phone: string): string {
+  return formatPhoneLocal(phone.trim()).replace(/\s/g, "");
+}
+
 function toSentOtp(res: ZaloOtpResponse): SentOtp {
   const now = Date.now();
   return {
@@ -72,9 +77,11 @@ export function ZaloConnectModal({
   const [now, setNow] = useState(() => Date.now());
   // The server discarded the pending code (429 after too many wrong tries): only a new code helps
   const [codeDiscarded, setCodeDiscarded] = useState(false);
-  // From Retry-After when the first code request was refused (429) before any code was sent
-  const [sendBlockedUntil, setSendBlockedUntil] = useState(0);
+  // From Retry-After when the first code request was refused (429) before any code was sent. The server's
+  // cooldown/quota is per number, so the block applies only to the number it was given for.
+  const [sendBlock, setSendBlock] = useState<{ phoneKey: string; until: number } | null>(null);
 
+  const sendBlockedUntil = sendBlock && sendBlock.phoneKey === phoneKey(phone) ? sendBlock.until : 0;
   const phoneStepWaiting = step === "phone" && sendBlockedUntil > now;
   // Tick once a second while a code is pending or a send is blocked, for the countdowns
   useEffect(() => {
@@ -93,7 +100,7 @@ export function ZaloConnectModal({
     setError(null);
     setInfo(null);
     setCodeDiscarded(false);
-    setSendBlockedUntil(0);
+    setSendBlock(null);
     otpMutation.reset();
     connectMutation.reset();
   };
@@ -107,12 +114,12 @@ export function ZaloConnectModal({
     err instanceof Error && err.message ? err.message : fallback;
 
   /** On 429 the server says when a new code may be requested: honour it in the resend countdown. */
-  const applyRetryAfter = (err: unknown) => {
+  const applyRetryAfter = (err: unknown, forPhone: string) => {
     if (err instanceof ApiError && err.status === 429 && err.retryAfterSeconds !== undefined) {
       const resendAt = Date.now() + err.retryAfterSeconds * 1000;
       setNow(Date.now());
       if (sent) setSent({ ...sent, resendAt });
-      else setSendBlockedUntil(resendAt);
+      else setSendBlock({ phoneKey: phoneKey(forPhone), until: resendAt });
     }
   };
 
@@ -130,11 +137,11 @@ export function ZaloConnectModal({
       setNow(Date.now());
       setCode("");
       setCodeDiscarded(false);
-      setSendBlockedUntil(0);
+      setSendBlock(null);
       setStep("code");
       if (isResend) setInfo(t.settings.zaloResent);
     } catch (err) {
-      applyRetryAfter(err);
+      applyRetryAfter(err, cleanPhone);
       setError(errorMessage(err, t.settings.zaloSendCodeFailed));
     }
   };
@@ -161,7 +168,7 @@ export function ZaloConnectModal({
         // Too many wrong tries: the server discarded this code. Back to "request a new code".
         setCodeDiscarded(true);
         setCode("");
-        applyRetryAfter(err);
+        applyRetryAfter(err, phone);
       }
       setError(errorMessage(err, t.settings.zaloConnectFailed));
     }

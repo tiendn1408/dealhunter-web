@@ -21,6 +21,8 @@ let sessionIsMember = false;
 // that attempt applies is not announced; any later identity change (or one after a failed first attempt) is.
 let initialSessionAttemptSettled = false;
 let sessionPromise: Promise<string> | null = null;
+// When this tab last received a session from the server (0 = never); compared with the logout marker below
+let sessionObtainedAt = 0;
 const sessionListeners = new Set<(change: SessionChange) => void>();
 
 export interface SessionChange {
@@ -56,6 +58,7 @@ function applySession(session: AuthSession | null, memberSessionExpired = false,
   accessTokenExpiresAt = session ? Date.now() + session.expires_in * 1000 - TOKEN_EXPIRY_SKEW_MS : 0;
   sessionUserId = session?.user.id ?? null;
   sessionIsMember = !!session && session.user.auth_provider !== "guest";
+  if (session) sessionObtainedAt = Date.now();
   pushSessionToExtension(
     session && sessionIsMember
       ? { accessToken: session.access_token, expiresAt: accessTokenExpiresAt, email: session.user.email, name: session.user.name }
@@ -265,6 +268,38 @@ async function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
+/**
+ * A deliberate sign-out is recorded (time and tab) while the logging-out tab still holds the refresh lock.
+ * A tab whose refresh was queued behind that lock then finds the cookie revoked (or replaced by the new
+ * guest's): the marker tells it the member session ended by choice, not by expiry, so no "expired" banner.
+ */
+const LOGOUT_MARKER_KEY = "dealhunter-logout";
+
+function recordDeliberateLogout() {
+  try {
+    localStorage.setItem(LOGOUT_MARKER_KEY, JSON.stringify({ at: Date.now(), by: tabLockId }));
+  } catch {
+    // Storage unusable: the other tabs may show the expired banner for this logout
+  }
+}
+
+/** True when some tab signed out deliberately after this tab last received its session. */
+function loggedOutDeliberatelySince(since: number): boolean {
+  try {
+    const raw = localStorage.getItem(LOGOUT_MARKER_KEY);
+    if (!raw) return false;
+    const marker = JSON.parse(raw);
+    return typeof marker?.at === "number" && marker.at >= since;
+  } catch {
+    return false;
+  }
+}
+
+/** A member session ended in this tab without a deliberate sign-out anywhere since it was obtained. */
+function memberSessionExpiredHere(wasMember: boolean, obtainedAt: number): boolean {
+  return wasMember && !loggedOutDeliberatelySince(obtainedAt);
+}
+
 function refreshOrStartGuest(announce: boolean): Promise<string> {
   return withCrossTabLock(() => refreshOrStartGuestUnlocked(announce));
 }
@@ -282,10 +317,16 @@ function sessionStartError(err: unknown): Error {
 
 async function refreshOrStartGuestUnlocked(announce: boolean): Promise<string> {
   const wasMember = sessionIsMember;
+  const obtainedAt = sessionObtainedAt;
   try {
     const session = await postAuth("/auth/refresh");
-    // The cookie can belong to a guest when another tab logged out: the member session still ended here.
-    applySession(session, wasMember && session.user.auth_provider === "guest", announce);
+    // The cookie can belong to a guest when another tab logged out: the member session ended here, but it
+    // is shown as expired only when no tab signed out deliberately.
+    applySession(
+      session,
+      session.user.auth_provider === "guest" && memberSessionExpiredHere(wasMember, obtainedAt),
+      announce
+    );
     return session.access_token;
   } catch (err) {
     // Not a definitive answer (network, 5xx, 429): keep the current session, report the failure
@@ -294,12 +335,19 @@ async function refreshOrStartGuestUnlocked(announce: boolean): Promise<string> {
   // No usable refresh cookie: the member session (if any) is definitively gone. Clear it before trying
   // a guest session, so the UI stops treating this browser as signed in even if that attempt fails.
   if (wasMember) applySession(null);
+  // A sign-out in another tab revoked the cookie while this refresh waited for the lock: not an expiry
+  const expired = memberSessionExpiredHere(wasMember, obtainedAt);
   try {
     const guest = await postAuth("/auth/guest");
     // Tells the UI if a member session ended (prevUserId is null after the clear above, so this announces)
-    applySession(guest, wasMember, announce);
+    applySession(guest, expired, announce);
     return guest.access_token;
   } catch (err) {
+    if (wasMember && !expired) {
+      // Deliberate sign-out elsewhere: clear the member's data, report the real guest-session failure
+      notifySessionChange(false);
+      throw sessionStartError(err);
+    }
     if (wasMember) {
       // Show the session-expired banner and clear the member's data even without a guest session
       notifySessionChange(true);
@@ -557,22 +605,37 @@ export async function getTracking(id: string): Promise<TrackedProduct> {
   return (await res.json()) as TrackedProduct;
 }
 
+/** RFC3339 in UTC, whole seconds (the backend's `from`/`to` format). */
+function toRfc3339(date: Date): string {
+  return date.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 /**
- * Fetch price snapshot history for a tracked product or source.
+ * Fetch price snapshot history for a tracked product or source between `from` and `to` (default: now).
+ * `from` is required: without it the backend silently returns only its default window (30 days).
+ * A range the backend rejects (e.g. longer than it allows) is an error, never an empty history.
  */
 export async function getPriceHistory(
   sourceOrTrackingId: string,
-  from?: string,
-  to?: string
+  from: Date,
+  to?: Date
 ): Promise<PriceSnapshot[]> {
-  let url = `${API_BASE_URL}/tracked-products/${sourceOrTrackingId}/prices`;
-  const params = new URLSearchParams();
-  if (from) params.set("from", from);
-  if (to) params.set("to", to);
-  if (params.toString()) url += `?${params.toString()}`;
+  if (isNaN(from.getTime()) || (to && isNaN(to.getTime()))) {
+    throw new Error("Không thể tải lịch sử giá: khoảng thời gian không hợp lệ");
+  }
+  const params = new URLSearchParams({ from: toRfc3339(from) });
+  if (to) params.set("to", toRfc3339(to));
+  const url = `${API_BASE_URL}/tracked-products/${sourceOrTrackingId}/prices?${params.toString()}`;
 
   const res = await safeFetch(url, { cache: "no-store" });
   if (!res.ok) {
+    if (res.status === 400) {
+      const detail = (await res.text().catch(() => "")).trim();
+      throw new ApiError(
+        400,
+        `Máy chủ từ chối khoảng thời gian lịch sử giá được yêu cầu${detail ? ` (${detail})` : ""}`
+      );
+    }
     throw new Error("Không thể tải lịch sử giá");
   }
 
@@ -938,13 +1001,16 @@ export async function authLogout(): Promise<void> {
   let res: Response;
   try {
     // Under the refresh lock, so a refresh in another tab cannot rotate the cookie mid-logout
-    res = await withCrossTabLock(() =>
-      fetch(`${API_BASE_URL}/auth/logout`, {
+    res = await withCrossTabLock(async () => {
+      const r = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-      })
-    );
+      });
+      // Recorded before the lock is released, so a refresh queued in another tab sees it
+      if (r.ok) recordDeliberateLogout();
+      return r;
+    });
   } catch {
     throw new Error(CONNECTION_ERROR);
   }
@@ -997,6 +1063,8 @@ export interface AutoMatchResult {
   auto_linked_sources: string[];
   new_suggestions: MatchSuggestion[];
   total_discovered: number;
+  /** True when part of the run failed (a platform's search or storing a candidate): candidates may be missing. */
+  incomplete?: boolean;
 }
 
 export async function getMatchSuggestions(idOrProductId: string): Promise<MatchSuggestion[]> {
@@ -1052,7 +1120,8 @@ export async function triggerAutoMatch(idOrProductId: string): Promise<AutoMatch
     method: "POST",
     headers: getAuthHeaders(),
   });
-  // 409 = the product has no price yet; 429 = rate limited (with Retry-After)
+  // 409 = the product has no price yet; 429 = rate limited (with Retry-After); 502 = the marketplace
+  // search could not be read. The server's message is shown as is.
   if (!res.ok) {
     throw await apiErrorFrom(res, "Tìm kiếm tự động thất bại");
   }

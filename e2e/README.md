@@ -4,7 +4,9 @@ Kiểm thử luồng phiên đăng nhập và nguyên tắc "không dữ liệu 
 
 ## Chuẩn bị
 Các script tạo guest, user test và gọi API ghi dữ liệu, nên API phải chạy trên **DB test** (`dealdb_test`, Redis DB 15),
-không bao giờ trên DB dev `dealdb` (chỉ chứa dữ liệu thật). Mọi script chạy `preflight.mjs` trước: tạo một guest qua API và kiểm tra guest đó nằm trong `E2E_DB` (mặc định `dealdb_test`, API mặc định `E2E_API=http://localhost:18080/api/v1`); nếu API đang chạy trên DB khác, script dừng ngay.
+không bao giờ trên DB dev `dealdb` / Redis DB 0 (chỉ chứa dữ liệu thật). Mọi script chạy `preflight.mjs` trước (API mặc định `E2E_API=http://localhost:18080/api/v1`):
+1. **Postgres, không ghi gì qua API**: chèn trực tiếp vào `E2E_DB` (mặc định `dealdb_test`) một user guest tạm + một refresh token, rồi gọi `POST /auth/refresh` với token đó. Chỉ API chạy trên `E2E_DB` mới biết token (200). API trên DB khác trả 401 sau một lần tra cứu chỉ đọc ⇒ script dừng, không có gì được ghi vào DB đó. User tạm bị xoá lại (refresh token xoá theo, `ON DELETE CASCADE`).
+2. **Redis** (chỉ sau khi bước 1 đạt): tạo một guest qua `POST /auth/guest` — request duy nhất khiến API ghi Redis: một member (UUID ngẫu nhiên) trong sorted set rate-limit `dh:rl:guest:<ip client>`. Member mới phải xuất hiện ở `E2E_REDIS_DB` (mặc định 15) và không ở DB 0 (cả hai DB chỉ được đọc bằng `SCAN`/`ZRANGE`). Guest này nằm trong `E2E_DB` và bị xoá ngay. Nếu API thực sự dùng Redis DB 0 thì đúng một member đó bị ghi vào DB 0 (không tránh được): lỗi in ra key + member và lệnh xoá `docker exec dealhunter-redis redis-cli -n 0 ZREM <key> <member>`; nó cũng tự hết hạn sau cửa sổ rate-limit 10 phút. Ngoài ra preflight không ghi gì vào `dealdb` hay Redis DB 0.
 ```bash
 cd e2e && npm init -y && npm install puppeteer-core@23
 # Backend (thư mục dealhunter), Postgres/Redis local đang chạy:

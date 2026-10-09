@@ -11,7 +11,7 @@ import {
   PriceSnapshot,
   TrackedProduct,
 } from "@/lib/api";
-import { useTracking, usePriceHistory, useAlerts } from "@/lib/hooks";
+import { useTracking, usePriceHistory, useFullPriceHistory, useAlerts, PRICE_HISTORY_DAYS } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
 import { CreateAlertModal } from "@/components/alerts/CreateAlertModal";
 import { ActiveAlertCard } from "@/components/alerts/ActiveAlertCard";
@@ -62,12 +62,23 @@ export default function ProductDetailPage() {
   const { t, formatText } = useLanguage();
 
   const { data: tracking, isLoading: trackingLoading, error: trackingError } = useTracking(idOrSourceId);
+  // The last PRICE_HISTORY_DAYS (90) days: the stats, the badges and every range tab up to 90 days
   const { data: snapshots = [], isLoading: priceLoading, error: priceError } = usePriceHistory(idOrSourceId);
   // No `= []` default: a new array every render would re-run the effect below forever.
   const { data: alertsData, error: alertsError, refetch: refetchAlerts } = useAlerts(idOrSourceId);
 
   const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("90d");
+  // "Tất cả" = since the tracking was created. Only a tracking older than the 90-day window needs a second
+  // request (fetched when that tab is opened); otherwise the 90-day history already is the whole history.
+  const createdAtMs = tracking ? new Date(tracking.CreatedAt).getTime() : NaN;
+  const needsFullHistory =
+    !!tracking && (isNaN(createdAtMs) || createdAtMs < Date.now() - PRICE_HISTORY_DAYS * 24 * 60 * 60 * 1000);
+  const {
+    data: fullSnapshots,
+    isLoading: fullLoading,
+    error: fullError,
+  } = useFullPriceHistory(idOrSourceId, tracking?.CreatedAt, timeRange === "all" && needsFullHistory);
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [showCreateAlertModal, setShowCreateAlertModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -92,7 +103,7 @@ export default function ProductDetailPage() {
   const savedTarget: number | null = pickActiveTargetRule(alerts)?.threshold_value ?? null;
   const alertsErrorMessage = alertsError ? (alertsError as Error).message : null;
 
-  // Whole history: latest snapshot and overall change
+  // Latest snapshot and change over the 90-day window (the same window as the tracking list)
   const stats = useMemo(() => {
     return calculatePriceStats(snapshots);
   }, [snapshots]);
@@ -172,13 +183,16 @@ export default function ProductDetailPage() {
 
   // Filter snapshots by time range
   const filteredSnapshots = useMemo(() => {
+    if (timeRange === "all") return needsFullHistory ? fullSnapshots ?? [] : snapshots;
     if (!snapshots || snapshots.length === 0) return [];
-    if (timeRange === "all") return snapshots;
 
     const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
     // No fallback to the full history: an empty range shows its own empty state
     return snapshotsWithinDays(snapshots, days);
-  }, [snapshots, timeRange]);
+  }, [snapshots, fullSnapshots, needsFullHistory, timeRange]);
+  // Loading/failure of the "Tất cả" history: shown in the chart, never as an empty history
+  const rangeLoading = timeRange === "all" && needsFullHistory && fullLoading;
+  const rangeError = timeRange === "all" && needsFullHistory && fullError ? (fullError as Error).message : null;
 
   const chartData = useMemo(() => {
     return filteredSnapshots.map((s) => ({
@@ -512,9 +526,20 @@ export default function ProductDetailPage() {
 
         {/* Recharts AreaChart with Current Price & Target Price Reference lines */}
         <div className="h-64 sm:h-72 w-full pt-2">
-          {chartData.length === 0 ? (
+          {rangeError ? (
+            <div className="h-full flex items-center justify-center gap-2 px-4 text-center text-rose-600 text-xs bg-rose-50 rounded-2xl border border-dashed border-rose-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{formatText(t.detail.historyRangeError, { message: rangeError })}</span>
+            </div>
+          ) : rangeLoading ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              {snapshots.length === 0 ? t.detail.accumulatingData : t.detail.noDataInRange}
+              {t.common.loading}
+            </div>
+          ) : chartData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              {(timeRange === "all" && needsFullHistory ? (fullSnapshots ?? []) : snapshots).length === 0
+                ? t.detail.accumulatingData
+                : t.detail.noDataInRange}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">

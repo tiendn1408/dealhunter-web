@@ -3,15 +3,40 @@
 @tailwind utilities;
 
 :root {
-  --background: #f6f8f7;
+  --background: #f3f2ee;
   --foreground: #0a3832;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  color: #0f172a;
+  color: #0a3832;
   background: var(--background);
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The browser's own surfaces carry the board too */
+::selection {
+  background: #3ccfb0;
+  color: #062622;
+}
+:focus-visible {
+  outline: 3px solid #3ccfb0;
+  outline-offset: 2px;
+}
+* {
+  scrollbar-color: #2c7a6b transparent;
+}
+input,
+textarea {
+  caret-color: #1a9988;
+}
+a {
+  text-underline-offset: 3px;
 }
 
 @keyframes fadeIn {
@@ -32,24 +57,63 @@ body {
   animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Fine grain on dark brand surfaces (pure CSS, no image) */
-.bg-grain {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size: 3px 3px;
+/* The logo's price tag: cut top-left corner, a punched hole. Used for every price on the site. */
+.tag-shape {
+  clip-path: polygon(34px 0, 100% 0, 100% 100%, 0 100%, 0 34px);
 }
 
-/* Loading placeholder that moves */
-.skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.06) 75%);
-  background-size: 200% 100%;
+/* A red marker stroke through a superseded price */
+.marker-strike {
+  position: relative;
+  display: inline-block;
+}
+.marker-strike::after {
+  content: "";
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  top: 52%;
+  height: 0.12em;
+  background: #d9412b;
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  border-radius: 999px;
+}
+
+/* Loading placeholder: a flat chalk smear that breathes (no gradient) */
+@keyframes chalk-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+.chalk-skeleton {
+  background: rgba(244, 241, 230, 0.18);
+  animation: chalk-breathe 1.4s ease-in-out infinite;
+}
+
+/* Section parts enter once as they scroll in (see components/home/Reveal.tsx); visible without script */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-ready [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
   }
 }

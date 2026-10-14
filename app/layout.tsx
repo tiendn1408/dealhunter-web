@@ -1,21 +1,30 @@
 import "./globals.css";
-import { Be_Vietnam_Pro } from "next/font/google";
+import { Be_Vietnam_Pro, Shantell_Sans } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import { Shell } from "@/components/Shell";
 import { QueryProvider } from "@/components/QueryProvider";
 import { LanguageProvider } from "@/lib/i18n";
 
 // Designed for Vietnamese: every diacritic is drawn properly at every weight
 const sans = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
   variable: "--font-sans",
+});
+
+// Marker lettering of the market price board: board headlines and prices only
+const marker = Shantell_Sans({
+  subsets: ["latin", "vietnamese"],
+  weight: ["600", "800"],
+  display: "swap",
+  variable: "--font-marker",
 });
 
 export const metadata = {
   title: "DealHunter — Săn đúng giá trước khi mua",
   description:
-    "Theo dõi giá sản phẩm bạn quan tâm và nhận thông báo khi có giá tốt từ Shopee, Lazada, TikTok Shop.",
+    "Dán link Shopee, Lazada, TikTok Shop để xem giá thật, lịch sử giá và nhận báo khi giá giảm.",
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",
@@ -29,14 +38,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={sans.variable}>
-      <body className="min-h-screen flex flex-col bg-[#F6F8F7] text-slate-900 antialiased">
+    <html lang="vi" className={`${sans.variable} ${marker.variable}`}>
+      <body className="flex min-h-svh flex-col bg-paper text-pine-900 antialiased">
         <QueryProvider>
           <LanguageProvider>
             <Navbar />
-            <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
-              {children}
-            </main>
+            <Shell>{children}</Shell>
           </LanguageProvider>
         </QueryProvider>
       </body>

@@ -71,9 +71,9 @@ export function GoogleSignInButton({ onCredential, onError }: GoogleSignInButton
         activeCredentialHandler = (idToken) => callbackRef.current(idToken);
         window.google.accounts.id.renderButton(containerRef.current, {
           type: "standard",
-          theme: "filled_black",
+          theme: "outline",
           size: "large",
-          shape: "pill",
+          shape: "rectangular",
           text: "signin_with",
           width: containerRef.current.offsetWidth || 320,
         });

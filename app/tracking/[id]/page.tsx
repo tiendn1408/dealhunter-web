@@ -19,6 +19,7 @@ import { SourceComparisonSection } from "@/components/comparison/SourceCompariso
 import { LinkSourceModal } from "@/components/comparison/LinkSourceModal";
 import { VoucherBox } from "@/components/voucher/VoucherBox";
 import {
+  detectPlatform,
   formatVND,
   formatCompactVND,
   formatDateTime,
@@ -30,6 +31,7 @@ import {
 } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { DetailSkeleton } from "@/components/ui/LoadingSkeleton";
+import { PriceTag, StruckPrice, WrittenPrice } from "@/components/PriceTag";
 import {
   AreaChart,
   Area,
@@ -40,22 +42,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import {
-  ArrowLeft,
-  Share2,
-  ExternalLink,
-  Target,
-  X,
-  TrendingDown,
-  Calendar,
-  AlertCircle,
-  PackageCheck,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  BellRing,
-  Plus,
-} from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Share2, Target, X, AlertCircle, Sparkles, BellRing, Plus } from "lucide-react";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -223,6 +210,20 @@ export default function ProductDetailPage() {
   // 100% once the current price is at or below the target; empty bar when unknown
   const targetProgress = computeTargetProgress(currentPrice, savedTarget, oldPrice) ?? 0;
 
+  const title =
+    tracking?.Title ||
+    (tracking?.CanonicalURL
+      ? decodeURIComponent(tracking.CanonicalURL.split("/").filter(Boolean).pop() || "")
+      : t.notifications.productFallback);
+  const platformName = detectPlatform(tracking?.Platform || tracking?.CanonicalURL).name;
+  // The owner's affiliate link when the server has one; the plain product link otherwise
+  const buyHref = tracking?.AffiliateURL || tracking?.CanonicalURL;
+  const statTiles = [
+    { label: t.detail.lowest90d, value: stats90 ? formatVND(stats90.lowest) : t.common.unknown },
+    { label: t.detail.average90d, value: stats90 ? formatVND(stats90.average) : t.common.unknown },
+    { label: t.detail.highest90d, value: stats90 ? formatVND(stats90.highest) : t.common.unknown },
+  ];
+
   if (loading) {
     return (
       <div className="py-6">
@@ -232,131 +233,113 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-4 sm:py-8 space-y-6">
-      {/* 1. TOP HEADER matching Screen 6 in mobile.png */}
+    <div className="mx-auto max-w-5xl space-y-4 pb-28 pt-4 sm:pt-8 md:pb-24">
+      {/* Back and share */}
       <div className="flex items-center justify-between">
         <Link
           href="/tracking"
-          className="p-2 -ml-2 text-slate-600 hover:text-pine-900 rounded-full hover:bg-slate-100 transition-colors"
-          title={t.detail.backToList}
+          className="-ml-2 inline-flex min-h-[44px] items-center gap-2 px-2 text-[15px] font-semibold text-pine-900 transition-colors hover:bg-white"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
+          <span>{t.detail.backToList}</span>
         </Link>
 
         <div className="flex items-center gap-2">
           {copyNotice && (
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
-              {t.detail.copiedLink}
-            </span>
+            <span className="bg-teal-200 px-2 py-1 text-[13px] font-semibold text-pine-950">{t.detail.copiedLink}</span>
           )}
           <button
             type="button"
             onClick={handleShare}
-            className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
+            className="flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white"
             title={t.detail.shareProduct}
+            aria-label={t.detail.shareProduct}
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="h-5 w-5" />
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+        <div className="flex items-center gap-2 bg-[#F8E1DC] p-4 text-[15px] text-marker-deep">
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* 2. PRODUCT HERO SECTION matching Screen 6 in mobile.png */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-6">
-        {/* Large Product Image */}
-        <div className="w-full h-56 sm:h-72 bg-gradient-to-b from-slate-50 to-slate-100/60 rounded-3xl flex items-center justify-center relative overflow-hidden">
-          <svg className="w-32 h-32 sm:w-40 sm:h-40 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" />
-          </svg>
-        </div>
-
-        {/* Title, Platform & Subtitle */}
-        <div className="space-y-2">
-          <h1 className="text-xl sm:text-2xl font-black text-pine-900 tracking-tight leading-snug">
-            {tracking?.Title || (tracking?.CanonicalURL ? decodeURIComponent(tracking.CanonicalURL.split("/").filter(Boolean).pop() || "") : t.notifications.productFallback)}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-normal">
-            {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
-          </p>
-          <div className="pt-1 flex items-center gap-2 flex-wrap">
+      {/* The product's own board: what it is on the left, its price tag on the right */}
+      <section className="grid gap-8 bg-pine-900 px-5 py-8 text-chalk sm:px-8 sm:py-10 lg:grid-cols-12 lg:items-center">
+        <div className="space-y-4 lg:col-span-7">
+          <div className="flex flex-wrap items-center gap-2">
             <PlatformBadge platformOrUrl={tracking?.Platform || tracking?.CanonicalURL} />
-            {tracking?.CanonicalURL && (
-              <a
-                href={tracking.AffiliateURL || tracking.CanonicalURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-pine-900 hover:underline"
+            {tracking?.LastInStock !== undefined && (
+              <span
+                className={`px-2 py-0.5 text-[13px] font-semibold ${
+                  tracking.LastInStock ? "bg-teal-200 text-pine-950" : "bg-marker text-chalk"
+                }`}
               >
-                <span>{t.detail.openOriginal}</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Price Row matching Screen 6 */}
-        <div className="pt-2 border-t border-slate-100 flex items-baseline gap-3">
-          <span className="text-3xl sm:text-4xl font-black text-pine-900">
-            {currentPrice ? formatVND(currentPrice) : t.common.unknown}
-          </span>
-          {oldPrice && (
-            <span className="text-sm text-slate-400 line-through">
-              {formatVND(oldPrice)}
-            </span>
-          )}
-          {changePercent !== undefined && changePercent !== 0 && (
-            // Direction follows the real change: a drop is highlighted, a rise is shown neutrally
-            <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-md border ${
-                changePercent < 0
-                  ? "text-rose-600 bg-rose-50 border-rose-100"
-                  : "text-slate-600 bg-slate-100 border-slate-200"
-              }`}
-            >
-              {changePercent < 0 ? "↓" : "↑"} {Math.abs(changePercent)}%
-            </span>
-          )}
-        </div>
-
-        {/* Badges matching Screen 6 */}
-        {(Boolean(changePercent && changePercent < 0) || Boolean(stats90 && currentPrice && currentPrice <= stats90.lowest)) && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {changePercent !== undefined && changePercent < 0 && (
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-                {t.detail.justDropped}
+                {tracking.LastInStock ? t.landing.inStock : t.landing.outOfStock}
               </span>
+            )}
+            {changePercent !== undefined && changePercent < 0 && (
+              <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-semibold text-pine-950">{t.detail.justDropped}</span>
             )}
             {stats90 && currentPrice && currentPrice <= stats90.lowest && (
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                {t.detail.lowest90dBadge}
-              </span>
+              <span className="bg-teal-400 px-2 py-0.5 text-[13px] font-semibold text-pine-950">{t.detail.lowest90dBadge}</span>
             )}
           </div>
-        )}
+          <h1 className="line-clamp-3 text-[clamp(22px,2.6vw,32px)] font-bold leading-snug">{title}</h1>
+          <p className="text-[15px] text-chalk/80">
+            {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
+          </p>
+        </div>
 
-        {/* Target Price Card matching Screen 6 */}
-        <div className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="lg:col-span-5">
+          <PriceTag tilt={-1.5} className="mx-auto max-w-[400px]">
+            <p className="text-sm font-semibold">{t.landing.priceNow}</p>
+            {oldPrice && <StruckPrice className="mt-2 text-2xl">{formatVND(oldPrice)}</StruckPrice>}
+            <div className="mt-1 flex flex-wrap items-end gap-3">
+              <WrittenPrice className="block whitespace-nowrap text-[clamp(34px,3.6vw,48px)]">
+                {currentPrice ? formatVND(currentPrice) : t.common.unknown}
+              </WrittenPrice>
+              {changePercent !== undefined && changePercent !== 0 && (
+                <span
+                  className={`mb-1 px-2 py-0.5 text-[13px] font-bold ${
+                    changePercent < 0 ? "bg-teal-200 text-pine-950" : "bg-[#F8E1DC] text-marker-deep"
+                  }`}
+                >
+                  {changePercent < 0 ? "↓" : "↑"} {Math.abs(changePercent)}%
+                </span>
+              )}
+            </div>
+          </PriceTag>
+          {buyHref && (
+            <a
+              href={buyHref}
+              target="_blank"
+              rel="sponsored noopener noreferrer"
+              className="mx-auto mt-5 flex min-h-[52px] max-w-[400px] items-center justify-center gap-2 bg-teal-400 px-5 text-[17px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+            >
+              {formatText(t.landing.buyOn, { platform: platformName })}
+              <ArrowUpRight className="h-5 w-5" />
+            </a>
+          )}
+        </div>
+      </section>
+
+      {/* Target price and the 90-day numbers */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <section className="space-y-4 bg-white p-5 sm:p-6 lg:col-span-7">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                {t.detail.targetPrice}
-              </span>
-              <span className="text-sm sm:text-base font-black text-slate-800">
+              <span className="block text-sm font-semibold text-pine-700">{t.detail.targetPrice}</span>
+              <WrittenPrice className="mt-1 block text-[22px] sm:text-[28px]">
                 {alertsErrorMessage ? t.common.unknown : savedTarget ? formatVND(savedTarget) : t.detail.notSet}
-              </span>
+              </WrittenPrice>
             </div>
-
             <div>
-              <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                {t.detail.distanceFromTarget}
-              </span>
-              <span className="text-sm sm:text-base font-black text-pine-900">
+              <span className="block text-sm font-semibold text-pine-700">{t.detail.distanceFromTarget}</span>
+              <span className="mt-1 block text-xl font-bold text-pine-900">
                 {alertsErrorMessage
                   ? t.common.unknown
                   : !savedTarget
@@ -368,149 +351,44 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+          <div className="h-3 w-full bg-pine-50">
             <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              className="h-full origin-left bg-teal-400 transition-[width] duration-500"
               style={{ width: `${targetProgress}%` }}
             />
           </div>
 
-          <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="flex items-center justify-between gap-3 text-[15px] text-pine-700">
             <span>{t.detail.targetProgress}</span>
             <button
               type="button"
               onClick={() => openTargetModal()}
-              className="font-bold text-pine-900 hover:underline"
+              className="min-h-[44px] px-2 font-bold text-pine-900 underline-offset-4 hover:underline"
             >
               {t.detail.editTarget}
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* 2-Column Stats matching Screen 6 */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-4">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider mb-1">
-              {t.detail.lowest90d}
-            </span>
-            <span className="text-base font-extrabold text-slate-900 block">
-              {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
-            </span>
-          </div>
-
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-4">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider mb-1">
-              {t.detail.average90d}
-            </span>
-            <span className="text-base font-extrabold text-slate-900 block">
-              {stats90 ? formatVND(stats90.average) : t.common.unknown}
-            </span>
-          </div>
-        </div>
+        <section className="grid grid-cols-3 gap-px bg-paper lg:col-span-5 lg:grid-cols-1">
+          {statTiles.map((s) => (
+            <div key={s.label} className="flex flex-col justify-center bg-white p-4 sm:p-5">
+              <span className="block text-sm font-semibold text-pine-700">{s.label}</span>
+              <span className="mt-1 block text-base font-bold text-pine-900 sm:text-lg">{s.value}</span>
+            </div>
+          ))}
+        </section>
       </div>
 
-      {/* 2.2 HỘP BÍ KÍP SĂN SALE 2 BƯỚC & VOUCHER INTELLIGENCE (Phase 3.5.2) */}
-      <VoucherBox
-        trackingId={idOrSourceId}
-        canonicalUrl={tracking?.CanonicalURL}
-        affiliateUrl={tracking?.AffiliateURL}
-      />
-
-      {/* 2.5 CẢNH BÁO GIÁ THÔNG MINH (Phase 2) */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
-              <BellRing className="w-5 h-5 text-pine-900" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-pine-900 tracking-tight">
-                {t.detail.smartAlertsTitle}
-              </h2>
-              <p className="text-xs text-slate-500">
-                {t.detail.smartAlertsDesc}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowCreateAlertModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all self-start sm:self-auto"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{t.detail.addAlertBtn}</span>
-          </button>
-        </div>
-
-        {alertsErrorMessage && alerts.length === 0 ? (
-          <div className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{alertsErrorMessage}</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => refetchAlerts()}
-              className="font-semibold underline shrink-0"
-            >
-              {t.common.retry}
-            </button>
-          </div>
-        ) : alerts.length === 0 ? (
-          <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
-            <p className="text-xs text-slate-600 font-medium">
-              {t.detail.noAlertsTitle}
-            </p>
-            <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-              {t.detail.noAlertsDesc}
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowCreateAlertModal(true)}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-pine-900 bg-white border border-slate-200 rounded-full hover:bg-pine-50 transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-              <span>{t.detail.createFirstRuleBtn}</span>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {alerts.map((rule) => (
-              <ActiveAlertCard
-                key={rule.id}
-                rule={rule}
-                onRuleDeleted={(deletedId) => {
-                  setAlerts((prev) => prev.filter((r) => r.id !== deletedId));
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 2.6 SECTION SO SANH GIA DA SAN (Phase 3) */}
-      <SourceComparisonSection
-        trackingId={idOrSourceId}
-        productId={tracking?.ProductID || idOrSourceId}
-        onLinkSource={() => setShowLinkModal(true)}
-      />
-
-      {/* 3. SECTION LỊCH SỬ GIÁ & BIỂU ĐỒ matching Screen 7 in mobile.png */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Price history */}
+      <section className="space-y-6 bg-white p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-lg font-black text-pine-900">
-              {t.detail.priceHistoryTitle}
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {t.detail.priceHistorySubtitle}
-            </p>
+            <h2 className="text-xl font-bold text-pine-900">{t.detail.priceHistoryTitle}</h2>
+            <p className="mt-0.5 text-[15px] text-pine-700">{t.detail.priceHistorySubtitle}</p>
           </div>
 
-          {/* Time range tabs matching Screen 7 */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full w-fit">
+          <div className="flex w-fit items-center">
             {[
               { id: "7d", label: t.detail.range7d },
               { id: "30d", label: t.detail.range30d },
@@ -520,11 +398,10 @@ export default function ProductDetailPage() {
               <button
                 key={tab.id}
                 type="button"
+                aria-pressed={timeRange === tab.id}
                 onClick={() => setTimeRange(tab.id as any)}
-                className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${
-                  timeRange === tab.id
-                    ? "bg-pine-900 text-white shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
+                className={`min-h-[44px] px-4 text-[15px] font-semibold transition-colors ${
+                  timeRange === tab.id ? "bg-pine-900 text-chalk" : "bg-pine-50 text-pine-900 hover:bg-pine-100"
                 }`}
               >
                 {tab.label}
@@ -533,60 +410,51 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Recharts AreaChart with Current Price & Target Price Reference lines */}
-        <div className="h-64 sm:h-72 w-full pt-2">
+        <div className="h-64 w-full sm:h-80">
           {rangeError ? (
-            <div className="h-full flex items-center justify-center gap-2 px-4 text-center text-rose-600 text-xs bg-rose-50 rounded-2xl border border-dashed border-rose-200">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex h-full items-center justify-center gap-2 bg-[#F8E1DC] px-4 text-center text-[15px] text-marker-deep">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{formatText(t.detail.historyRangeError, { message: rangeError })}</span>
             </div>
           ) : rangeLoading ? (
-            <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <div className="chalk-skeleton flex h-full items-center justify-center bg-pine-50 text-[15px] text-pine-700">
               {t.common.loading}
             </div>
           ) : chartData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <div className="flex h-full items-center justify-center bg-pine-50 px-4 text-center text-[15px] text-pine-700">
               {(timeRange === "all" ? allSnapshots : snapshots).length === 0
                 ? t.detail.accumulatingData
                 : t.detail.noDataInRange}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="pineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#059669" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -4, bottom: 0 }}>
+                <CartesianGrid stroke="#DCEBE7" vertical={false} />
                 <XAxis
                   dataKey="time"
-                  stroke="#94a3b8"
-                  fontSize={10}
+                  tick={{ fill: "#174C44", fontSize: 13 }}
                   tickLine={false}
-                  axisLine={{ stroke: "#e2e8f0" }}
+                  axisLine={{ stroke: "#B6D6CE" }}
                 />
                 <YAxis
-                  stroke="#94a3b8"
-                  fontSize={10}
+                  tick={{ fill: "#174C44", fontSize: 13 }}
                   tickLine={false}
-                  axisLine={{ stroke: "#e2e8f0" }}
+                  axisLine={false}
+                  width={64}
+                  // Zoom to the real price band (with the target in view), not from zero, so a change is visible
+                  domain={[(min: number) => Math.floor(min * 0.95), (max: number) => Math.ceil(max * 1.03)]}
                   tickFormatter={(val) => formatCompactVND(val)}
                 />
                 <Tooltip
+                  cursor={{ stroke: "#86BBAE" }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-pine-950 text-white rounded-2xl p-3 shadow-xl text-xs space-y-1 border border-pine-800">
-                          <p className="text-pine-300 text-[10px]">
-                            {formatDateTime(data.rawDate)}
-                          </p>
-                          <p className="text-base font-black text-white">
-                            {formatVND(data.effectivePrice)}
-                          </p>
-                          <p className="text-[11px] text-slate-300">
+                        <div className="space-y-1 bg-pine-950 p-3 text-[13px] text-chalk">
+                          <p className="text-chalk/75">{formatDateTime(data.rawDate)}</p>
+                          <p className="font-marker text-lg font-extrabold">{formatVND(data.effectivePrice)}</p>
+                          <p className="text-chalk/75">
                             {t.detail.listedPriceLabel} {formatVND(data.rawPrice)}
                           </p>
                         </div>
@@ -598,14 +466,16 @@ export default function ProductDetailPage() {
                 {savedTarget && (
                   <ReferenceLine
                     y={savedTarget}
-                    stroke="#e11d48"
-                    strokeDasharray="4 4"
+                    ifOverflow="extendDomain"
+                    stroke="#D9412B"
+                    strokeWidth={2}
+                    strokeDasharray="6 4"
                     label={{
                       value: formatText(t.detail.targetPriceLabel, {
                         price: formatCompactVND(savedTarget),
                       }),
-                      fill: "#e11d48",
-                      fontSize: 10,
+                      fill: "#B3301D",
+                      fontSize: 13,
                       position: "insideBottomRight",
                     }}
                   />
@@ -613,11 +483,11 @@ export default function ProductDetailPage() {
                 <Area
                   type="monotone"
                   dataKey="effectivePrice"
-                  stroke="#059669"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#pineGradient)"
-                  dot={{ r: 3, fill: "#059669" }}
+                  stroke="#1A9988"
+                  strokeWidth={3}
+                  fill="#3CCFB0"
+                  fillOpacity={0.12}
+                  dot={{ r: 3, fill: "#1A9988", strokeWidth: 0 }}
                   activeDot={{ r: 6, fill: "#0A3832", stroke: "#ffffff", strokeWidth: 2 }}
                 />
               </AreaChart>
@@ -625,118 +495,157 @@ export default function ProductDetailPage() {
           )}
         </div>
 
-        {/* 3 Stats: Thấp nhất, Trung bình, Cao nhất matching Screen 7 */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
-          <div className="p-2.5 rounded-xl bg-slate-50">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              {t.detail.lowest90d}
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-slate-50">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              {t.detail.average90d}
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats90 ? formatVND(stats90.average) : t.common.unknown}
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-slate-50">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
-              {t.detail.highest90d}
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-              {stats90 ? formatVND(stats90.highest) : t.common.unknown}
-            </span>
-          </div>
-        </div>
-
-        {/* Các mốc giá quan trọng matching Screen 7 */}
-        <div className="space-y-3 pt-4 border-t border-slate-100">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            {t.detail.keyPriceMilestones}
-          </h3>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="font-semibold text-slate-800">{t.detail.milestoneJustDropped}</span>
+        {/* Key prices */}
+        <div className="space-y-3">
+          <h3 className="text-[17px] font-bold text-pine-900">{t.detail.keyPriceMilestones}</h3>
+          <div className="space-y-1">
+            {[
+              {
+                dot: "bg-marker",
+                label: t.detail.milestoneJustDropped,
+                value: currentPrice ? formatVND(currentPrice) : t.common.unknown,
+                note: t.detail.milestoneRecent,
+              },
+              {
+                dot: "bg-teal-400",
+                label: t.detail.milestoneLowest,
+                value: stats90 ? formatVND(stats90.lowest) : t.common.unknown,
+                note: t.detail.milestoneRecordedLow,
+              },
+              {
+                dot: "bg-pine-300",
+                label: t.detail.milestoneAverage,
+                value: stats90 ? formatVND(stats90.average) : t.common.unknown,
+                note: t.detail.milestoneMedian,
+              },
+            ].map((m) => (
+              <div key={m.label} className="flex items-center justify-between gap-3 bg-pine-50 px-4 py-3 text-[15px]">
+                <div className="flex items-center gap-2.5">
+                  <span aria-hidden className={`h-2.5 w-2.5 shrink-0 ${m.dot}`} />
+                  <span className="font-semibold text-pine-900">{m.label}</span>
+                </div>
+                <div className="flex items-baseline gap-3 text-right">
+                  <span className="font-bold text-pine-900">{m.value}</span>
+                  <span className="hidden text-[13px] text-pine-700 sm:inline">{m.note}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-pine-900">{currentPrice ? formatVND(currentPrice) : t.common.unknown}</span>
-                <span className="text-[10px] text-slate-400">{t.detail.milestoneRecent}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="font-semibold text-slate-800">{t.detail.milestoneLowest}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-pine-900">
-                  {stats90 ? formatVND(stats90.lowest) : t.common.unknown}
-                </span>
-                <span className="text-[10px] text-slate-400">{t.detail.milestoneRecordedLow}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-slate-400" />
-                <span className="font-semibold text-slate-800">{t.detail.milestoneAverage}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700">
-                  {stats90 ? formatVND(stats90.average) : t.common.unknown}
-                </span>
-                <span className="text-[10px] text-slate-400">{t.detail.milestoneMedian}</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 4. STICKY BOTTOM BUTTON matching Screen 6 in mobile.png */}
-      <div className="fixed bottom-14 md:bottom-6 left-0 right-0 p-4 max-w-md mx-auto pointer-events-none z-30">
+      {/* Voucher tips */}
+      <VoucherBox
+        trackingId={idOrSourceId}
+        canonicalUrl={tracking?.CanonicalURL}
+        affiliateUrl={tracking?.AffiliateURL}
+      />
+
+      {/* Alerts */}
+      <section className="space-y-4 bg-white p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-pine-50 text-pine-900">
+              <BellRing className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="text-xl font-bold text-pine-900">{t.detail.smartAlertsTitle}</h2>
+              <p className="text-[15px] text-pine-700">{t.detail.smartAlertsDesc}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowCreateAlertModal(true)}
+            className="inline-flex min-h-[44px] items-center gap-2 self-start bg-pine-900 px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800 sm:self-auto"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t.detail.addAlertBtn}</span>
+          </button>
+        </div>
+
+        {alertsErrorMessage && alerts.length === 0 ? (
+          <div className="flex items-center justify-between gap-2 bg-[#F8E1DC] p-4 text-[15px] text-marker-deep">
+            <span className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{alertsErrorMessage}</span>
+            </span>
+            <button type="button" onClick={() => refetchAlerts()} className="min-h-[44px] shrink-0 px-2 font-semibold underline">
+              {t.common.retry}
+            </button>
+          </div>
+        ) : alerts.length === 0 ? (
+          <div className="space-y-2 bg-pine-50 p-6 text-center">
+            <p className="text-[15px] font-semibold text-pine-900">{t.detail.noAlertsTitle}</p>
+            <p className="mx-auto max-w-sm text-[15px] text-pine-700">{t.detail.noAlertsDesc}</p>
+            <button
+              type="button"
+              onClick={() => setShowCreateAlertModal(true)}
+              className="mt-2 inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t.detail.createFirstRuleBtn}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {alerts.map((rule) => (
+              <ActiveAlertCard
+                key={rule.id}
+                rule={rule}
+                onRuleDeleted={(deletedId) => {
+                  setAlerts((prev) => prev.filter((r) => r.id !== deletedId));
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Same product on other marketplaces */}
+      <SourceComparisonSection
+        trackingId={idOrSourceId}
+        productId={tracking?.ProductID || idOrSourceId}
+        onLinkSource={() => setShowLinkModal(true)}
+      />
+
+      {/* The one action of this page, always within reach */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[60px] z-30 mx-auto max-w-md p-4 md:bottom-4">
         <button
           type="button"
           onClick={() => openTargetModal()}
-          className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-full text-sm shadow-xl pointer-events-auto transition-all flex items-center justify-center gap-2"
+          className="pointer-events-auto flex min-h-[52px] w-full items-center justify-center gap-2 bg-pine-900 text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800"
         >
-          <Target className="w-4 h-4" />
+          <Target className="h-5 w-5" />
           <span>{savedTarget ? t.detail.updateTargetButton : t.detail.setTargetButton}</span>
         </button>
       </div>
 
-      {/* 5. SCREEN 8: ĐẶT GIÁ MỤC TIÊU MODAL matching Screen 8 in mobile.png */}
+      {/* Target price dialog */}
       {showTargetModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-pine-950/70 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="target-title"
+            className="relative w-full max-w-md space-y-5 bg-paper p-6 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8" /* taste-skill-ignore: dialog overlay */
+          >
             <button
               type="button"
               onClick={() => setShowTargetModal(false)}
-              className="absolute top-5 right-5 p-1 text-slate-400 hover:text-slate-700 rounded-full"
+              className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white"
+              aria-label={t.common.close}
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
 
-            <div>
-              <h3 className="text-xl font-black text-pine-900">
-                {t.detail.targetModalTitle}
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                {t.detail.targetModalDesc}
-              </p>
+            <div className="pr-10">
+              <h3 id="target-title" className="text-xl font-bold text-pine-900">{t.detail.targetModalTitle}</h3>
+              <p className="mt-1 text-[15px] leading-relaxed text-pine-700">{t.detail.targetModalDesc}</p>
             </div>
 
             <form onSubmit={handleSaveTarget} className="space-y-4">
-              <div className="relative">
+              <div>
                 <input
                   type="number"
                   step="10000"
@@ -744,16 +653,15 @@ export default function ProductDetailPage() {
                   value={targetInput > 0 ? targetInput : ""}
                   onChange={(e) => setTargetInput(Number(e.target.value))}
                   placeholder="6.000.000"
-                  className="w-full px-4 py-3.5 text-2xl font-black rounded-2xl border border-slate-200 bg-slate-50 text-pine-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-center"
+                  className="h-16 w-full bg-white px-4 text-center font-marker text-3xl font-extrabold text-pine-950 placeholder:text-pine-700/50 focus:outline-none"
                 />
                 {targetInput > 0 && (
-                  <span className="text-xs font-semibold text-slate-400 block text-center mt-1">
+                  <span className="mt-1 block text-center text-[13px] font-semibold text-pine-700">
                     {formatText(t.detail.displayPrice, { price: formatVND(targetInput) })}
                   </span>
                 )}
               </div>
 
-              {/* Quick discount pills (-5%, -10%, -15%, -20%) matching Screen 8 */}
               <div className="grid grid-cols-4 gap-2">
                 {[5, 10, 15, 20].map((pct) => (
                   <button
@@ -761,34 +669,29 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={() => handleQuickPercent(pct)}
                     disabled={!currentPrice}
-                    className="disabled:opacity-40 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-pine-50 hover:border-pine-300 text-xs font-bold text-slate-700 hover:text-pine-900 transition-colors"
+                    className="min-h-[44px] bg-white text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     -{pct}%
                   </button>
                 ))}
               </div>
 
-              {targetError && (
-                <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5">{targetError}</p>
-              )}
+              {targetError && <p className="bg-[#F8E1DC] p-3 text-[15px] text-marker-deep">{targetError}</p>}
 
               <button
                 type="submit"
                 disabled={savingTarget}
-                className="w-full py-3.5 bg-pine-900 hover:bg-pine-950 disabled:opacity-50 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all"
+                className="min-h-[52px] w-full bg-teal-400 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {savingTarget ? t.common.loading : t.detail.startTrackingBtn}
               </button>
             </form>
 
-            {/* Gợi ý card matching Screen 8 */}
-            <div className="bg-pine-50/80 border border-pine-100 rounded-2xl p-3.5 text-xs text-pine-900 flex items-start gap-2.5">
-              <Sparkles className="w-4 h-4 text-pine-800 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 bg-kraft-light p-4 text-[15px] text-kraft-ink">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <span className="font-bold block mb-0.5">{t.detail.tipTitle}</span>
-                <span className="text-slate-600 leading-relaxed block">
-                  {t.detail.tipDesc}
-                </span>
+                <span className="mb-0.5 block font-bold">{t.detail.tipTitle}</span>
+                <span className="block leading-relaxed">{t.detail.tipDesc}</span>
               </div>
             </div>
           </div>

@@ -1,32 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState, Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  AlertCircle,
-  ArrowRight,
-  Bell,
-  BellRing,
-  ClipboardPaste,
-  LineChart,
-  Link2,
-  MousePointerClick,
-  Scale,
-  ShieldCheck,
-  Sparkles,
-  Timer,
-  UserRound,
-  Zap,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, ClipboardPaste } from "lucide-react";
 import { trackProduct } from "@/lib/api";
 import { useAuth, useTrackings } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
-import { detectPlatform, isKnownPrice } from "@/lib/formatting";
-import { PlatformBadge } from "@/components/ui/Badge";
+import { detectPlatform, formatVND, isKnownPrice } from "@/lib/formatting";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { PriceTag, WrittenPrice } from "@/components/PriceTag";
 import { TryResult, TryTarget } from "@/components/home/TryResult";
-import { HeroVisual } from "@/components/home/HeroVisual";
+import { Reveal } from "@/components/home/Reveal";
+import { Closing, Faq, FeatureSwitches, HowItWorks, HunterShowcase, SiteFooter } from "@/components/home/sections";
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -46,6 +34,7 @@ function HomeContent() {
   const trimmed = url.trim();
   const platform = trimmed ? detectPlatform(trimmed) : null;
   const looksLikeLink = /^https?:\/\/\S+\.\S+/i.test(trimmed);
+  // The visitor's own most recent product with a real price, never sample data
   const latest = trackings.find((p) => p.Title && isKnownPrice(p.LastPrice));
 
   const check = async (value: string) => {
@@ -64,7 +53,7 @@ function HomeContent() {
     }
   };
 
-  // A link typed in the top search bar lands here as ?url=...: check it right away
+  // A link handed over as ?url=... is checked right away
   useEffect(() => {
     const fromSearch = searchParams.get("url");
     if (fromSearch) {
@@ -77,66 +66,50 @@ function HomeContent() {
   const pasteFromClipboard = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      if (text) {
-        setUrl(text.trim());
-        inputRef.current?.focus();
-      }
+      if (text) setUrl(text.trim());
     } catch {
-      inputRef.current?.focus(); // permission refused: the visitor pastes by hand
+      // permission refused: the visitor pastes by hand
     }
+    inputRef.current?.focus();
   };
 
   const backToInput = () => {
     heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 400);
+    window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 450);
   };
 
-  const steps = [
-    { icon: Link2, title: t.landing.how1Title, desc: t.landing.how1Desc },
-    { icon: LineChart, title: t.landing.how2Title, desc: t.landing.how2Desc },
-    { icon: BellRing, title: t.landing.how3Title, desc: t.landing.how3Desc },
-  ];
-
   return (
-    <div className="space-y-20 pb-6 sm:space-y-28">
-      {/* ── Hero: the product itself, usable right away ─────────────────────────── */}
-      <section
-        ref={heroRef}
-        className="relative -mx-4 overflow-hidden rounded-none bg-pine-950 px-5 pb-14 pt-12 text-white sm:mx-0 sm:rounded-[2rem] sm:px-10 sm:pb-16 sm:pt-16 lg:px-14"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-grain" />
-        <div className="pointer-events-none absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-teal-500/30 blur-[120px]" />
-        <div className="pointer-events-none absolute -bottom-48 right-[-10rem] h-[30rem] w-[30rem] rounded-full bg-pine-600/40 blur-[120px]" />
+    <>
+      <Reveal />
 
-        <div className="relative grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
+      {/* ── The board: the question, the paste slot, the visitor's own tag ───────────── */}
+      <section ref={heroRef} aria-labelledby="board-title" className="relative overflow-hidden bg-pine-900 text-chalk">
+        <div className="mx-auto grid min-h-[calc(100svh-64px)] max-w-[1440px] items-center gap-12 px-5 pb-14 pt-10 md:px-7 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-7">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-3.5 py-1.5 text-xs font-semibold text-teal-300 ring-1 ring-white/10">
-              <span className="h-1.5 w-1.5 rounded-full bg-honey-400" />
-              {t.landing.freePill}
-            </span>
-
-            <h1 className="mt-6 text-balance text-[2.4rem] font-extrabold leading-[1.08] tracking-tight sm:text-[3.4rem]">
-              {t.landing.heroLine1}
-              <br />
-              <span className="bg-gradient-to-r from-teal-300 via-teal-400 to-honey-300 bg-clip-text text-transparent">
-                {t.landing.heroLine2}
+            <h1 id="board-title" className="whitespace-nowrap font-marker text-[clamp(38px,11.4vw,64px)] font-extrabold leading-[0.95] tracking-[-0.03em] md:text-[clamp(60px,7.6vw,112px)] lg:text-[clamp(56px,6.4vw,104px)]">
+              <span className="block overflow-hidden pb-[0.06em]">
+                <span className="block animate-line-rise">{t.landing.boardLine1}</span>
+              </span>
+              <span className="block overflow-hidden pb-[0.06em]">
+                <span className="block animate-line-rise text-teal-300 [animation-delay:110ms]">{t.landing.boardLine2}</span>
               </span>
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t.landing.heroSubtitle}</p>
+            <p className="mt-6 max-w-[54ch] text-lg leading-relaxed text-chalk/90 animate-rise-in [animation-delay:500ms] md:text-xl">
+              {t.landing.heroSentence}
+            </p>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 check(url);
               }}
-              className="mt-8 max-w-xl"
+              className="mt-8 max-w-[640px] animate-rise-in [animation-delay:600ms]"
             >
               <label htmlFor="dh-try-url" className="sr-only">
                 {t.landing.inputLabel}
               </label>
-              <div className="flex flex-col gap-2 rounded-[1.4rem] bg-white p-2 shadow-2xl shadow-black/30 ring-4 ring-teal-400/15 sm:flex-row">
-                <div className="relative flex flex-1 items-center">
-                  <Link2 className="pointer-events-none absolute left-4 h-4 w-4 text-slate-400" />
+              <div className="flex flex-col sm:flex-row">
+                <div className="relative flex flex-1 items-center bg-chalk">
                   <input
                     ref={inputRef}
                     id="dh-try-url"
@@ -147,209 +120,142 @@ function HomeContent() {
                     disabled={loading}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={t.landing.inputPlaceholder}
-                    className="w-full rounded-2xl bg-transparent py-3.5 pl-11 pr-20 text-[15px] font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    className="h-14 w-full bg-transparent pl-5 pr-24 text-[17px] font-medium text-pine-950 placeholder:text-pine-700 focus:outline-none"
                   />
                   {!trimmed && (
                     <button
                       type="button"
                       onClick={pasteFromClipboard}
-                      className="absolute right-2 inline-flex items-center gap-1 rounded-xl bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-200"
+                      className="absolute right-2 inline-flex h-10 items-center gap-1.5 bg-pine-100 px-3 text-sm font-semibold text-pine-900 transition-colors hover:bg-pine-200"
                     >
-                      <ClipboardPaste className="h-3.5 w-3.5" />
+                      <ClipboardPaste className="h-4 w-4" />
                       {t.landing.pasteBtn}
                     </button>
                   )}
                 </div>
                 <button
                   type="submit"
-                  disabled={loading || !trimmed}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-teal-400 px-6 py-3.5 text-[15px] font-bold text-pine-950 transition hover:bg-teal-300 disabled:bg-pine-900 disabled:text-white/80"
+                  disabled={loading}
+                  className="inline-flex h-14 shrink-0 items-center justify-center gap-2 bg-teal-400 px-6 text-[17px] font-bold text-pine-950 transition-colors hover:bg-teal-300 disabled:bg-pine-700 disabled:text-chalk/80"
                 >
                   {loading ? (
                     <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                       {t.landing.checkingBtn}
                     </>
                   ) : (
                     <>
                       {t.landing.checkBtn}
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-5 w-5" />
                     </>
                   )}
                 </button>
               </div>
-
-              {/* One line under the box, always the same height: detected platform, a hint or the error */}
-              <div className="mt-3 min-h-[1.5rem] text-sm">
+              {/* One line under the slot, always the same height: platform, a hint, or the error */}
+              <div className="mt-3 min-h-[1.6rem] text-[15px]" aria-live="polite">
                 {error ? (
-                  <p className="flex items-start gap-2 text-rose-300">
+                  <p className="flex items-start gap-2 font-semibold text-kraft-light">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     {error}
                   </p>
                 ) : platform && platform.id !== "other" ? (
-                  <p className="flex items-center gap-2 text-teal-300">
-                    <ShieldCheck className="h-4 w-4" />
-                    {formatText(t.landing.detected, { platform: platform.name })}
-                  </p>
+                  <p className="font-semibold text-teal-300">{formatText(t.landing.detected, { platform: platform.name })}</p>
                 ) : trimmed && looksLikeLink ? (
-                  <p className="text-white/60">{t.landing.notProductLink}</p>
-                ) : null}
+                  <p className="text-chalk/80">{t.landing.notProductLink}</p>
+                ) : (
+                  <p className="text-chalk/80">{t.landing.heroNote}</p>
+                )}
               </div>
             </form>
-
-            <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/60">
-              {[t.landing.trust1, t.landing.trust2, t.landing.trust3].map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-teal-400" />
-                  {item}
-                </li>
-              ))}
-            </ul>
           </div>
 
-          <div className="lg:col-span-5">
-            {target ? (
-              <div className="space-y-3">
-                <TryResult
-                  key={target.id}
-                  target={target}
-                  onReset={() => {
-                    setTarget(null);
-                    setUrl("");
-                    setTimeout(() => inputRef.current?.focus(), 0);
-                  }}
-                />
-                {!isAuthenticated && (
-                  <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-white/60">
-                    <UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>
+          {/* Right: a real market price sign, and on it the visitor's own tag */}
+          <div className="relative min-h-[460px] lg:col-span-5 lg:min-h-[620px]">
+            <div className="absolute inset-y-0 right-[-12%] w-[88%] rotate-[4deg] overflow-hidden lg:right-[-18%]">
+              <Image
+                src="/market/fresh-mangosteen-display.jpg"
+                alt="Bảng giá viết tay bằng bút lông trên thùng carton ở một sạp trái cây"
+                fill
+                priority
+                sizes="(min-width: 1024px) 40vw, 90vw"
+                className="object-cover object-[30%_40%]"
+              />
+            </div>
+            <div className="relative z-10 max-w-[420px] pt-16 lg:pt-24">
+              {target ? (
+                <>
+                  <TryResult
+                    key={target.id}
+                    target={target}
+                    onReset={() => {
+                      setTarget(null);
+                      setUrl("");
+                      window.setTimeout(() => inputRef.current?.focus(), 0);
+                    }}
+                  />
+                  {!isAuthenticated && (
+                    <p className="mt-4 bg-pine-950 p-3 text-sm leading-relaxed text-chalk/90">
                       {t.landing.guestNote}{" "}
                       <button type="button" onClick={() => setShowLogin(true)} className="font-semibold text-teal-300 hover:underline">
                         {t.landing.signIn}
                       </button>
-                    </span>
-                  </p>
-                )}
-              </div>
-            ) : (
-              <HeroVisual latest={latest} />
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How it works ──────────────────────────────────────────────────────── */}
-      <section>
-        <h2 className="text-2xl font-extrabold tracking-tight text-pine-900 sm:text-3xl">{t.landing.howTitle}</h2>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-3">
-          {steps.map(({ icon: Icon, title, desc }, i) => (
-            <li key={title} className="relative rounded-3xl bg-white p-6 ring-1 ring-slate-200/80">
-              <span className="absolute right-5 top-4 text-5xl font-extrabold text-pine-50">{i + 1}</span>
-              <span className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-pine-900 text-teal-300">
-                <Icon className="h-5 w-5" />
-              </span>
-              <h3 className="relative mt-5 text-lg font-bold text-slate-900">{title}</h3>
-              <p className="relative mt-1.5 text-sm leading-relaxed text-slate-600">{desc}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ── Features (bento) ─────────────────────────────────────────────────── */}
-      <section>
-        <div className="max-w-2xl">
-          <h2 className="text-2xl font-extrabold tracking-tight text-pine-900 sm:text-3xl">{t.landing.featuresTitle}</h2>
-          <p className="mt-2 text-base text-slate-600">{t.landing.featuresSubtitle}</p>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-6">
-          <div className="relative overflow-hidden rounded-3xl bg-pine-900 p-7 text-white md:col-span-4">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-teal-500/25 blur-3xl" />
-            <LineChart className="relative h-6 w-6 text-teal-300" />
-            <h3 className="relative mt-4 text-xl font-bold">{t.landing.f1Title}</h3>
-            <p className="relative mt-2 max-w-md text-sm leading-relaxed text-white/70">{t.landing.f1Desc}</p>
-            <svg viewBox="0 0 400 90" className="relative mt-6 h-20 w-full" fill="none" aria-hidden>
-              <path
-                d="M0 30 C 40 28, 60 50, 95 46 S 150 18, 190 24 S 250 60, 290 66 S 360 72, 400 74"
-                stroke="#3CCFB0"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <div className="rounded-3xl bg-white p-7 ring-1 ring-slate-200/80 md:col-span-2">
-            <Scale className="h-6 w-6 text-pine-700" />
-            <h3 className="mt-4 text-lg font-bold text-slate-900">{t.landing.f2Title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{t.landing.f2Desc}</p>
-          </div>
-          <div className="rounded-3xl bg-white p-7 ring-1 ring-slate-200/80 md:col-span-3">
-            <Bell className="h-6 w-6 text-pine-700" />
-            <h3 className="mt-4 text-lg font-bold text-slate-900">{t.landing.f3Title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{t.landing.f3Desc}</p>
-          </div>
-          <div className="rounded-3xl bg-honey-100 p-7 ring-1 ring-honey-300/60 md:col-span-3">
-            <div className="flex items-center gap-2 text-pine-900">
-              <Timer className="h-6 w-6" />
-              <MousePointerClick className="h-5 w-5 opacity-60" />
+                    </p>
+                  )}
+                </>
+              ) : latest ? (
+                <Link href={`/tracking/${latest.ID}`} className="block transition-transform duration-200 hover:-translate-y-1">
+                  <PriceTag tilt={-2}>
+                    <p className="text-sm font-semibold">{t.landing.yourLatest}</p>
+                    <p className="mt-2 line-clamp-2 text-lg font-bold leading-snug">{latest.Title}</p>
+                    <WrittenPrice className="mt-5 block text-[clamp(40px,4.4vw,56px)]">{formatVND(latest.LastPrice)}</WrittenPrice>
+                  </PriceTag>
+                </Link>
+              ) : (
+                <PriceTag tilt={-2}>
+                  <p className="font-marker text-3xl font-extrabold">{t.landing.emptyTagTitle}</p>
+                  <p className="mt-3 max-w-[30ch] text-[15px] leading-relaxed">{t.landing.emptyTagHint}</p>
+                  <WrittenPrice className="mt-6 block text-[56px] opacity-30">… đ</WrittenPrice>
+                </PriceTag>
+              )}
             </div>
-            <h3 className="mt-4 text-lg font-bold text-slate-900">{t.landing.f4Title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{t.landing.f4Desc}</p>
           </div>
         </div>
       </section>
 
-      {/* ── Marketplaces + where to find the link ────────────────────────────── */}
-      <section className="grid gap-10 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{t.landing.platformsTitle}</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {["shopee", "lazada", "tiktok"].map((p) => (
-              <PlatformBadge key={p} platformOrUrl={p} className="px-3 py-1.5 text-sm" />
-            ))}
-          </div>
+      {/* ── The market itself: why the board ─────────────────────────────────────────── */}
+      <section aria-label={t.landing.introCaption} className="relative bg-pine-950">
+        <div className="relative h-[62svh] overflow-hidden md:h-[88svh]">
+          <Image
+            src="/market/fruit-vendor-at-ben-thanh-market.jpg"
+            alt="Người bán trái cây sắp hàng ở chợ Bến Thành"
+            fill
+            sizes="100vw"
+            className="object-cover object-[50%_45%] animate-slow-drift"
+          />
         </div>
-        <div className="lg:col-span-3">
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{t.landing.howToTitle}</h2>
-          <div className="mt-4 divide-y divide-slate-200/80 rounded-3xl bg-white ring-1 ring-slate-200/80">
-            {[
-              { p: "shopee", text: t.home.howToShopee },
-              { p: "lazada", text: t.home.howToLazada },
-              { p: "tiktok", text: t.home.howToTikTok },
-            ].map(({ p, text }) => (
-              <div key={p} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-start sm:gap-4">
-                <PlatformBadge platformOrUrl={p} className="w-fit shrink-0" />
-                <p className="text-sm leading-relaxed text-slate-600">{text}</p>
-              </div>
-            ))}
-          </div>
+        <div className="relative -mt-24 bg-kraft px-5 py-8 text-kraft-ink md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[58%] md:px-7 md:py-10">
+          <p data-reveal className="max-w-[34ch] text-[clamp(20px,2.2vw,32px)] font-bold leading-snug">
+            {t.landing.introCaption}
+          </p>
         </div>
       </section>
 
-      {/* ── Closing call to action ───────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-pine-900 to-pine-950 px-6 py-12 text-center text-white sm:px-12 sm:py-16">
-        <div className="pointer-events-none absolute inset-0 bg-grain" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-56 w-[36rem] -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" />
-        <Sparkles className="relative mx-auto h-7 w-7 text-honey-300" />
-        <h2 className="relative mx-auto mt-4 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-4xl">{t.landing.ctaTitle}</h2>
-        <p className="relative mt-3 text-white/70">{t.landing.ctaDesc}</p>
-        <button
-          type="button"
-          onClick={backToInput}
-          className="relative mt-7 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-[15px] font-semibold text-pine-900 transition hover:bg-teal-300"
-        >
-          <Zap className="h-4 w-4" />
-          {t.landing.ctaBtn}
-        </button>
-      </section>
+      <HowItWorks />
+      <FeatureSwitches />
+      <HunterShowcase />
+      <Faq />
+      <Closing onPaste={backToInput} />
+      <SiteFooter />
 
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
-    </div>
+    </>
   );
 }
 
 export default function HomePage() {
   const { t } = useLanguage();
   return (
-    <Suspense fallback={<div className="py-14 text-center text-xs text-slate-400">{t.home.loadingUI}</div>}>
+    <Suspense fallback={<div className="py-14 text-center text-sm text-pine-700">{t.home.loadingUI}</div>}>
       <HomeContent />
     </Suspense>
   );

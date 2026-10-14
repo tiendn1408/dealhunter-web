@@ -17,7 +17,7 @@ export function Sparkline({
     return (
       <div
         style={{ width, height }}
-        className={`flex items-center justify-center text-[10px] text-slate-300 border border-dashed border-slate-200 rounded-md ${className}`}
+        className={`flex items-center justify-center bg-pine-50 text-[13px] text-pine-700 ${className}`}
       >
         Chưa đủ dữ liệu
       </div>
@@ -49,8 +49,8 @@ export function Sparkline({
   const isDown = last < first;
   const isUp = last > first;
 
-  const strokeColor = isDown ? "#059669" : isUp ? "#e11d48" : "#6366f1";
-  const gradientId = `sparkline-grad-${Math.random().toString(36).substring(2, 9)}`;
+  // Drop in teal chalk, rise in red marker, flat in pine
+  const strokeColor = isDown ? "#1A9988" : isUp ? "#D9412B" : "#2C7A6B";
 
   return (
     <svg
@@ -59,18 +59,12 @@ export function Sparkline({
       className={`overflow-hidden ${className}`}
       viewBox={`0 0 ${width} ${height}`}
     >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={strokeColor} stopOpacity={0.25} />
-          <stop offset="100%" stopColor={strokeColor} stopOpacity={0.0} />
-        </linearGradient>
-      </defs>
-      <path d={areaD} fill={`url(#${gradientId})`} />
+      <path d={areaD} fill={strokeColor} fillOpacity={0.1} />
       <path
         d={pathD}
         fill="none"
         stroke={strokeColor}
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

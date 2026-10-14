@@ -12,16 +12,14 @@ import { useLanguage } from "@/lib/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
+import { StruckPrice, WrittenPrice } from "@/components/PriceTag";
 import {
-  Bell,
   SlidersHorizontal,
   ArrowRight,
-  TrendingDown,
   MessageSquare,
   CheckCheck,
   Check,
-  Sparkles,
-  ExternalLink,
+  ArrowUpRight,
   AlertCircle,
 } from "lucide-react";
 
@@ -76,52 +74,73 @@ export default function NotificationsPage() {
     });
   }, [notifications, activeTab]);
 
+  const statusChip = (status?: string) => {
+    if (status === "read")
+      return (
+        <span className="inline-flex items-center gap-1 bg-teal-200 px-2 py-0.5 text-[13px] font-semibold text-pine-950">
+          <CheckCheck className="h-3.5 w-3.5" />
+          {t.notifications.statusRead}
+        </span>
+      );
+    if (status === "delivered")
+      return (
+        <span className="inline-flex items-center gap-1 bg-pine-50 px-2 py-0.5 text-[13px] font-semibold text-pine-900">
+          <Check className="h-3.5 w-3.5" />
+          {t.notifications.statusDelivered}
+        </span>
+      );
+    if (status === "sent")
+      return <span className="bg-pine-50 px-2 py-0.5 text-[13px] font-semibold text-pine-700">{t.notifications.statusSent}</span>;
+    if (status === "failed")
+      return <span className="bg-[#F8E1DC] px-2 py-0.5 text-[13px] font-semibold text-marker-deep">{t.notifications.statusFailed}</span>;
+    if (status === "queued")
+      return <span className="bg-kraft-light px-2 py-0.5 text-[13px] font-semibold text-kraft-ink">{t.notifications.statusQueued}</span>;
+    return null;
+  };
+
   return (
-    <div className="max-w-2xl mx-auto py-6 sm:py-10 space-y-6">
-      {/* Header matching Screen 9 */}
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-3xl space-y-6 py-6 sm:py-10">
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-marker text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight text-pine-900">
               {t.notifications.title}
             </h1>
             {unreadCount > 0 && (
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+              <span className="bg-marker px-2 py-0.5 text-[13px] font-bold text-chalk">
                 {formatText(t.notifications.unreadBadge, { count: unreadCount })}
               </span>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            {t.notifications.subtitle}
-          </p>
+          <p className="mt-2 text-[15px] text-pine-700">{t.notifications.subtitle}</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {unreadCount > 0 && (
             <button
               type="button"
               onClick={handleMarkAllRead}
               disabled={markingAll}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-pine-900 hover:bg-pine-50 border border-pine-200/80 rounded-full transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-2 bg-white px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-50 disabled:cursor-not-allowed disabled:opacity-50"
               title={t.notifications.markAllRead}
             >
-              <CheckCheck className="w-3.5 h-3.5" />
+              <CheckCheck className="h-4 w-4" />
               <span className="hidden sm:inline">{t.notifications.markAllRead}</span>
             </button>
           )}
-
           <Link
             href="/settings"
-            className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors"
+            className="inline-flex h-11 w-11 items-center justify-center bg-white text-pine-900 transition-colors hover:bg-pine-50"
             title={t.nav.settings}
+            aria-label={t.nav.settings}
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="h-5 w-5" />
           </Link>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {/* Filters: square segmented tabs */}
+      <div role="tablist" className="flex gap-1 overflow-x-auto pb-1">
         {[
           { id: "all", label: t.notifications.tabAll },
           {
@@ -136,11 +155,11 @@ export default function NotificationsPage() {
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 ${
-              activeTab === tab.id
-                ? "bg-pine-900 text-white shadow-2xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            className={`min-h-[44px] shrink-0 px-4 text-[15px] font-semibold transition-colors ${
+              activeTab === tab.id ? "bg-pine-900 text-chalk" : "bg-white text-pine-900 hover:bg-pine-50"
             }`}
           >
             {tab.label}
@@ -149,206 +168,114 @@ export default function NotificationsPage() {
       </div>
 
       {actionError && (
-        <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+        <div className="flex items-center gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{actionError}</span>
         </div>
       )}
 
-      {/* Content list or Loading Skeleton */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-1">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-white border border-slate-200/90 rounded-3xl p-5 animate-pulse flex items-start gap-3.5"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-slate-100 shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-slate-100 rounded-md w-3/4" />
-                <div className="h-3 bg-slate-100 rounded-md w-1/2" />
-              </div>
+            <div key={i} className="space-y-3 bg-white p-5">
+              <div className="chalk-skeleton h-4 w-1/3 bg-pine-50" />
+              <div className="chalk-skeleton h-5 w-3/4 bg-pine-50" />
+              <div className="chalk-skeleton h-8 w-1/3 bg-pine-50" />
             </div>
           ))}
         </div>
       ) : queryError ? (
-        <div className="p-6 bg-rose-50 text-rose-700 border border-rose-200 rounded-3xl text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-          <p className="text-xs sm:text-sm font-semibold">{(queryError as Error).message}</p>
+        <div className="space-y-4 bg-[#F8E1DC] p-6 text-center text-marker-deep">
+          <AlertCircle className="mx-auto h-8 w-8" />
+          <p className="text-[15px] font-semibold">{(queryError as Error).message}</p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-semibold hover:bg-rose-700"
+            className="min-h-[44px] bg-marker px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-marker-deep"
           >
             {t.common.retry}
           </button>
         </div>
       ) : filteredNotifications.length === 0 ? (
-        /* Empty State */
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-10 sm:p-14 text-center max-w-lg mx-auto shadow-2xs space-y-4">
-          <div className="w-16 h-16 rounded-full bg-pine-50 border border-pine-100 text-pine-800 flex items-center justify-center mx-auto">
-            <Bell className="w-7 h-7 text-pine-800" />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-pine-900 mb-1">
-              {activeTab === "unread"
-                ? t.notifications.emptyUnreadTitle
-                : t.notifications.emptyTitle}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-              {activeTab === "unread"
-                ? t.notifications.emptyUnreadDesc
-                : t.notifications.emptyDesc}
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs font-semibold shadow-2xs transition-all"
-            >
-              <span>{t.notifications.trackNewBtn}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-
-          </div>
+        <div className="bg-white p-8 text-center sm:p-12">
+          <h3 className="font-marker text-3xl font-extrabold text-pine-900">
+            {activeTab === "unread" ? t.notifications.emptyUnreadTitle : t.notifications.emptyTitle}
+          </h3>
+          <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-pine-700">
+            {activeTab === "unread" ? t.notifications.emptyUnreadDesc : t.notifications.emptyDesc}
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+          >
+            {t.notifications.trackNewBtn}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       ) : (
-        /* Notifications Feed */
-        <div className="space-y-3">
+        <ul className="space-y-1">
           {filteredNotifications.map((notif) => {
             const isUnread = !notif.read_at;
             const dropAmount = notif.price_before - notif.price_after;
             const dropPercent =
-              notif.price_before > 0
-                ? Math.round((dropAmount / notif.price_before) * 100)
-                : 0;
+              notif.price_before > 0 ? Math.round((dropAmount / notif.price_before) * 100) : 0;
 
             return (
-              <div
+              <li
                 key={notif.id}
                 onClick={() => isUnread && handleMarkAsRead(notif.id)}
-                className={`bg-white border rounded-3xl p-5 shadow-2xs transition-all cursor-pointer relative overflow-hidden group ${
-                  isUnread
-                    ? "border-pine-300 ring-1 ring-pine-900/5 bg-gradient-to-r from-pine-50/20 to-white"
-                    : "border-slate-200/90 opacity-80 hover:opacity-100 hover:border-slate-300"
+                className={`relative flex cursor-pointer items-start gap-4 p-5 transition-colors ${
+                  isUnread ? "bg-white hover:bg-pine-50" : "bg-paper hover:bg-white"
                 }`}
               >
-                {/* Unread indicator bar */}
-                {isUnread && (
-                  <span className="absolute left-0 top-0 bottom-0 w-1 bg-pine-900" />
-                )}
-
-                <div className="flex items-start gap-3.5">
-                  {/* Icon */}
-                  <div
-                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                      dropAmount > 0
-                        ? "bg-rose-50 text-rose-700"
-                        : "bg-pine-50 text-pine-900"
-                    }`}
-                  >
-                    {dropAmount > 0 ? (
-                      <TrendingDown className="w-5 h-5 text-rose-600" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2 text-[13px]">
+                    {isUnread && <span aria-hidden className="h-2.5 w-2.5 bg-marker" />}
+                    {notif.platform && <PlatformBadge platformOrUrl={notif.platform} />}
+                    {notif.channel === "zalo" ? (
+                      <span className="inline-flex items-center gap-1 bg-pine-50 px-2 py-0.5 font-semibold text-pine-900">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        Zalo OA
+                      </span>
                     ) : (
-                      <Bell className="w-5 h-5 text-pine-900" />
+                      <span className="bg-pine-50 px-2 py-0.5 font-semibold text-pine-900">{t.notifications.inApp}</span>
                     )}
+                    {statusChip(notif.status)}
+                    <span className="ml-auto text-pine-700">{formatRelativeTime(notif.sent_at || notif.created_at)}</span>
                   </div>
 
-                  {/* Body */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        {notif.platform && (
-                          <PlatformBadge platformOrUrl={notif.platform} />
-                        )}
-                        {notif.channel === "zalo" ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" />
-                            <span>Zalo OA</span>
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pine-50 text-pine-900 border border-pine-200">
-                            {t.notifications.inApp}
-                          </span>
-                        )}
+                  <h2 className="line-clamp-2 text-[17px] font-bold leading-snug text-pine-900">
+                    {notif.product_title || t.notifications.productFallback}
+                  </h2>
 
-                        {notif.status === "read" ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                            <CheckCheck className="w-3 h-3 text-emerald-600" />
-                            <span>{t.notifications.statusRead}</span>
-                          </span>
-                        ) : notif.status === "delivered" ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
-                            <Check className="w-3 h-3 text-sky-600" />
-                            <span>{t.notifications.statusDelivered}</span>
-                          </span>
-                        ) : notif.status === "sent" ? (
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200">
-                            {t.notifications.statusSent}
-                          </span>
-                        ) : notif.status === "failed" ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-                            {t.notifications.statusFailed}
-                          </span>
-                        ) : notif.status === "queued" ? (
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            {t.notifications.statusQueued}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <span className="text-[11px] text-slate-400 font-normal">
-                        {formatRelativeTime(notif.sent_at || notif.created_at)}
-                      </span>
-                    </div>
-
-                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
-                      {notif.product_title || t.notifications.productFallback}
-                    </h4>
-
-                    {/* Price Diff */}
-                    <div className="flex items-baseline gap-2 pt-0.5">
-                      <span className="text-base font-extrabold text-pine-900">
-                        {formatVND(notif.price_after)}
-                      </span>
-                      {notif.price_before > 0 && (
-                        <span className="text-xs text-slate-400 line-through">
-                          {formatVND(notif.price_before)}
-                        </span>
-                      )}
-                      {dropPercent > 0 && (
-                        <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-100">
-                          ↓ {dropPercent}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Action */}
-                  <div className="flex flex-col items-end justify-between self-stretch shrink-0">
-                    {isUnread && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 mb-2" />
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    {notif.price_before > 0 && notif.price_before !== notif.price_after && (
+                      <StruckPrice className="text-lg text-pine-700">{formatVND(notif.price_before)}</StruckPrice>
                     )}
-                    {notif.product_url && (
-                      <a
-                        href={notif.affiliate_url || notif.product_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1.5 text-slate-400 hover:text-pine-900 hover:bg-slate-100 rounded-lg transition-colors mt-auto"
-                        title={t.common.viewProduct}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                    <WrittenPrice className="text-[28px] text-pine-900">{formatVND(notif.price_after)}</WrittenPrice>
+                    {dropPercent > 0 && (
+                      <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-bold text-pine-950">↓ {dropPercent}%</span>
                     )}
                   </div>
                 </div>
-              </div>
+
+                {notif.product_url && (
+                  <a
+                    href={notif.affiliate_url || notif.product_url}
+                    target="_blank"
+                    rel="sponsored noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-teal-400 hover:text-pine-950"
+                    title={t.common.viewProduct}
+                    aria-label={t.common.viewProduct}
+                  >
+                    <ArrowUpRight className="h-5 w-5" />
+                  </a>
+                )}
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

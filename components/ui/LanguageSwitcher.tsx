@@ -18,11 +18,11 @@ export function LanguageSwitcher({
   if (variant === "select") {
     return (
       <div className={`inline-flex items-center gap-2 ${className}`}>
-        <Globe className="w-4 h-4 text-slate-400" />
+        <Globe className="h-4 w-4 text-pine-700" />
         <select
           value={locale}
           onChange={(e) => setLocale(e.target.value as "vi" | "en")}
-          className="text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900"
+          className="h-10 bg-pine-50 px-3 text-sm font-semibold text-pine-900 hover:bg-pine-100"
           aria-label="Language selection"
         >
           <option value="vi">Tiếng Việt (VI)</option>
@@ -32,18 +32,19 @@ export function LanguageSwitcher({
     );
   }
 
+  // Two plain letters on the board strip; the current one is in full chalk
   return (
     <button
       type="button"
       onClick={toggleLocale}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs ${className}`}
+      className={`inline-flex h-9 items-center gap-1 px-2 text-sm font-semibold text-chalk/70 transition-colors hover:text-chalk ${className}`}
       title={t.nav.languageToggle}
-      aria-label="Toggle language"
+      aria-label={t.nav.languageToggle}
     >
-      <Globe className="w-3.5 h-3.5 text-slate-500" />
-      <span className="uppercase font-mono text-[11px] tracking-wide">
-        {locale}
-      </span>
+      <Globe className="hidden h-4 w-4 sm:block" />
+      <span className={locale === "vi" ? "text-chalk" : ""}>VI</span>
+      <span aria-hidden className="text-chalk/40">/</span>
+      <span className={locale === "en" ? "text-chalk" : ""}>EN</span>
     </button>
   );
 }

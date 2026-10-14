@@ -1,0 +1,100 @@
+{
+  "title": "Chọn thế giới hình ảnh cho DealHunter",
+  "question": "Hướng được giao là Bảng giá chợ. Giữ hướng này, chọn hướng khác, hoặc chia lại.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "Bảng giá chợ",
+      "kicker": "THE ROLL",
+      "lineage": "bảng phấn và thẻ bìa carton ghi giá ở chợ Việt Nam",
+      "thesis": "Mỗi sản phẩm là một tấm thẻ giá trên bảng chợ: giá cũ bị gạch, giá mới viết đè, đúng như lịch sử giá thật.",
+      "palette": ["#0A3832", "#F4F1E6", "#D2A86A", "#3CCFB0", "#D9412B"],
+      "materials": ["bảng phấn xanh rêu", "thẻ bìa carton", "nét bút lông gạch giá"],
+      "viewport": "Toàn màn hình là tấm bảng xanh rêu; dòng chữ lớn viết tay 'Giá hôm nay, có nên mua?', ô dán link như một ô trống trên bảng, bên phải tấm thẻ carton ghim đỏ hiện giá thật vừa đọc.",
+      "risk": "Chữ viết tay đặt rụt rè sẽ trông như đồ chơi; phải viết lớn và tự tin như bảng chợ thật.",
+      "raised": [
+        {"from": "posters-covers-sleeves-hatch-show-print", "raise": "Mỗi dải chữ trên bảng lấp đầy cả bề ngang, không để chữ nhỏ lạc giữa nền."},
+        {"from": "pop-culture-shelf-doujin-event-catalog", "raise": "Danh sách đang theo dõi xếp thẻ sát nhau dày đặc như cả sạp hàng, thẻ đang xem được khoanh bút."},
+        {"from": "signals-instruments-darkroom-safelight-bay", "raise": "Lần đọc giá đầu tiên đi qua các bước cố định có thật: nhận link, đọc giá, bắt đầu ghi lịch sử."},
+        {"from": "light-shadow-caustics-indoor-weather-sun", "raise": "Màu bảng xanh rêu phủ toàn bộ bề mặt, không chỉ là một điểm nhấn trên nền trắng."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html",
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Tem giá dán",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "tem giá tròn dán trên hàng hoá, đúng chiếc tem trong logo",
+      "thesis": "Giá thật của sản phẩm hiện ra như một chiếc tem giá lớn dán lên trang.",
+      "palette": ["#F4F1E6", "#0A3832", "#1A9988", "#FFC24D"],
+      "materials": ["tem tròn", "giấy dán bóng"],
+      "viewport": "Tiêu đề đậm bên trái, ô dán link; bên phải chiếc tem tròn xanh ngọc lớn ghi giá hôm nay.",
+      "risk": "Quen thuộc: đây là hướng phần lớn trang giá cả hay chọn.",
+      "html": ".impeccable/mocks/decision/model-pick.html",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "c-hatch", "kind": "challenger", "catalogId": "posters-covers-sleeves-hatch-show-print",
+      "label": "Áp phích in gỗ", "verdict": "declined",
+      "lineage": "áp phích in khuôn gỗ", "thesis": "Trang như một tờ áp phích chữ gỗ xếp dải.",
+      "palette": ["#efe5d0", "#1b1b1b", "#b3262b", "#1f3d7a"], "materials": ["chữ gỗ", "mực lệch khuôn"],
+      "viewport": "Dải chữ gỗ tràn ngang với tên sản phẩm và giá.", "risk": "Xa lạ với người mua sắm Việt.",
+      "case": "Không gần với đời sống người dùng, kém rõ ràng hơn bảng giá chợ.", "kept": "Mỗi dải chữ lấp đầy bề ngang."
+    },
+    {
+      "id": "c-doujin", "kind": "challenger", "catalogId": "pop-culture-shelf-doujin-event-catalog",
+      "label": "Danh mục hội chợ", "verdict": "declined",
+      "lineage": "danh mục gian hàng in trên giấy báo", "thesis": "Sản phẩm là những ô nhỏ xếp kín một trang.",
+      "palette": ["#e9e6dc", "#151515", "#2f6db5"], "materials": ["giấy báo", "bút bi khoanh"],
+      "viewport": "Lưới ô nhỏ dày đặc, ô chọn được khoanh bút.", "risk": "Rối với người không chuyên.",
+      "case": "Hợp cho danh sách theo dõi nhưng không bán được ý tưởng ở trang chủ.", "kept": "Mật độ dày và dấu khoanh bút cho mục đang chọn."
+    },
+    {
+      "id": "c-darkroom", "kind": "challenger", "catalogId": "signals-instruments-darkroom-safelight-bay",
+      "label": "Phòng tối tráng ảnh", "verdict": "declined",
+      "lineage": "phòng tráng ảnh dưới đèn đỏ", "thesis": "Giá hiện dần như ảnh trong khay tráng.",
+      "palette": ["#c8741f", "#1a1a1a", "#e8e4dc"], "materials": ["đèn an toàn hổ phách", "giấy ảnh ướt"],
+      "viewport": "Màn hình hổ phách, giá hiện dần.", "risk": "Màu hổ phách lấn át màu thương hiệu.",
+      "case": "Ẩn dụ đẹp nhưng người dùng không nhận ra mình trong đó.", "kept": "Các bước có thật, không đảo ngược, cho lần đọc giá đầu."
+    },
+    {
+      "id": "c-sun", "kind": "challenger", "catalogId": "light-shadow-caustics-indoor-weather-sun",
+      "label": "Mặt trời trong nhà", "verdict": "declined",
+      "lineage": "sảnh mặt trời nhân tạo", "thesis": "Một dải sáng hổ phách lớn phủ cả trang.",
+      "palette": ["#e2a33a", "#120c06"], "materials": ["sương mờ", "gương trần"],
+      "viewport": "Một dải ngang khổng lồ với bóng người.", "risk": "Không nói gì về giá.",
+      "case": "Không liên quan tới việc mua đúng giá.", "kept": "Cam kết một màu phủ toàn bề mặt."
+    },
+    {
+      "id": "c-film", "kind": "challenger", "catalogId": "cinema-cinematography-editing-hand-processed-film-bloom",
+      "label": "Cuộn phim 16mm", "verdict": "declined",
+      "lineage": "phim tráng tay", "thesis": "Mỗi lần kiểm tra giá là một khung phim.",
+      "palette": ["#2a2a2a", "#9a9a9a", "#e8762b"], "materials": ["nhũ tương bạc", "vệt sáng lọt"],
+      "viewport": "Dải phim với các khung giá.", "risk": "Hoài cổ, xa người dùng.",
+      "case": "Gắn được với lịch sử giá nhưng người dùng không nhận ra.", "kept": "Mỗi dòng gắn với một lần kiểm tra thật."
+    },
+    {
+      "id": "c-cyworld", "kind": "challenger", "catalogId": "cyworld-minihompy-room",
+      "label": "Căn phòng Cyworld", "verdict": "declined",
+      "lineage": "trang cá nhân trang trí phòng", "thesis": "Danh sách theo dõi là căn phòng bạn bày đồ.",
+      "palette": ["#f6d7e4", "#bfe3f0", "#4a4a4a"], "materials": ["phòng isometric", "đồ dán"],
+      "viewport": "Một căn phòng nhỏ chứa sản phẩm.", "risk": "Trẻ con, lệch thương hiệu.",
+      "case": "Không hợp sản phẩm về giá cả.", "kept": "Bộ đếm và dấu trạng thái trung thực, nhỏ gọn."
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": false},
+  "canon": true,
+  "canonCard": {
+    "label": "Trang SaaS tiêu chuẩn",
+    "thesis": "Kiểu trang theo dõi giá mà ai cũng làm, làm thật kỹ.",
+    "palette": ["#ffffff", "#0A3832", "#1A9988"],
+    "materials": ["lưới sạch", "ảnh chụp giao diện"],
+    "viewport": "Tiêu đề, ô dán link, ảnh giao diện, hàng tính năng.",
+    "risk": "Không khác gì đối thủ."
+  },
+  "steer": true
+}

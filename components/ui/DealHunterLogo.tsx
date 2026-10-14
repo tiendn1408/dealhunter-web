@@ -24,7 +24,7 @@ export function DealHunterIcon({
       alt="DealHunter Logo"
       width={28}
       height={28}
-      className={`${className} object-contain rounded-lg`}
+      className={`${className} object-contain`}
       priority
     />
   );
@@ -59,7 +59,7 @@ export function DealHunterLogo({
       : "text-xl";
 
   const textColor = inverted ? "text-white" : "text-pine-900";
-  const taglineColor = inverted ? "text-pine-200" : "text-slate-400";
+  const taglineColor = inverted ? "text-pine-200" : "text-pine-700";
 
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
@@ -68,7 +68,7 @@ export function DealHunterLogo({
         alt="DealHunter Logo"
         width={pixelSize}
         height={pixelSize}
-        className={`${iconSizeClass} rounded-xl object-contain shadow-xs`}
+        className={`${iconSizeClass} object-contain`}
         priority
       />
       {!iconOnly && (
@@ -82,7 +82,7 @@ export function DealHunterLogo({
           </div>
           {showTagline && (
             <span
-              className={`text-[11px] font-medium tracking-normal mt-0.5 ${taglineColor}`}
+              className={`text-[13px] font-medium tracking-normal mt-0.5 ${taglineColor}`}
             >
               Săn đúng giá trước khi mua
             </span>

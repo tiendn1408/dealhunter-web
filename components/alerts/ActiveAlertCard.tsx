@@ -43,7 +43,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
             threshold: rule.threshold_value,
           }),
           icon: TrendingDown,
-          badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+          badgeColor: "bg-teal-200 text-pine-950",
         };
       case "target_price":
         return {
@@ -52,7 +52,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
             price: formatVND(rule.threshold_value),
           }),
           icon: Target,
-          badgeColor: "bg-pine-50 text-pine-900 border-pine-200",
+          badgeColor: "bg-teal-200 text-pine-950",
         };
       case "lowest_in_days":
         return {
@@ -63,14 +63,14 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
             threshold: rule.threshold_value,
           }),
           icon: History,
-          badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+          badgeColor: "bg-teal-200 text-pine-950",
         };
       default:
         return {
           title: t.detail.smartAlertsTitle,
           description: `${rule.threshold_value}`,
           icon: Target,
-          badgeColor: "bg-slate-50 text-slate-700 border-slate-200",
+          badgeColor: "bg-teal-200 text-pine-950",
         };
     }
   };
@@ -79,29 +79,29 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
   const Icon = details.icon;
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all hover:border-slate-300">
+    <div className="bg-pine-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
       <div className="flex items-start gap-3.5">
-        <div className="w-10 h-10 rounded-xl bg-pine-50 text-pine-900 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-10 h-10 bg-white text-pine-900 flex items-center justify-center shrink-0 mt-0.5">
           <Icon className="w-5 h-5 text-pine-900" />
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-sm font-bold text-slate-900">{details.title}</h4>
+            <h4 className="text-[15px] font-bold text-pine-900">{details.title}</h4>
             <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${details.badgeColor}`}
+              className={`text-[13px] font-semibold px-2 py-0.5 ${details.badgeColor}`}
             >
               {t.alerts.activeBadge}
             </span>
           </div>
 
-          <p className="text-xs text-slate-600 leading-relaxed font-normal">
+          <p className="text-[15px] text-pine-700 leading-relaxed">
             {details.description}
           </p>
 
-          <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-0.5">
+          <div className="flex items-center gap-3 text-[13px] text-pine-700 pt-0.5">
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-slate-400" />
+              <Clock className="w-3 h-3 text-pine-700" />
               <span>
                 {rule.expires_at
                   ? formatText(t.alerts.expiresAt, { date: formatDate(rule.expires_at) })
@@ -112,12 +112,12 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
+      <div className="flex items-center justify-end sm:justify-center pt-2 sm:pt-0">
         <button
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-50"
+          className="inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-semibold text-marker-deep hover:bg-[#F8E1DC] transition-colors disabled:opacity-50"
           title={t.common.delete}
         >
           <Trash2 className="w-3.5 h-3.5" />

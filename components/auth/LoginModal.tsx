@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
-import { X, LogIn, ShieldCheck, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { X, AlertCircle } from "lucide-react";
 import { GoogleSignInButton, GOOGLE_CLIENT_ID } from "./GoogleSignInButton";
 
 interface LoginModalProps {
@@ -31,73 +32,53 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <div className="fixed inset-0 bg-pine-950/70 animate-fadeIn" onClick={onClose} />
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all">
-        {/* Close Button */}
+      <div className="relative w-full max-w-md bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8">{/* taste-skill-ignore: dialog overlay */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+          aria-label={t.common.close}
+          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100"
         >
           <X className="h-5 w-5" />
         </button>
 
-        {/* Header */}
-        <div className="mb-6">
-          <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400">
-            <LogIn className="h-6 w-6" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-100">
-            {t.auth.loginTitle}
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">
-            {t.auth.loginSubtitle}
-          </p>
-        </div>
+        <Image src="/icon.png" alt="" width={56} height={56} className="h-14 w-14" />
+        <h2 id="login-title" className="mt-4 pr-10 font-marker text-[32px] font-extrabold leading-tight tracking-tight">
+          {t.auth.loginTitle}
+        </h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-pine-700">{t.auth.loginSubtitle}</p>
 
-        {/* Notice of guest data auto-migration */}
-        <div className="mb-6 rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3.5 text-xs text-cyan-200">
-          <div className="flex gap-2.5">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-cyan-400" />
-            <div>
-              <p className="font-semibold text-cyan-300">
-                {t.auth.guestNotice}
-              </p>
-              <p className="mt-0.5 text-cyan-200/80">
-                {t.auth.guestTip}
-              </p>
-            </div>
-          </div>
+        {/* Guest data moves to the account automatically */}
+        <div className="mt-6 bg-teal-200 p-4 text-[15px] text-pine-950">
+          <p className="font-bold">{t.auth.guestNotice}</p>
+          <p className="mt-1 leading-relaxed">{t.auth.guestTip}</p>
         </div>
 
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-950/30 p-3 text-xs text-red-300">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="mt-4 flex items-start gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {GOOGLE_CLIENT_ID ? (
-          <div className={isLoggingIn ? "pointer-events-none opacity-50" : undefined}>
-            <GoogleSignInButton onCredential={handleGoogleCredential} onError={setError} />
-            {isLoggingIn && (
-              <p className="mt-3 text-center text-xs text-slate-400">{t.common.loading}</p>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-950/30 p-3 text-xs text-amber-200">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>
-              Đăng nhập Google chưa được cấu hình. Cần đặt NEXT_PUBLIC_GOOGLE_CLIENT_ID (trùng GOOGLE_CLIENT_ID của backend).
-            </span>
-          </div>
-        )}
+        <div className="mt-6">
+          {GOOGLE_CLIENT_ID ? (
+            <div className={isLoggingIn ? "pointer-events-none opacity-50" : undefined}>
+              <GoogleSignInButton onCredential={handleGoogleCredential} onError={setError} />
+              {isLoggingIn && <p className="mt-3 text-center text-[14px] text-pine-700">{t.common.loading}</p>}
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 bg-kraft-light p-3 text-[14px] text-kraft-ink">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Đăng nhập Google chưa được cấu hình. Cần đặt NEXT_PUBLIC_GOOGLE_CLIENT_ID (trùng GOOGLE_CLIENT_ID của backend).
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

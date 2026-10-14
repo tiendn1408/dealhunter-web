@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+// The market price board, in the logo's colours: pine board, chalk ink, kraft price tags,
+// red marker for struck prices, teal chalk for the good price and the action. Flat, square-cut.
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,59 +11,59 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+        marker: ["var(--font-marker)", "var(--font-sans)", "ui-sans-serif", "sans-serif"],
       },
       colors: {
-        // Brand: the logo's deep pine + teal
+        // Logo deep pine, the board
         pine: {
-          50: "#F2F9F7",
-          100: "#E3F2EF",
-          200: "#C4E4DD",
-          300: "#98CFC4",
-          400: "#62B2A3",
-          500: "#399585",
-          600: "#267669",
-          700: "#1E5E54",
-          800: "#164B43",
+          50: "#EEF5F3",
+          100: "#DCEBE7",
+          200: "#B6D6CE",
+          300: "#86BBAE",
+          400: "#4F9989",
+          500: "#2C7A6B",
+          600: "#1F6156",
+          700: "#174C44",
+          800: "#0F4039",
           900: "#0A3832",
           950: "#062622",
         },
-        // The logo's bright teal, for highlights on dark surfaces
+        // Logo teal, chalk for the good price and the action
         teal: {
+          200: "#BFF3E6",
           300: "#7EE8CF",
           400: "#3CCFB0",
           500: "#1A9988",
+          600: "#137A6C",
         },
-        // Warm accent, used sparingly (a good price, a free badge)
-        honey: {
-          100: "#FFF1D6",
-          300: "#FFD27A",
-          400: "#FFC24D",
-          500: "#F5A524",
-        },
+        chalk: { DEFAULT: "#F1F0EA", dim: "#C9D3CE" },
+        kraft: { light: "#E2C08B", DEFAULT: "#D2A86A", deep: "#A97E43", ink: "#2A1C0B" },
+        marker: { DEFAULT: "#D9412B", deep: "#B3301D" },
+        paper: "#F3F2EE",
       },
       keyframes: {
-        "draw-line": {
-          from: { strokeDashoffset: "var(--dash, 600)" },
-          to: { strokeDashoffset: "0" },
-        },
-        "float-y": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-6px)" },
+        "line-rise": {
+          from: { transform: "translateY(105%)" },
+          to: { transform: "translateY(0)" },
         },
         "rise-in": {
-          from: { opacity: "0", transform: "translateY(10px)" },
+          from: { opacity: "0", transform: "translateY(24px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        shimmer: {
-          from: { backgroundPosition: "-200% 0" },
-          to: { backgroundPosition: "200% 0" },
+        "strike-draw": {
+          from: { transform: "scaleX(0)" },
+          to: { transform: "scaleX(1)" },
+        },
+        "slow-drift": {
+          from: { transform: "scale(1.04) translateX(0)" },
+          to: { transform: "scale(1.1) translateX(-2%)" },
         },
       },
       animation: {
-        "draw-line": "draw-line 2.4s cubic-bezier(0.65, 0, 0.35, 1) forwards",
-        "float-y": "float-y 6s ease-in-out infinite",
-        "rise-in": "rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
-        shimmer: "shimmer 1.6s linear infinite",
+        "line-rise": "line-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "rise-in": "rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "strike-draw": "strike-draw 0.5s cubic-bezier(0.65, 0, 0.35, 1) both",
+        "slow-drift": "slow-drift 18s ease-in-out infinite alternate",
       },
     },
   },

@@ -33,7 +33,7 @@ interface SentOtp {
 }
 
 const inputClass =
-  "w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-slate-900";
+  "h-12 w-full bg-white pl-11 pr-4 text-[17px] font-medium text-pine-950 placeholder:text-pine-700/70";
 
 /** "4:05" */
 function formatCountdown(ms: number): string {
@@ -195,41 +195,44 @@ export function ZaloConnectModal({
   // The server returns the normalized phone; show it in local form
   const sentToPhone = sent ? formatPhoneLocal(sent.phone) : "";
 
+  const primaryBtn =
+    "inline-flex min-h-[48px] w-full items-center justify-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-50";
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="zalo-title">
+      <div className="fixed inset-0 bg-pine-950/70 animate-fadeIn" onClick={handleClose} />
+      <div className="relative w-full max-w-md space-y-5 bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8">{/* taste-skill-ignore: dialog overlay */}
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-5 right-5 p-1 text-slate-400 hover:text-slate-700 rounded-full"
+          aria-label={t.common.close}
+          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-6 h-6" />
+        <div className="flex items-center gap-3 pr-12">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-teal-400 text-pine-950">
+            <MessageSquare className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-pine-900 tracking-tight">
+            <h3 id="zalo-title" className="text-xl font-bold leading-snug">
               {t.settings.zaloModalTitle}
             </h3>
-            <p className="text-xs text-slate-500">
-              {t.settings.zaloModalSubtitle}
-            </p>
+            <p className="text-[14px] text-pine-700">{t.settings.zaloModalSubtitle}</p>
           </div>
         </div>
 
         {authLoading ? (
-          <p className="text-xs text-slate-500">{t.common.loading}</p>
+          <p className="text-[15px] text-pine-700">{t.common.loading}</p>
         ) : !isAuthenticated ? (
           /* Guests cannot link Zalo (the server answers 403): explain and offer the Google sign-in */
           <div className="space-y-4">
-            <div className="p-3.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-2xl text-xs space-y-1">
-              <div className="flex items-center gap-1.5 font-bold">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>{t.settings.zaloMemberOnlyTitle}</span>
-              </div>
+            <div className="space-y-1 bg-kraft-light p-4 text-[15px] text-kraft-ink">
+              <p className="flex items-center gap-2 font-bold">
+                <ShieldCheck className="h-4 w-4" />
+                {t.settings.zaloMemberOnlyTitle}
+              </p>
               <p className="leading-relaxed">{t.settings.zaloMemberOnlyDesc}</p>
             </div>
             {onRequestLogin && (
@@ -239,37 +242,38 @@ export function ZaloConnectModal({
                   handleClose();
                   onRequestLogin();
                 }}
-                className="w-full py-3 bg-pine-900 hover:bg-pine-950 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
+                className={primaryBtn}
               >
-                <LogIn className="w-4 h-4" />
-                <span>{t.auth.googleLoginBtn}</span>
+                <LogIn className="h-4 w-4" />
+                {t.auth.googleLoginBtn}
               </button>
             )}
           </div>
         ) : (
           <>
             {error && (
-              <div className="p-3.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <div className="flex items-start gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
             {info && !error && (
-              <div className="p-3.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+              <div className="flex items-start gap-2 bg-teal-200 p-3 text-[15px] font-semibold text-pine-950">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{info}</span>
               </div>
             )}
 
             {step === "phone" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
+                <div className="space-y-2">
+                  <label htmlFor="zalo-phone" className="block text-[15px] font-bold">
                     {t.settings.zaloPhoneLabel}
                   </label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                    <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-pine-700" />
                     <input
+                      id="zalo-phone"
                       type="tel"
                       required
                       autoComplete="tel"
@@ -279,48 +283,37 @@ export function ZaloConnectModal({
                       className={inputClass}
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    {t.settings.zaloPhoneDesc}
-                  </p>
+                  <p className="text-[14px] leading-relaxed text-pine-700">{t.settings.zaloPhoneDesc}</p>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5 text-xs text-slate-600">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>{t.settings.privacyTitle}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    {t.settings.privacyDesc}
+                <div className="space-y-1 bg-pine-50 p-4">
+                  <p className="flex items-center gap-2 text-[15px] font-bold">
+                    <ShieldCheck className="h-4 w-4 text-teal-600" />
+                    {t.settings.privacyTitle}
                   </p>
+                  <p className="text-[14px] leading-relaxed text-pine-700">{t.settings.privacyDesc}</p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={sending || phoneStepWaiting}
-                  className="w-full py-3 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
-                >
-                  <span>
-                    {sending
-                      ? t.settings.zaloSendingCode
-                      : phoneStepWaiting
-                      ? formatText(t.settings.zaloResendIn, { time: formatCountdown(sendBlockedUntil - now) })
-                      : t.settings.zaloSendCodeBtn}
-                  </span>
+                <button type="submit" disabled={sending || phoneStepWaiting} className={primaryBtn}>
+                  {sending
+                    ? t.settings.zaloSendingCode
+                    : phoneStepWaiting
+                    ? formatText(t.settings.zaloResendIn, { time: formatCountdown(sendBlockedUntil - now) })
+                    : t.settings.zaloSendCodeBtn}
                 </button>
               </form>
             ) : (
               <form onSubmit={handleVerify} className="space-y-4">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {formatText(t.settings.zaloCodeSentTo, { phone: sentToPhone })}
-                </p>
+                <p className="text-[15px] leading-relaxed">{formatText(t.settings.zaloCodeSentTo, { phone: sentToPhone })}</p>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
+                <div className="space-y-2">
+                  <label htmlFor="zalo-code" className="block text-[15px] font-bold">
                     {t.settings.zaloCodeLabel}
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                    <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-pine-700" />
                     <input
+                      id="zalo-code"
                       type="text"
                       inputMode="numeric"
                       autoComplete="one-time-code"
@@ -332,14 +325,10 @@ export function ZaloConnectModal({
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="123456"
-                      className={`${inputClass} font-mono tracking-[0.4em] disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className={`${inputClass} font-bold tabular-nums tracking-[0.4em] disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
-                  <p
-                    className={`text-[11px] leading-relaxed ${
-                      codeUnusable ? "text-rose-600" : "text-slate-400"
-                    }`}
-                  >
+                  <p className={`text-[14px] leading-relaxed ${codeUnusable ? "font-semibold text-marker-deep" : "text-pine-700"}`}>
                     {codeDiscarded
                       ? t.settings.zaloCodeDiscarded
                       : codeExpired
@@ -350,29 +339,25 @@ export function ZaloConnectModal({
                   </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={verifying || code.length !== 6 || codeUnusable}
-                  className="w-full py-3 bg-pine-900 hover:bg-pine-950 disabled:bg-slate-300 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2"
-                >
-                  <span>{verifying ? t.settings.zaloVerifying : t.settings.zaloVerifyBtn}</span>
+                <button type="submit" disabled={verifying || code.length !== 6 || codeUnusable} className={primaryBtn}>
+                  {verifying ? t.settings.zaloVerifying : t.settings.zaloVerifyBtn}
                 </button>
 
-                <div className="flex items-center justify-between gap-3 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={handleChangePhone}
                     disabled={verifying || sending}
-                    className="inline-flex items-center gap-1 font-semibold text-slate-600 hover:text-pine-900 disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 px-1 text-[15px] font-semibold text-pine-700 transition-colors hover:text-pine-900 disabled:opacity-50"
                   >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>{t.settings.zaloChangePhone}</span>
+                    <ArrowLeft className="h-4 w-4" />
+                    {t.settings.zaloChangePhone}
                   </button>
                   <button
                     type="button"
                     onClick={() => sendCode(true)}
                     disabled={sending || verifying || resendWaitMs > 0}
-                    className="font-bold text-pine-700 hover:underline disabled:text-slate-400 disabled:no-underline"
+                    className="min-h-[44px] bg-pine-50 px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {sending
                       ? t.settings.zaloSendingCode

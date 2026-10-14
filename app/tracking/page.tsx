@@ -2,33 +2,35 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import {
-  useEnrichedTrackings,
-  useToggleTracking,
-  useHasUnreadNotifications,
-} from "@/lib/hooks";
+import { useEnrichedTrackings, useToggleTracking, useHasUnreadNotifications } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
 import { formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
+import { PriceChangePill } from "@/components/ui/PriceChangePill";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { TrackingListSkeleton } from "@/components/ui/LoadingSkeleton";
-import {
-  Bookmark,
-  Bell,
-  Search,
-  ChevronRight,
-  TrendingDown,
-  Clock,
-  Plus,
-  ArrowRight,
-  Target,
-  Pause,
-  Play,
-  AlertCircle,
-} from "lucide-react";
+import { PriceTag, StruckPrice, WrittenPrice } from "@/components/PriceTag";
+import { Bell, Search, Plus, AlertCircle } from "lucide-react";
 
 // "Near target" needs a real target and price: products without one are never near it
 const isNearTarget = (item: { diffFromTarget?: number }) =>
   item.diffFromTarget !== undefined && item.diffFromTarget <= 300000;
+
+/** A vendor's chalk ring around a price that has come close to what the buyer wants. */
+function MarkerRing() {
+  return (
+    <svg aria-hidden viewBox="0 0 200 80" preserveAspectRatio="none" className="pointer-events-none absolute -inset-x-4 -inset-y-3 h-[calc(100%+24px)] w-[calc(100%+32px)]">
+      <path
+        d="M18 44 C 14 16, 92 6, 150 10 C 196 14, 198 58, 160 70 C 110 84, 30 78, 12 52 C 6 40, 22 26, 44 20"
+        fill="none"
+        stroke="#1A9988"
+        strokeWidth="4"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
 
 export default function MyTrackingPage() {
   const { t, formatText } = useLanguage();
@@ -73,279 +75,192 @@ export default function MyTrackingPage() {
     });
   }, [trackings, filterTab, searchQuery]);
 
+  const tabs = [
+    { id: "all", label: t.tracking.filterAll, count: trackings.length },
+    { id: "dropped", label: t.tracking.filterDropped, count: trackings.filter((item) => (item.changePercent || 0) < 0).length },
+    { id: "target", label: t.tracking.filterTarget, count: trackings.filter(isNearTarget).length },
+  ] as const;
+
   return (
-    <div className="max-w-4xl mx-auto py-4 sm:py-8 space-y-6">
-      {/* Header matching Screen 5 in mobile.png */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* The board's header strip: what is on it, and the way to add more */}
+      <div className="flex flex-col gap-5 bg-pine-900 p-6 text-chalk sm:flex-row sm:items-end sm:justify-between sm:p-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-pine-900 tracking-tight">
-            {t.tracking.title}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            {trackings.length > 0
-              ? formatText(t.tracking.subtitle, { count: trackings.length })
-              : t.tracking.zeroCount}
+          <h1 className="font-marker text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight">{t.tracking.title}</h1>
+          <p className="mt-3 text-[15px] text-chalk/85">
+            {trackings.length > 0 ? formatText(t.tracking.subtitle, { count: trackings.length }) : t.tracking.zeroCount}
           </p>
         </div>
-
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-pine-900 hover:bg-pine-950 text-white text-xs font-semibold shadow-2xs transition-all"
+            className="inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{t.tracking.trackMore}</span>
+            <Plus className="h-4 w-4" />
+            {t.tracking.trackMore}
           </Link>
-
           <Link
             href="/notifications"
-            className="p-2 text-slate-500 hover:text-pine-900 hover:bg-slate-100 rounded-full transition-colors relative"
             title={t.tracking.viewNotifications}
+            aria-label={t.tracking.viewNotifications}
+            className="relative inline-flex h-11 w-11 items-center justify-center bg-pine-800 transition-colors hover:bg-pine-700"
           >
-            <Bell className="w-4 h-4" />
-            {hasUnread && (
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 animate-pulse" />
-            )}
+            <Bell className="h-5 w-5" />
+            {hasUnread && <span className="absolute right-2 top-2 h-2.5 w-2.5 bg-marker" />}
           </Link>
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {[
-            { id: "all", label: t.tracking.filterAll, count: trackings.length },
-            {
-              id: "dropped",
-              label: t.tracking.filterDropped,
-              count: trackings.filter((item) => (item.changePercent || 0) < 0).length,
-            },
-            {
-              id: "target",
-              label: t.tracking.filterTarget,
-              count: trackings.filter(isNearTarget).length,
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setFilterTab(tab.id as any)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                filterTab === tab.id
-                  ? "bg-pine-900 text-white shadow-2xs"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span
-                className={`text-[10px] px-1.5 rounded-full ${
-                  filterTab === tab.id
-                    ? "bg-pine-800 text-pine-100"
-                    : "bg-slate-100 text-slate-500"
+      {/* Filters and search */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex overflow-x-auto" role="tablist">
+          {tabs.map((tab) => {
+            const active = filterTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFilterTab(tab.id)}
+                className={`inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap px-4 text-[15px] font-semibold transition-colors ${
+                  active ? "bg-pine-900 text-chalk" : "bg-white text-pine-900 hover:bg-pine-50"
                 }`}
               >
-                {tab.count}
-              </span>
-            </button>
-          ))}
+                {tab.label}
+                <span className="opacity-70">{tab.count}</span>
+              </button>
+            );
+          })}
         </div>
-
-        {/* Search */}
-        <div className="relative sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative sm:w-72">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-pine-700" />
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.tracking.searchPlaceholder}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-pine-900/10 focus:border-pine-900 text-slate-800 placeholder-slate-400 shadow-2xs"
+            aria-label={t.tracking.searchPlaceholder}
+            className="h-11 w-full bg-white pl-10 pr-4 text-[15px] text-pine-950 placeholder:text-pine-700 focus:outline-none focus-visible:outline-teal-400"
           />
         </div>
       </div>
 
-      {/* Main Content Area */}
       {loading ? (
         <TrackingListSkeleton />
       ) : error ? (
-        <div className="p-6 bg-rose-50 text-rose-700 border border-rose-200 rounded-3xl text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-          <p className="text-xs sm:text-sm font-semibold">{error}</p>
+        <div className="flex flex-col items-start gap-4 bg-[#F8E1DC] p-6 text-marker-deep sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-2 text-[15px] font-semibold">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            {error}
+          </p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-semibold hover:bg-rose-700"
+            className="min-h-[44px] bg-marker px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-marker-deep"
           >
             {t.tracking.retry}
           </button>
         </div>
       ) : filteredTrackings.length === 0 ? (
-        /* Empty State matching Screen 21 & Document specifications */
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-10 sm:p-14 text-center max-w-lg mx-auto shadow-2xs space-y-4">
-          <div className="w-16 h-16 rounded-full bg-pine-50 border border-pine-100 text-pine-800 flex items-center justify-center mx-auto">
-            <Bookmark className="w-7 h-7 text-pine-800" />
-          </div>
-
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-pine-900">
-              {trackings.length === 0
-                ? t.tracking.emptyTitle
-                : t.tracking.notFoundTitle}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-              {trackings.length === 0
-                ? t.tracking.emptyDesc
-                : t.tracking.notFoundDesc}
-            </p>
-          </div>
-
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-pine-900 hover:bg-pine-950 text-white rounded-full text-xs sm:text-sm font-semibold shadow-2xs transition-all"
-          >
-            <span>{trackings.length === 0 ? t.tracking.trackPriceBtn : t.tracking.homeBtn}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+        trackings.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <EmptyState title={t.tracking.notFoundTitle} description={t.tracking.notFoundDesc} actionText={t.tracking.homeBtn} />
+        )
       ) : (
-        /* Product Cards matching Screen 5 in mobile.png */
-        <div className="grid grid-cols-1 gap-4">
-          {filteredTrackings.map((item) => {
+        /* The tags hang side by side on the board; one near its target gets a chalk ring */
+        <ul className="grid gap-x-5 gap-y-8 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTrackings.map((item, i) => {
             const hasPrice = item.currentPrice !== undefined && item.currentPrice > 0;
             const detailHref = `/tracking/${item.ProductSourceID || item.ID}`;
+            const near = item.Active && hasPrice && isNearTarget(item);
+            const multi = Boolean(
+              (item.ProductID && trackings.filter((track) => track.ProductID === item.ProductID).length > 1) || !item.IsPrimary
+            );
 
             return (
-              <Link
-                key={item.ID}
-                href={detailHref}
-                className="block bg-white border border-slate-200/90 hover:border-pine-300 rounded-3xl p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all group"
-              >
-                {/* Row 1: Image, Title, Status, Platform */}
-                <div className="flex items-start gap-4">
-                  {/* Product Image Box */}
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden text-slate-700">
-                    <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" />
-                    </svg>
-                  </div>
-
-                  {/* Title & Platform */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
+              <li key={item.ID}>
+                <Link
+                  href={detailHref}
+                  className="block h-full transition-transform duration-200 hover:-translate-y-1 focus-visible:-translate-y-1"
+                >
+                  <PriceTag tilt={i % 3 === 1 ? 1 : -1} tone={item.Active ? "kraft" : "chalk"} pinned={item.Active} className="h-full">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <PlatformBadge platformOrUrl={item.Platform || item.CanonicalURL} />
-                        {Boolean(
-                          (item.ProductID && trackings.filter((track) => track.ProductID === item.ProductID).length > 1) ||
-                          !item.IsPrimary
-                        ) && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                            {t.tracking.multiPlatform}
-                          </span>
-                        )}
+                        {multi && <span className="bg-pine-900 px-2 py-0.5 text-[13px] font-bold text-chalk">{t.tracking.multiPlatform}</span>}
                       </div>
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-pine-50 text-pine-900 border border-pine-100">
+                      <span className="text-[13px] font-semibold opacity-80">
                         {item.Active ? t.tracking.statusTracking : t.tracking.statusPaused}
                       </span>
                     </div>
 
-                    <h2 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-pine-900 transition-colors line-clamp-1">
+                    <h2 className="mt-3 line-clamp-2 min-h-[2.75em] text-[17px] font-bold leading-snug">
                       {item.Title || (item.CanonicalURL ? item.CanonicalURL.split("/").pop() : t.notifications.productFallback)}
                     </h2>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">
+                    <p className="mt-1 truncate text-[14px] opacity-80">
                       {item.SellerName ? formatText(t.comparison.shopLabel, { name: item.SellerName }) : t.tracking.autoCheck}
                     </p>
-                  </div>
-                </div>
 
-                {/* Row 2: Price row with Strikethrough & Drop % */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-baseline gap-2.5">
-                  <span className="text-2xl font-black text-pine-900">
-                    {hasPrice ? formatVND(item.currentPrice) : t.tracking.checking}
-                  </span>
-                  {item.oldPrice && (
-                    <span className="text-xs text-slate-400 line-through">
-                      {formatVND(item.oldPrice)}
-                    </span>
-                  )}
-                  {item.changePercent !== undefined && item.changePercent !== 0 && (
-                    // Direction follows the real change: a drop is highlighted, a rise is shown neutrally
-                    <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-md border ${
-                        item.changePercent < 0
-                          ? "text-rose-600 bg-rose-50 border-rose-100"
-                          : "text-slate-600 bg-slate-100 border-slate-200"
-                      }`}
-                    >
-                      {item.changePercent < 0 ? "↓" : "↑"} {Math.abs(item.changePercent)}%
-                    </span>
-                  )}
-                </div>
-
-                {/* Row 3: Target Box (2 columns) + Progress Bar matching Screen 5 */}
-                <div className="mt-3 bg-slate-50/90 border border-slate-100 rounded-2xl p-3.5 space-y-2.5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                        {t.tracking.targetPriceLabel}
+                    <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
+                      <span className="relative inline-block">
+                        {hasPrice ? (
+                          <WrittenPrice className="block text-[clamp(32px,3vw,40px)]">{formatVND(item.currentPrice)}</WrittenPrice>
+                        ) : (
+                          <span className="block font-marker text-2xl font-semibold opacity-60">{t.tracking.checking}</span>
+                        )}
+                        {near && <MarkerRing />}
                       </span>
-                      <span className="text-xs sm:text-sm font-bold text-slate-800">
-                        {item.targetPrice ? formatVND(item.targetPrice) : t.tracking.notSet}
-                      </span>
+                      {item.oldPrice ? <StruckPrice className="mb-1 text-lg">{formatVND(item.oldPrice)}</StruckPrice> : null}
+                      {item.changePercent !== undefined && item.changePercent !== 0 && (
+                        <PriceChangePill changePercent={item.changePercent} className="mb-1.5" />
+                      )}
                     </div>
 
-                    <div>
-                      <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
-                        {t.tracking.distanceLabel}
-                      </span>
-                      <span className="text-xs sm:text-sm font-bold text-pine-900">
-                        {!item.targetPrice
-                          ? t.tracking.noTarget
-                          : item.diffFromTarget !== undefined
-                          ? formatVND(item.diffFromTarget)
-                          : t.common.unknown}
-                      </span>
+                    <div className="mt-5 grid grid-cols-2 gap-3 text-[14px]">
+                      <div>
+                        <span className="block opacity-80">{t.tracking.targetPriceLabel}</span>
+                        <span className="font-bold">{item.targetPrice ? formatVND(item.targetPrice) : t.tracking.notSet}</span>
+                      </div>
+                      <div>
+                        <span className="block opacity-80">{t.tracking.distanceLabel}</span>
+                        <span className="font-bold">
+                          {!item.targetPrice
+                            ? t.tracking.noTarget
+                            : item.diffFromTarget !== undefined
+                            ? formatVND(item.diffFromTarget)
+                            : t.common.unknown}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                    {item.targetPrice ? (
+                      <div className="mt-3 h-2 w-full bg-kraft-ink/15" aria-hidden>
+                        <div className="h-full bg-pine-900 transition-[width] duration-500" style={{ width: `${item.targetProgress || 0}%` }} />
+                      </div>
+                    ) : null}
 
-                  {/* Progress bar visualizing distance to target */}
-                  <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${item.targetProgress || 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Row 4: Footer - Freshness & Chevron */}
-                <div className="mt-3.5 flex items-center justify-between text-xs text-slate-400">
-                  <span className="flex items-center gap-1 font-medium">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    <span>
-                      {formatText(t.tracking.updated, {
-                        time: formatRelativeTime(item.UpdatedAt || item.CreatedAt),
-                      })}
-                    </span>
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => handleToggle(e, item.ID, item.Active)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                        item.Active
-                          ? "bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600"
-                          : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
-                      }`}
-                    >
-                      {item.Active ? t.tracking.pause : t.tracking.resume}
-                    </button>
-                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-pine-900 group-hover:translate-x-0.5 transition-all" />
-                  </div>
-                </div>
-              </Link>
+                    <div className="mt-5 flex items-center justify-between gap-3 text-[13px]">
+                      <span className="opacity-80">
+                        {formatText(t.tracking.updated, { time: formatRelativeTime(item.UpdatedAt || item.CreatedAt) })}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={togglingId === item.ID}
+                        onClick={(e) => handleToggle(e, item.ID, item.Active)}
+                        className={`min-h-[36px] px-3 text-[13px] font-bold transition-colors disabled:opacity-50 ${
+                          item.Active ? "bg-kraft-ink/10 hover:bg-kraft-ink/20" : "bg-teal-400 text-pine-950 hover:bg-teal-300"
+                        }`}
+                      >
+                        {item.Active ? t.tracking.pause : t.tracking.resume}
+                      </button>
+                    </div>
+                  </PriceTag>
+                </Link>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

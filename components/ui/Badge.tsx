@@ -9,14 +9,20 @@ interface PlatformBadgeProps {
   className?: string;
 }
 
+// The marketplace written plainly on the board: a filled square chip, no outline
+const PLATFORM_FILL: Record<string, string> = {
+  shopee: "bg-[#F6DCCB] text-[#8A3510]",
+  lazada: "bg-[#DCE3F5] text-[#22357A]",
+  tiktok: "bg-pine-950 text-chalk",
+  tiki: "bg-[#D9ECF6] text-[#174F6E]",
+  other: "bg-pine-50 text-pine-900",
+};
+
 export function PlatformBadge({ platformOrUrl, className = "" }: PlatformBadgeProps) {
-  const { name, badgeBg, badgeText, badgeBorder } = detectPlatform(platformOrUrl);
+  const { id, name } = detectPlatform(platformOrUrl);
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${badgeBg} ${badgeText} ${badgeBorder} ${className}`}
-    >
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+    <span className={`inline-flex items-center px-2 py-0.5 text-[13px] font-bold ${PLATFORM_FILL[id] || PLATFORM_FILL.other} ${className}`}>
       {name}
     </span>
   );
@@ -32,17 +38,11 @@ export function StatusBadge({ active, className = "" }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        active
-          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-          : "bg-slate-100 text-slate-600 border border-slate-200"
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[13px] font-semibold ${
+        active ? "bg-teal-200 text-pine-950" : "bg-pine-50 text-pine-700"
       } ${className}`}
     >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          active ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
-        }`}
-      />
+      <span className={`h-2 w-2 ${active ? "bg-teal-500" : "bg-pine-300"}`} />
       {active ? t.tracking.statusTracking : t.tracking.statusPaused}
     </span>
   );

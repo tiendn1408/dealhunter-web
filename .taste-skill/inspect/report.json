@@ -1,0 +1,2158 @@
+{
+ "url": "http://localhost:3100/",
+ "at": "2026-10-14T10:35:40.467Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 8,
+   "filled": [
+    1,
+    0.98,
+    0.8,
+    0.71,
+    0.8,
+    0.81,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 34,
+    "css": 7,
+    "transitions": 27,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 6641,
+     "screens": 7.4,
+     "words": 418,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 8,
+     "sections": 7,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fmarket%2Ffresh-mangosteen-display.j",
+      "image?url=%2Fmarket%2Ffruit-vendor-at-ben-thanh-",
+      "image?url=%2Fmarket%2Fvietnamese-market-vendors-",
+      "image?url=%2Fmarket%2Fben-thanh-market.jpg&w=750"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "Giá hôm nay, có nên mua?",
+     "words": 6,
+     "chars": 24,
+     "lines": 2,
+     "size": 92.2,
+     "vw": 6.4,
+     "font": "__Shantell_Sans_5c5693",
+     "weight": 800,
+     "tracking": -0.03,
+     "leading": 0.95,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.55,
+     "top": 274,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Giá hôm nay, có nên mua?",
+     "words": 6,
+     "lines": 2,
+     "size": 92.2,
+     "font": "__Shantell_Sans_5c5693"
+    },
+    "headings": [
+     {
+      "text": "Giá hôm nay, có nên mua?",
+      "words": 6,
+      "chars": 24,
+      "lines": 2,
+      "size": 92.2,
+      "vw": 6.4,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.55,
+      "top": 274,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Thẻ giá của bạn",
+      "words": 4,
+      "chars": 15,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.26,
+      "top": 286,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "… đ",
+      "words": 2,
+      "chars": 3,
+      "lines": 1,
+      "size": 56,
+      "vw": 3.9,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.26,
+      "top": 406,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Ở chợ, người bán gạch giá hôm qua và viết giá hôm nay lên bảng. DealHunter làm đúng việc đó cho món bạn muốn mua online.",
+      "words": 26,
+      "chars": 120,
+      "lines": 3,
+      "size": 31.7,
+      "vw": 2.2,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.38,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.52,
+      "top": 1521,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Một thẻ, bốn lần ghi",
+      "words": 5,
+      "chars": 20,
+      "lines": 2,
+      "size": 34.6,
+      "vw": 2.4,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.21,
+      "top": 1724,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "1.590.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 2.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.15,
+      "top": 1918,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.390.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 2.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.15,
+      "top": 1958,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.290.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 2.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.15,
+      "top": 1958,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Chờ đọc giá",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.15,
+      "top": 2071,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Báo tôi khi giá giảm.",
+      "words": 5,
+      "chars": 21,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.37,
+      "top": 2498,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Báo khi chạm giá tôi muốn.",
+      "words": 6,
+      "chars": 26,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 2696,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Gửi tin báo qua Zalo của tôi.",
+      "words": 7,
+      "chars": 29,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 2858,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "So món này với sàn khác.",
+      "words": 6,
+      "chars": 24,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.32,
+      "top": 3056,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Sói đang chờ",
+      "words": 3,
+      "chars": 12,
+      "lines": 1,
+      "size": 43.2,
+      "vw": 3,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.96,
+      "top": 3311,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Bắt đầu săn",
+      "words": 3,
+      "chars": 11,
+      "lines": 2,
+      "size": 151.2,
+      "vw": 10.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 900,
+      "tracking": -0.04,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.49,
+      "top": 3718,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Hỏi nhanh",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 57.6,
+      "vw": 4,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.3,
+      "top": 4219,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Món bạn để ý đang giá bao nhiêu?",
+      "words": 8,
+      "chars": 32,
+      "lines": 2,
+      "size": 109.4,
+      "vw": 7.6,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.96,
+      "top": 5043,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Theo dõi giá",
+      "words": 3,
+      "chars": 12,
+      "lines": 1,
+      "size": 37.4,
+      "vw": 2.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.15,
+      "top": 5893,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Đang theo dõi",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 37.4,
+      "vw": 2.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.18,
+      "top": 5958,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Thông báo",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 37.4,
+      "vw": 2.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.13,
+      "top": 6023,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Cá nhân",
+      "words": 2,
+      "chars": 7,
+      "lines": 1,
+      "size": 37.4,
+      "vw": 2.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.1,
+      "top": 6089,
+      "tag": "a",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 21,
+     "maxLines": 3,
+     "over2Lines": 0,
+     "statements": 7,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Be_Vietnam_Pro_beb3bc",
+       "share": 0.92,
+       "mono": false
+      },
+      {
+       "family": "__Shantell_Sans_5c5693",
+       "share": 0.08,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      17,
+      18,
+      20,
+      23,
+      24,
+      30,
+      32,
+      33,
+      35,
+      36,
+      37,
+      43,
+      56,
+      58,
+      92,
+      109,
+      151
+     ],
+     "sizeCount": 20,
+     "notLoaded": [],
+     "body": {
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "size": 17,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.2
+     },
+     "measureChars": 70,
+     "max": {
+      "size": 151.2,
+      "vw": 10.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "text": "Bắt đầu săn"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.02,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f3f2ee",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.17,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#0a3832",
+       "top": 64,
+       "hsl": {
+        "h": 172,
+        "s": 0.7,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#062622",
+       "top": 900,
+       "hsl": {
+        "h": 173,
+        "s": 0.73,
+        "l": 0.09
+       }
+      },
+      {
+       "color": "#3ccfb0",
+       "top": 3231,
+       "hsl": {
+        "h": 167,
+        "s": 0.6,
+        "l": 0.52
+       }
+      },
+      {
+       "color": "#f3f2ee",
+       "top": 4059,
+       "hsl": {
+        "h": 48,
+        "s": 0.17,
+        "l": 0.94
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#062622",
+       "share": 0.38
+      },
+      {
+       "color": "#2a1c0b",
+       "share": 0.16
+      },
+      {
+       "color": "#f1efea",
+       "share": 0.14
+      },
+      {
+       "color": "#f1f0ea",
+       "share": 0.14
+      },
+      {
+       "color": "#0a3832",
+       "share": 0.12
+      }
+     ],
+     "button": {
+      "bg": "#3ccfb0",
+      "hsl": {
+       "h": 167,
+       "s": 0.6,
+       "l": 0.52
+      },
+      "fg": "#062622"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 3,
+     "radius": 0,
+     "height": 56,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Dán",
+      "Viết giá lên bảng"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 4,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": false,
+       "top": 1692
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.22
+     }
+    ],
+    "nav": {
+     "links": 4,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__be_vietnam_pro_beb3bc",
+     "__be_vietnam_pro_fallback_beb3bc",
+     "__shantell_sans_5c5693",
+     "__shantell_sans_fallback_5c5693"
+    ]
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 8,
+   "filled": [
+    1,
+    0.96,
+    0.84,
+    0.53,
+    0.93,
+    0.68,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 34,
+    "css": 7,
+    "transitions": 27,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 7893,
+     "screens": 7.7,
+     "words": 418,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 8,
+     "sections": 7,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fmarket%2Ffresh-mangosteen-display.j",
+      "image?url=%2Fmarket%2Ffruit-vendor-at-ben-thanh-",
+      "image?url=%2Fmarket%2Fvietnamese-market-vendors-",
+      "image?url=%2Fmarket%2Fben-thanh-market.jpg&w=384"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "Giá hôm nay, có nên mua?",
+     "words": 6,
+     "chars": 24,
+     "lines": 2,
+     "size": 60,
+     "vw": 7.8,
+     "font": "__Shantell_Sans_5c5693",
+     "weight": 800,
+     "tracking": -0.03,
+     "leading": 0.95,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.93,
+     "top": 111,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Giá hôm nay, có nên mua?",
+     "words": 6,
+     "lines": 2,
+     "size": 60,
+     "font": "__Shantell_Sans_5c5693"
+    },
+    "headings": [
+     {
+      "text": "Giá hôm nay, có nên mua?",
+      "words": 6,
+      "chars": 24,
+      "lines": 2,
+      "size": 60,
+      "vw": 7.8,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.93,
+      "top": 111,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Thẻ giá của bạn",
+      "words": 4,
+      "chars": 15,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.49,
+      "top": 594,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "… đ",
+      "words": 2,
+      "chars": 3,
+      "lines": 1,
+      "size": 56,
+      "vw": 7.3,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.49,
+      "top": 715,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Một thẻ, bốn lần ghi",
+      "words": 5,
+      "chars": 20,
+      "lines": 2,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.43,
+      "top": 1957,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "1.590.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.28,
+      "top": 2177,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Chờ đọc giá",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 2244,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "1.290.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.28,
+      "top": 2816,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.390.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 2853,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Sói đang chờ",
+      "words": 3,
+      "chars": 12,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.93,
+      "top": 4198,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Bắt đầu săn",
+      "words": 3,
+      "chars": 11,
+      "lines": 2,
+      "size": 80.6,
+      "vw": 10.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 900,
+      "tracking": -0.04,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.49,
+      "top": 4878,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Hỏi nhanh",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 36,
+      "vw": 4.7,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.27,
+      "top": 5220,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Món bạn để ý đang giá bao nhiêu?",
+      "words": 8,
+      "chars": 32,
+      "lines": 1,
+      "size": 58.4,
+      "vw": 7.6,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.93,
+      "top": 6060,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 12,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 2,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Be_Vietnam_Pro_beb3bc",
+       "share": 0.92,
+       "mono": false
+      },
+      {
+       "family": "__Shantell_Sans_5c5693",
+       "share": 0.08,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      17,
+      18,
+      20,
+      22,
+      24,
+      30,
+      32,
+      36,
+      56,
+      58,
+      60,
+      81
+     ],
+     "sizeCount": 15,
+     "notLoaded": [],
+     "body": {
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "size": 17,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.2
+     },
+     "measureChars": 54,
+     "max": {
+      "size": 80.6,
+      "vw": 10.5,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "text": "Bắt đầu săn"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.02,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f3f2ee",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.17,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#0a3832",
+       "top": 64,
+       "hsl": {
+        "h": 172,
+        "s": 0.7,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#062622",
+       "top": 1024,
+       "hsl": {
+        "h": 173,
+        "s": 0.73,
+        "l": 0.09
+       }
+      },
+      {
+       "color": "#f3f2ee",
+       "top": 1925,
+       "hsl": {
+        "h": 48,
+        "s": 0.17,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#bff3e6",
+       "top": 1925,
+       "hsl": {
+        "h": 165,
+        "s": 0.68,
+        "l": 0.85
+       }
+      },
+      {
+       "color": "#e2c08b",
+       "top": 2580,
+       "hsl": {
+        "h": 37,
+        "s": 0.6,
+        "l": 0.72
+       }
+      },
+      {
+       "color": "#3ccfb0",
+       "top": 4118,
+       "hsl": {
+        "h": 167,
+        "s": 0.6,
+        "l": 0.52
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#062622",
+       "share": 0.38
+      },
+      {
+       "color": "#2a1c0b",
+       "share": 0.16
+      },
+      {
+       "color": "#f1efea",
+       "share": 0.14
+      },
+      {
+       "color": "#f1f0ea",
+       "share": 0.14
+      },
+      {
+       "color": "#0a3832",
+       "share": 0.12
+      }
+     ],
+     "button": {
+      "bg": "#3ccfb0",
+      "hsl": {
+       "h": 167,
+       "s": 0.6,
+       "l": 0.52
+      },
+      "fg": "#062622"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 3,
+     "radius": 0,
+     "height": 56,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Dán",
+      "Viết giá lên bảng"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 4,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": false,
+       "top": 1925
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.37
+     }
+    ],
+    "nav": {
+     "links": 4,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__be_vietnam_pro_beb3bc",
+     "__shantell_sans_5c5693"
+    ]
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 10,
+   "filled": [
+    1,
+    1,
+    0.63,
+    1,
+    0.85,
+    0.77,
+    0.78,
+    0.93,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 7,
+    "transitions": 26,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 7761,
+     "screens": 9.2,
+     "words": 420,
+     "img": 6,
+     "video": 0,
+     "canvas": 0,
+     "svg": 8,
+     "sections": 7,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 3,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fmarket%2Ffresh-mangosteen-display.j",
+      "image?url=%2Fmarket%2Ffruit-vendor-at-ben-thanh-",
+      "image?url=%2Fmarket%2Fben-thanh-market.jpg&w=640"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "… đ",
+     "words": 2,
+     "chars": 3,
+     "lines": 1,
+     "size": 56,
+     "vw": 14.4,
+     "font": "__Shantell_Sans_5c5693",
+     "weight": 800,
+     "tracking": -0.025,
+     "leading": 1,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.78,
+     "top": 799,
+     "tag": "span",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Giá hôm nay, có nên mua?",
+     "words": 6,
+     "lines": 2,
+     "size": 44.5,
+     "font": "__Shantell_Sans_5c5693"
+    },
+    "headings": [
+     {
+      "text": "Giá hôm nay, có nên mua?",
+      "words": 6,
+      "chars": 24,
+      "lines": 2,
+      "size": 44.5,
+      "vw": 11.4,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 104,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Thẻ giá của bạn",
+      "words": 4,
+      "chars": 15,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.78,
+      "top": 679,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "… đ",
+      "words": 2,
+      "chars": 3,
+      "lines": 1,
+      "size": 56,
+      "vw": 14.4,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.78,
+      "top": 799,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Một thẻ, bốn lần ghi",
+      "words": 5,
+      "chars": 20,
+      "lines": 1,
+      "size": 32,
+      "vw": 8.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 1733,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Chờ đọc giá",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.55,
+      "top": 1946,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "1.590.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 8.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.55,
+      "top": 2436,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.590.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.41,
+      "top": 2958,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.390.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 8.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.55,
+      "top": 2996,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.390.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.41,
+      "top": 3460,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "1.290.000 ₫",
+      "words": 2,
+      "chars": 11,
+      "lines": 1,
+      "size": 32,
+      "vw": 8.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.55,
+      "top": 3500,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Báo tôi khi giá giảm.",
+      "words": 5,
+      "chars": 21,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.64,
+      "top": 3886,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Báo khi chạm giá tôi muốn.",
+      "words": 6,
+      "chars": 26,
+      "lines": 2,
+      "size": 22,
+      "vw": 5.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.64,
+      "top": 4062,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Gửi tin báo qua Zalo của tôi.",
+      "words": 7,
+      "chars": 29,
+      "lines": 2,
+      "size": 22,
+      "vw": 5.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.64,
+      "top": 4179,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "So món này với sàn khác.",
+      "words": 6,
+      "chars": 24,
+      "lines": 2,
+      "size": 22,
+      "vw": 5.6,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.64,
+      "top": 4383,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Sói đang chờ",
+      "words": 3,
+      "chars": 12,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4617,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Bắt đầu săn",
+      "words": 3,
+      "chars": 11,
+      "lines": 2,
+      "size": 74.1,
+      "vw": 19,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 900,
+      "tracking": -0.04,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 5120,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "Hỏi nhanh",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 36,
+      "vw": 9.2,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 5383,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Món bạn để ý đang giá bao nhiêu?",
+      "words": 8,
+      "chars": 32,
+      "lines": 2,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "__Shantell_Sans_5c5693",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6179,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Theo dõi giá",
+      "words": 3,
+      "chars": 12,
+      "lines": 1,
+      "size": 31.2,
+      "vw": 8,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.48,
+      "top": 7181,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Đang theo dõi",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 31.2,
+      "vw": 8,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.54,
+      "top": 7232,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Thông báo",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 31.2,
+      "vw": 8,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.41,
+      "top": 7284,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Cá nhân",
+      "words": 2,
+      "chars": 7,
+      "lines": 1,
+      "size": 31.2,
+      "vw": 8,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.32,
+      "top": 7335,
+      "tag": "a",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 22,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 6,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Be_Vietnam_Pro_beb3bc",
+       "share": 0.92,
+       "mono": false
+      },
+      {
+       "family": "__Shantell_Sans_5c5693",
+       "share": 0.08,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      20,
+      22,
+      24,
+      30,
+      31,
+      32,
+      36,
+      45,
+      56,
+      74
+     ],
+     "sizeCount": 16,
+     "notLoaded": [],
+     "body": {
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "size": 16,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.2
+     },
+     "measureChars": 44,
+     "max": {
+      "size": 74.1,
+      "vw": 19,
+      "font": "__Be_Vietnam_Pro_beb3bc",
+      "text": "Bắt đầu săn"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.02,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f3f2ee",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.17,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#0a3832",
+       "top": 64,
+       "hsl": {
+        "h": 172,
+        "s": 0.7,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#062622",
+       "top": 1100,
+       "hsl": {
+        "h": 173,
+        "s": 0.73,
+        "l": 0.09
+       }
+      },
+      {
+       "color": "#f3f2ee",
+       "top": 1701,
+       "hsl": {
+        "h": 48,
+        "s": 0.17,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#bff3e6",
+       "top": 2241,
+       "hsl": {
+        "h": 165,
+        "s": 0.68,
+        "l": 0.85
+       }
+      },
+      {
+       "color": "#e2c08b",
+       "top": 2781,
+       "hsl": {
+        "h": 37,
+        "s": 0.6,
+        "l": 0.72
+       }
+      },
+      {
+       "color": "#3ccfb0",
+       "top": 4561,
+       "hsl": {
+        "h": 167,
+        "s": 0.6,
+        "l": 0.52
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#062622",
+       "share": 0.38
+      },
+      {
+       "color": "#2a1c0b",
+       "share": 0.16
+      },
+      {
+       "color": "#f1efea",
+       "share": 0.14
+      },
+      {
+       "color": "#f1f0ea",
+       "share": 0.13
+      },
+      {
+       "color": "#0a3832",
+       "share": 0.12
+      }
+     ],
+     "button": {
+      "bg": "#3ccfb0",
+      "hsl": {
+       "h": 167,
+       "s": 0.6,
+       "l": 0.52
+      },
+      "fg": "#062622"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 3,
+     "radius": 0,
+     "height": 56,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đăng nhập",
+      "Dán",
+      "Viết giá lên bảng"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 3,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.25
+     }
+    ],
+    "nav": {
+     "links": 1,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__be_vietnam_pro_beb3bc",
+     "__shantell_sans_5c5693"
+    ]
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f3f2ee, section #f3f2ee, text #f1efea).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "20 different font sizes (13, 14, 15, 17, 18, 20, 23, 24, 30, 32, 33, 35, 36, 37, 43, 56, 58, 92, 109, 151).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "FAIL",
+   "id": "covered-text",
+   "width": 390,
+   "message": "Large text lies under another element at some scroll position: \"… đ\" (screen 1, 100% hidden)",
+   "fix": "Nothing may sit on top of a headline or statement. Move the picture, shorten the pinned run, or raise the text above it (z-index) and give it a ground."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/desktop-fold.jpg",
+   "pages": [
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/desktop-page-01.jpg",
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/desktop-page-02.jpg"
+   ]
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/tablet-fold.jpg",
+   "pages": [
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/tablet-page-01.jpg",
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/tablet-page-02.jpg"
+   ]
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/mobile-fold.jpg",
+   "pages": [
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/mobile-page-01.jpg",
+    "/Users/tien.dang/Workplace/reference/deal-hunter/dealhunter-web/.taste-skill/inspect/mobile-page-02.jpg"
+   ]
+  }
+ ]
+}

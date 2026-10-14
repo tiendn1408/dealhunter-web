@@ -42,7 +42,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { ArrowLeft, ArrowUpRight, Share2, Target, X, AlertCircle, Sparkles, BellRing, Plus } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Share2, Target, X, AlertCircle, Sparkles, BellRing, Plus } from "lucide-react";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -261,7 +261,7 @@ export default function ProductDetailPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 bg-[#F8E1DC] p-4 text-[15px] text-marker-deep">
+        <div className="flex items-center gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -295,7 +295,7 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="lg:col-span-5">
-          <PriceTag tilt={-1.5} className="mx-auto max-w-[400px]">
+          <PriceTag className="mx-auto max-w-[400px]">
             <p className="text-sm font-semibold">{t.landing.priceNow}</p>
             {oldPrice && <StruckPrice className="mt-2 text-2xl">{formatVND(oldPrice)}</StruckPrice>}
             <div className="mt-1 flex flex-wrap items-end gap-3">
@@ -304,11 +304,12 @@ export default function ProductDetailPage() {
               </WrittenPrice>
               {changePercent !== undefined && changePercent !== 0 && (
                 <span
-                  className={`mb-1 px-2 py-0.5 text-[13px] font-bold ${
-                    changePercent < 0 ? "bg-teal-200 text-pine-950" : "bg-[#F8E1DC] text-marker-deep"
+                  className={`mb-1 inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-bold ${
+                    changePercent < 0 ? "bg-teal-200 text-pine-950" : "bg-[#FBE3E4] text-marker-deep"
                   }`}
                 >
-                  {changePercent < 0 ? "↓" : "↑"} {Math.abs(changePercent)}%
+                  {changePercent < 0 ? <ArrowDown className="h-3.5 w-3.5" strokeWidth={3} /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={3} />}
+                  {Math.abs(changePercent)}%
                 </span>
               )}
             </div>
@@ -412,7 +413,7 @@ export default function ProductDetailPage() {
 
         <div className="h-64 w-full sm:h-80">
           {rangeError ? (
-            <div className="flex h-full items-center justify-center gap-2 bg-[#F8E1DC] px-4 text-center text-[15px] text-marker-deep">
+            <div className="flex h-full items-center justify-center gap-2 bg-[#FBE3E4] px-4 text-center text-[15px] text-marker-deep">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{formatText(t.detail.historyRangeError, { message: rangeError })}</span>
             </div>
@@ -453,7 +454,7 @@ export default function ProductDetailPage() {
                       return (
                         <div className="space-y-1 bg-pine-950 p-3 text-[13px] text-chalk">
                           <p className="text-chalk/75">{formatDateTime(data.rawDate)}</p>
-                          <p className="font-marker text-lg font-extrabold">{formatVND(data.effectivePrice)}</p>
+                          <p className="text-lg font-extrabold">{formatVND(data.effectivePrice)}</p>
                           <p className="text-chalk/75">
                             {t.detail.listedPriceLabel} {formatVND(data.rawPrice)}
                           </p>
@@ -481,12 +482,12 @@ export default function ProductDetailPage() {
                   />
                 )}
                 <Area
-                  type="monotone"
+                  // Steps: the line changes only at a real check, never draws a price between two checks
+                  type="stepAfter"
                   dataKey="effectivePrice"
                   stroke="#1A9988"
                   strokeWidth={3}
-                  fill="#3CCFB0"
-                  fillOpacity={0.12}
+                  fill="none"
                   dot={{ r: 3, fill: "#1A9988", strokeWidth: 0 }}
                   activeDot={{ r: 6, fill: "#0A3832", stroke: "#ffffff", strokeWidth: 2 }}
                 />
@@ -565,7 +566,7 @@ export default function ProductDetailPage() {
         </div>
 
         {alertsErrorMessage && alerts.length === 0 ? (
-          <div className="flex items-center justify-between gap-2 bg-[#F8E1DC] p-4 text-[15px] text-marker-deep">
+          <div className="flex items-center justify-between gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep">
             <span className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{alertsErrorMessage}</span>
@@ -653,7 +654,7 @@ export default function ProductDetailPage() {
                   value={targetInput > 0 ? targetInput : ""}
                   onChange={(e) => setTargetInput(Number(e.target.value))}
                   placeholder="6.000.000"
-                  className="h-16 w-full bg-white px-4 text-center font-marker text-3xl font-extrabold text-pine-950 placeholder:text-pine-700/50 focus:outline-none"
+                  className="h-16 w-full bg-white px-4 text-center text-3xl font-extrabold text-pine-950 placeholder:text-pine-700/50 focus:outline-none"
                 />
                 {targetInput > 0 && (
                   <span className="mt-1 block text-center text-[13px] font-semibold text-pine-700">
@@ -676,7 +677,7 @@ export default function ProductDetailPage() {
                 ))}
               </div>
 
-              {targetError && <p className="bg-[#F8E1DC] p-3 text-[15px] text-marker-deep">{targetError}</p>}
+              {targetError && <p className="bg-[#FBE3E4] p-3 text-[15px] text-marker-deep">{targetError}</p>}
 
               <button
                 type="submit"
@@ -687,7 +688,7 @@ export default function ProductDetailPage() {
               </button>
             </form>
 
-            <div className="flex items-start gap-3 bg-kraft-light p-4 text-[15px] text-kraft-ink">
+            <div className="flex items-start gap-3 bg-warn-soft p-4 text-[15px] text-warn-ink">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
                 <span className="mb-0.5 block font-bold">{t.detail.tipTitle}</span>

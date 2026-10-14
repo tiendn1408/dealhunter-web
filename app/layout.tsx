@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Be_Vietnam_Pro, Shantell_Sans } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { Shell } from "@/components/Shell";
 import { QueryProvider } from "@/components/QueryProvider";
@@ -13,13 +13,6 @@ const sans = Be_Vietnam_Pro({
   variable: "--font-sans",
 });
 
-// Marker lettering of the market price board: board headlines and prices only
-const marker = Shantell_Sans({
-  subsets: ["latin", "vietnamese"],
-  weight: ["600", "800"],
-  display: "swap",
-  variable: "--font-marker",
-});
 
 export const metadata = {
   title: "DealHunter — Săn đúng giá trước khi mua",
@@ -38,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${sans.variable} ${marker.variable}`}>
+    <html lang="vi" className={sans.variable}>
       <body className="flex min-h-svh flex-col bg-paper text-pine-900 antialiased">
         <QueryProvider>
           <LanguageProvider>

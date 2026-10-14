@@ -51,7 +51,7 @@ export function VoucherBox({
         <h2 className="text-xl font-bold text-pine-900">
           {t.voucher.sectionTitle}
         </h2>
-        <div className="p-4 bg-[#F8E1DC] text-marker-deep text-[13px] flex items-center justify-between gap-2">
+        <div className="p-4 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
             <span>{(error as Error).message}</span>
@@ -114,7 +114,7 @@ export function VoucherBox({
         );
       case "platform_voucher":
         return (
-          <span className="inline-flex items-center gap-1 text-[13px] font-bold px-2 py-0.5 bg-kraft-light text-kraft-ink">
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold px-2 py-0.5 bg-warn-soft text-warn-ink">
             <Sparkles className="w-3 h-3" />
             {t.voucher.platformVoucherBadge}
           </span>

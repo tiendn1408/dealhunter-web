@@ -123,7 +123,7 @@ export function CreateAlertModal({
         </div>
 
         {error && (
-          <div className="p-3.5 bg-[#F8E1DC] text-marker-deep text-[13px] flex items-center gap-2">
+          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
             <span>{error}</span>
           </div>

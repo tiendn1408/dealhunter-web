@@ -46,7 +46,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         </button>
 
         <Image src="/icon.png" alt="" width={56} height={56} className="h-14 w-14" />
-        <h2 id="login-title" className="mt-4 pr-10 font-marker text-[32px] font-extrabold leading-tight tracking-tight">
+        <h2 id="login-title" className="mt-4 pr-10 text-[32px] font-extrabold leading-tight tracking-tight">
           {t.auth.loginTitle}
         </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-pine-700">{t.auth.loginSubtitle}</p>
@@ -58,7 +58,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         </div>
 
         {error && (
-          <div className="mt-4 flex items-start gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+          <div className="mt-4 flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -71,7 +71,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               {isLoggingIn && <p className="mt-3 text-center text-[14px] text-pine-700">{t.common.loading}</p>}
             </div>
           ) : (
-            <div className="flex items-start gap-2 bg-kraft-light p-3 text-[14px] text-kraft-ink">
+            <div className="flex items-start gap-2 bg-warn-soft p-3 text-[14px] text-warn-ink">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
                 Đăng nhập Google chưa được cấu hình. Cần đặt NEXT_PUBLIC_GOOGLE_CLIENT_ID (trùng GOOGLE_CLIENT_ID của backend).

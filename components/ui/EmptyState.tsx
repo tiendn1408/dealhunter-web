@@ -24,7 +24,7 @@ export function EmptyState({ title, description, actionText, actionHref = "/" }:
   return (
     <div className="grid items-center gap-10 bg-pine-900 p-8 text-chalk sm:p-12 md:grid-cols-[1fr_auto]">
       <div>
-        <h3 className="font-marker text-[clamp(28px,3.2vw,40px)] font-extrabold leading-tight">{finalTitle}</h3>
+        <h3 className="text-[clamp(28px,3.2vw,40px)] font-extrabold leading-tight">{finalTitle}</h3>
         <p className="mt-3 max-w-[46ch] text-[17px] leading-relaxed text-chalk/90">{finalDesc}</p>
         <Link
           href={actionHref}
@@ -36,8 +36,8 @@ export function EmptyState({ title, description, actionText, actionHref = "/" }:
         <p className="mt-6 text-[15px] text-chalk/75">{t.home.supportedPlatformsNote}</p>
       </div>
       <div aria-hidden className="mx-auto w-[220px]">
-        <PriceTag tilt={3}>
-          <span className="block font-marker text-[48px] font-extrabold leading-none opacity-30">… đ</span>
+        <PriceTag>
+          <span className="block text-[48px] font-extrabold leading-none opacity-30">… đ</span>
         </PriceTag>
       </div>
     </div>

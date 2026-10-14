@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-// The market price board, in the logo's colours: pine board, chalk ink, kraft price tags,
-// red marker for struck prices, teal chalk for the good price and the action. Flat, square-cut.
+// DealHunter in the logo's colours: deep pine ink, teal for the good price and the action, a cool
+// off-white ground. One shape runs the system: the logo's price tag with its cut corner (.cut).
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,7 +11,6 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
-        marker: ["var(--font-marker)", "var(--font-sans)", "ui-sans-serif", "sans-serif"],
       },
       colors: {
         // Logo deep pine, the board
@@ -36,10 +35,11 @@ module.exports = {
           500: "#1A9988",
           600: "#137A6C",
         },
-        chalk: { DEFAULT: "#F1F0EA", dim: "#C9D3CE" },
-        kraft: { light: "#E2C08B", DEFAULT: "#D2A86A", deep: "#A97E43", ink: "#2A1C0B" },
-        marker: { DEFAULT: "#D9412B", deep: "#B3301D" },
-        paper: "#F3F2EE",
+        chalk: { DEFAULT: "#F7FAF9", dim: "#C9D3CE" },
+        warn: { soft: "#FCEFD3", ink: "#6A4A0C" },
+        // alert red: a rise, an error, a destructive action
+        marker: { DEFAULT: "#E5484D", deep: "#B8343A" },
+        paper: "#F3F6F5",
       },
       keyframes: {
         "line-rise": {
@@ -50,20 +50,26 @@ module.exports = {
           from: { opacity: "0", transform: "translateY(24px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        "strike-draw": {
-          from: { transform: "scaleX(0)" },
-          to: { transform: "scaleX(1)" },
+        // the signature: the stage opens from its cut corner, the fragment settles
+        shutter: {
+          from: { clipPath: "inset(0 0 100% 100%)" },
+          to: { clipPath: "inset(0 0 0 0)" },
         },
-        "slow-drift": {
-          from: { transform: "scale(1.04) translateX(0)" },
-          to: { transform: "scale(1.1) translateX(-2%)" },
+        settle: {
+          from: { transform: "scale(1.06)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
+        },
+        "draw-line": {
+          from: { strokeDashoffset: "1" },
+          to: { strokeDashoffset: "0" },
         },
       },
       animation: {
         "line-rise": "line-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both",
         "rise-in": "rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
-        "strike-draw": "strike-draw 0.5s cubic-bezier(0.65, 0, 0.35, 1) both",
-        "slow-drift": "slow-drift 18s ease-in-out infinite alternate",
+        shutter: "shutter 1.1s cubic-bezier(0.77, 0, 0.18, 1) both",
+        settle: "settle 1.1s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "draw-line": "draw-line 1.6s cubic-bezier(0.65, 0, 0.35, 1) both",
       },
     },
   },

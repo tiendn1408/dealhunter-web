@@ -99,7 +99,7 @@ export function LinkSourceModal({
 
         {/* Error Alert */}
         {localError && (
-          <div className="p-3.5 bg-[#F8E1DC] text-marker-deep text-[13px] flex items-start gap-2">
+          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep mt-0.5" />
             <span className="leading-relaxed">{localError}</span>
           </div>

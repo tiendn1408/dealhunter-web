@@ -228,7 +228,7 @@ export function ZaloConnectModal({
         ) : !isAuthenticated ? (
           /* Guests cannot link Zalo (the server answers 403): explain and offer the Google sign-in */
           <div className="space-y-4">
-            <div className="space-y-1 bg-kraft-light p-4 text-[15px] text-kraft-ink">
+            <div className="space-y-1 bg-warn-soft p-4 text-[15px] text-warn-ink">
               <p className="flex items-center gap-2 font-bold">
                 <ShieldCheck className="h-4 w-4" />
                 {t.settings.zaloMemberOnlyTitle}
@@ -252,7 +252,7 @@ export function ZaloConnectModal({
         ) : (
           <>
             {error && (
-              <div className="flex items-start gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+              <div className="flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>

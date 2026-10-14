@@ -4,33 +4,17 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useEnrichedTrackings, useToggleTracking, useHasUnreadNotifications } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
-import { formatVND, formatRelativeTime } from "@/lib/formatting";
+import { detectPlatform, formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { PriceChangePill } from "@/components/ui/PriceChangePill";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TrackingListSkeleton } from "@/components/ui/LoadingSkeleton";
 import { PriceTag, StruckPrice, WrittenPrice } from "@/components/PriceTag";
-import { Bell, Search, Plus, AlertCircle } from "lucide-react";
+import { Bell, Search, Plus, AlertCircle, ArrowUpRight } from "lucide-react";
 
 // "Near target" needs a real target and price: products without one are never near it
 const isNearTarget = (item: { diffFromTarget?: number }) =>
   item.diffFromTarget !== undefined && item.diffFromTarget <= 300000;
-
-/** A vendor's chalk ring around a price that has come close to what the buyer wants. */
-function MarkerRing() {
-  return (
-    <svg aria-hidden viewBox="0 0 200 80" preserveAspectRatio="none" className="pointer-events-none absolute -inset-x-4 -inset-y-3 h-[calc(100%+24px)] w-[calc(100%+32px)]">
-      <path
-        d="M18 44 C 14 16, 92 6, 150 10 C 196 14, 198 58, 160 70 C 110 84, 30 78, 12 52 C 6 40, 22 26, 44 20"
-        fill="none"
-        stroke="#1A9988"
-        strokeWidth="4"
-        strokeLinecap="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
 
 export default function MyTrackingPage() {
   const { t, formatText } = useLanguage();
@@ -86,7 +70,7 @@ export default function MyTrackingPage() {
       {/* The board's header strip: what is on it, and the way to add more */}
       <div className="flex flex-col gap-5 bg-pine-900 p-6 text-chalk sm:flex-row sm:items-end sm:justify-between sm:p-8">
         <div>
-          <h1 className="font-marker text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight">{t.tracking.title}</h1>
+          <h1 className="text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight">{t.tracking.title}</h1>
           <p className="mt-3 text-[15px] text-chalk/85">
             {trackings.length > 0 ? formatText(t.tracking.subtitle, { count: trackings.length }) : t.tracking.zeroCount}
           </p>
@@ -149,7 +133,7 @@ export default function MyTrackingPage() {
       {loading ? (
         <TrackingListSkeleton />
       ) : error ? (
-        <div className="flex flex-col items-start gap-4 bg-[#F8E1DC] p-6 text-marker-deep sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-start gap-4 bg-[#FBE3E4] p-6 text-marker-deep sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-start gap-2 text-[15px] font-semibold">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             {error}
@@ -169,7 +153,7 @@ export default function MyTrackingPage() {
           <EmptyState title={t.tracking.notFoundTitle} description={t.tracking.notFoundDesc} actionText={t.tracking.homeBtn} />
         )
       ) : (
-        /* The tags hang side by side on the board; one near its target gets a chalk ring */
+        /* Tracked products as price cards; one near its target is marked */
         <ul className="grid gap-x-5 gap-y-8 pt-2 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTrackings.map((item, i) => {
             const hasPrice = item.currentPrice !== undefined && item.currentPrice > 0;
@@ -180,12 +164,8 @@ export default function MyTrackingPage() {
             );
 
             return (
-              <li key={item.ID}>
-                <Link
-                  href={detailHref}
-                  className="block h-full transition-transform duration-200 hover:-translate-y-1 focus-visible:-translate-y-1"
-                >
-                  <PriceTag tilt={i % 3 === 1 ? 1 : -1} tone={item.Active ? "kraft" : "chalk"} pinned={item.Active} className="h-full">
+              <li key={item.ID} className="group relative transition-transform duration-200 hover:-translate-y-1 focus-within:-translate-y-1">
+                <PriceTag tone={item.Active ? "white" : "muted"} className="flex flex-col">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <PlatformBadge platformOrUrl={item.Platform || item.CanonicalURL} />
@@ -197,7 +177,10 @@ export default function MyTrackingPage() {
                     </div>
 
                     <h2 className="mt-3 line-clamp-2 min-h-[2.75em] text-[17px] font-bold leading-snug">
-                      {item.Title || (item.CanonicalURL ? item.CanonicalURL.split("/").pop() : t.notifications.productFallback)}
+                      {/* the whole card opens the product; the buttons below sit above this link */}
+                      <Link href={detailHref} className="after:absolute after:inset-0 group-hover:underline">
+                        {item.Title || (item.CanonicalURL ? item.CanonicalURL.split("/").pop() : t.notifications.productFallback)}
+                      </Link>
                     </h2>
                     <p className="mt-1 truncate text-[14px] opacity-80">
                       {item.SellerName ? formatText(t.comparison.shopLabel, { name: item.SellerName }) : t.tracking.autoCheck}
@@ -208,11 +191,11 @@ export default function MyTrackingPage() {
                         {hasPrice ? (
                           <WrittenPrice className="block text-[clamp(32px,3vw,40px)]">{formatVND(item.currentPrice)}</WrittenPrice>
                         ) : (
-                          <span className="block font-marker text-2xl font-semibold opacity-60">{t.tracking.checking}</span>
+                          <span className="block text-2xl font-semibold opacity-60">{t.tracking.checking}</span>
                         )}
-                        {near && <MarkerRing />}
                       </span>
                       {item.oldPrice ? <StruckPrice className="mb-1 text-lg">{formatVND(item.oldPrice)}</StruckPrice> : null}
+                      {near && <span className="mb-1.5 bg-teal-400 px-2 py-0.5 text-[13px] font-bold text-pine-950">{t.tracking.filterTarget}</span>}
                       {item.changePercent !== undefined && item.changePercent !== 0 && (
                         <PriceChangePill changePercent={item.changePercent} className="mb-1.5" />
                       )}
@@ -235,12 +218,12 @@ export default function MyTrackingPage() {
                       </div>
                     </div>
                     {item.targetPrice ? (
-                      <div className="mt-3 h-2 w-full bg-kraft-ink/15" aria-hidden>
+                      <div className="mt-3 h-2 w-full bg-pine-100" aria-hidden>
                         <div className="h-full bg-pine-900 transition-[width] duration-500" style={{ width: `${item.targetProgress || 0}%` }} />
                       </div>
                     ) : null}
 
-                    <div className="mt-5 flex items-center justify-between gap-3 text-[13px]">
+                    <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-[13px]">
                       <span className="opacity-80">
                         {formatText(t.tracking.updated, { time: formatRelativeTime(item.UpdatedAt || item.CreatedAt) })}
                       </span>
@@ -248,15 +231,26 @@ export default function MyTrackingPage() {
                         type="button"
                         disabled={togglingId === item.ID}
                         onClick={(e) => handleToggle(e, item.ID, item.Active)}
-                        className={`min-h-[36px] px-3 text-[13px] font-bold transition-colors disabled:opacity-50 ${
-                          item.Active ? "bg-kraft-ink/10 hover:bg-kraft-ink/20" : "bg-teal-400 text-pine-950 hover:bg-teal-300"
+                        className={`relative z-10 min-h-[40px] px-3 text-[13px] font-bold transition-colors disabled:opacity-50 ${
+                          item.Active ? "bg-pine-50 hover:bg-pine-100" : "bg-teal-400 text-pine-950 hover:bg-teal-300"
                         }`}
                       >
                         {item.Active ? t.tracking.pause : t.tracking.resume}
                       </button>
                     </div>
+                    {/* The buy action, plainly visible on every product: the owner's affiliate link first */}
+                    {(item.AffiliateURL || item.CanonicalURL) && (
+                      <a
+                        href={item.AffiliateURL || item.CanonicalURL}
+                        target="_blank"
+                        rel="sponsored noopener noreferrer"
+                        className="cut relative z-10 mt-3 inline-flex min-h-[44px] items-center justify-center gap-1.5 bg-teal-400 px-4 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+                      >
+                        {formatText(t.landing.buyOn, { platform: detectPlatform(item.Platform || item.CanonicalURL).name })}
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    )}
                   </PriceTag>
-                </Link>
               </li>
             );
           })}

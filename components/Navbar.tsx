@@ -47,7 +47,7 @@ export default function Navbar() {
   return (
     <>
       {sessionExpired && !isAuthenticated && (
-        <div className="bg-kraft text-kraft-ink text-sm">
+        <div className="bg-warn-soft text-warn-ink text-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <span>Phiên đăng nhập đã hết hạn. Bạn đang xem với tư cách khách: đăng nhập lại để xem dữ liệu của mình.</span>
             <button type="button" onClick={() => setShowLoginModal(true)} className="shrink-0 font-semibold underline">
@@ -61,7 +61,7 @@ export default function Navbar() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Image src="/icon.png" alt="" width={34} height={34} className="h-[34px] w-[34px]" priority />
-            <span className="font-marker text-xl font-extrabold leading-none tracking-tight sm:text-2xl">DealHunter</span>
+            <span className="text-xl font-extrabold leading-none tracking-tight sm:text-2xl">DealHunter</span>
           </Link>
 
           <nav aria-label="Chính" className="hidden items-center gap-1 md:flex">
@@ -133,7 +133,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowLoginModal(true)}
-                className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap bg-teal-400 px-3.5 text-sm font-bold text-pine-950 transition-colors hover:bg-teal-300"
+                className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap bg-pine-800 px-3.5 text-sm font-bold text-chalk transition-colors hover:bg-pine-700"
               >
                 <LogIn className="hidden h-4 w-4 sm:block" />
                 <span>{t.auth.login}</span>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #f3f2ee;
+  --background: #f3f6f5;
   --foreground: #0a3832;
 }
 
@@ -57,37 +57,61 @@ a {
   animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* The logo's price tag: cut top-left corner, a punched hole. Used for every price on the site. */
+/* The one shape: the logo's price tag, its top-left corner cut. --cut sets the size of the cut. */
+@layer components {
+  .cut {
+    --cut: 14px;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+  }
+}
 .tag-shape {
-  clip-path: polygon(34px 0, 100% 0, 100% 100%, 0 100%, 0 34px);
+  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px);
 }
 
-/* A red marker stroke through a superseded price */
-.marker-strike {
-  position: relative;
-  display: inline-block;
-}
-.marker-strike::after {
-  content: "";
-  position: absolute;
-  left: -4%;
-  right: -4%;
-  top: 52%;
-  height: 0.12em;
-  background: #d9412b;
-  transform: rotate(-4deg);
-  transform-origin: left center;
-  border-radius: 999px;
-}
 
-/* Loading placeholder: a flat chalk smear that breathes (no gradient) */
+/* Loading placeholder: a flat block that breathes (no gradient) */
 @keyframes chalk-breathe {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
 }
 .chalk-skeleton {
-  background: rgba(244, 241, 230, 0.18);
   animation: chalk-breathe 1.4s ease-in-out infinite;
+}
+
+/* The range slider of "how it works": solid track, square thumb in the accent, cut like the tag */
+.stage-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+.stage-range::-webkit-slider-runnable-track {
+  height: 8px;
+  background: transparent; /* the track and its filled part are drawn behind the input */
+}
+.stage-range::-moz-range-track {
+  height: 8px;
+  background: transparent;
+}
+.stage-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -12px;
+  background: #3ccfb0;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+.stage-range::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: #3ccfb0;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+@media (max-width: 767px) {
+  .stage-range::-webkit-slider-thumb { width: 40px; height: 40px; margin-top: -16px; }
 }
 
 /* Section parts enter once as they scroll in (see components/home/Reveal.tsx); visible without script */
@@ -115,5 +139,15 @@ a {
   .reveal-ready [data-reveal] {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* FAQ drawer: width of each card's tab */
+.faq-drawer {
+  --tab-w: 120px;
+}
+@media (min-width: 768px) {
+  .faq-drawer {
+    --tab-w: 200px;
   }
 }

@@ -71,7 +71,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-6 sm:py-10">
       <div>
-        <h1 className="font-marker text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight text-pine-900">
+        <h1 className="text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight text-pine-900">
           {t.settings.title}
         </h1>
         <p className="mt-2 text-[15px] text-pine-700">{t.settings.subtitle}</p>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
         <div className={`${panel} p-5 sm:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-pine-900 font-marker text-2xl font-extrabold text-chalk">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-pine-900 text-2xl font-extrabold text-chalk">
                 {isAuthenticated && user?.name ? user.name[0].toUpperCase() : "D"}
               </div>
               <div className="min-w-0">
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleDisconnectZalo}
                 disabled={zaloDisconnecting}
-                className="inline-flex min-h-[44px] items-center gap-2 bg-[#F8E1DC] px-4 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center gap-2 bg-[#FBE3E4] px-4 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk disabled:cursor-not-allowed disabled:opacity-50"
                 title={t.settings.disconnectZaloBtn}
               >
                 <Unlink className="h-4 w-4" />
@@ -299,7 +299,7 @@ export default function SettingsPage() {
       <button
         type="button"
         onClick={handleResetUser}
-        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 bg-[#F8E1DC] px-5 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk sm:w-auto"
+        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 bg-[#FBE3E4] px-5 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk sm:w-auto"
       >
         <LogOut className="h-4 w-4" />
         {t.settings.resetUserId}

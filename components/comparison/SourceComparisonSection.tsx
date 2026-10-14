@@ -11,7 +11,7 @@ import {
 import { MatchSuggestion } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
 import { PlatformBadge } from "@/components/ui/Badge";
-import { formatVND, formatRelativeTime, isKnownPrice } from "@/lib/formatting";
+import { detectPlatform, formatVND, formatRelativeTime, isKnownPrice } from "@/lib/formatting";
 import {
   ExternalLink,
   Plus,
@@ -171,7 +171,7 @@ export function SourceComparisonSection({
     const errorMessage =
       suggestionActionError || (suggestionsError ? (suggestionsError as Error).message : null);
     const errorBox = errorMessage && (
-      <div className="p-3 bg-[#F8E1DC] text-marker-deep text-[13px] flex items-center justify-between gap-2">
+      <div className="p-3 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
           <span>{errorMessage}</span>
@@ -319,8 +319,8 @@ export function SourceComparisonSection({
           </div>
         )}
         {scanIncomplete && (
-          <div className="p-3 bg-kraft-light text-kraft-ink text-[13px] font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-kraft-ink shrink-0" />
+          <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-warn-ink shrink-0" />
             <span>{t.comparison.autoMatchIncomplete}</span>
           </div>
         )}
@@ -405,8 +405,8 @@ export function SourceComparisonSection({
         </div>
       )}
       {scanIncomplete && (
-        <div className="p-3 bg-kraft-light text-kraft-ink text-[13px] font-medium flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-kraft-ink shrink-0" />
+        <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-warn-ink shrink-0" />
           <span>{t.comparison.autoMatchIncomplete}</span>
         </div>
       )}
@@ -437,7 +437,7 @@ export function SourceComparisonSection({
             <span className="text-[13px] font-bold text-teal-600 block">
               {t.comparison.bestEffectivePrice}
             </span>
-            <span className="font-marker text-2xl font-extrabold text-pine-950 block sm:text-3xl">
+            <span className="text-2xl font-extrabold text-pine-950 block sm:text-3xl">
               {isKnownPrice(bestDeal.effective_price) ? formatVND(bestDeal.effective_price) : t.common.unknown}
             </span>
           </div>
@@ -472,9 +472,9 @@ export function SourceComparisonSection({
                   <span
                     className={`text-[13px] font-semibold px-2 py-0.5 ${
                       !hasPrice
-                        ? "bg-kraft-light text-kraft-ink"
+                        ? "bg-warn-soft text-warn-ink"
                           : source.in_stock === false
-                            ? "bg-[#F8E1DC] text-marker-deep"
+                            ? "bg-[#FBE3E4] text-marker-deep"
                               : "bg-pine-50 text-pine-700"
                               }`}
                   >
@@ -525,7 +525,7 @@ export function SourceComparisonSection({
                     {t.comparison.effectivePrice}
                   </span>
                   <span
-                    className={`font-marker text-xl sm:text-2xl font-extrabold block ${
+                    className={`text-xl sm:text-2xl font-extrabold block ${
                       isWinningDeal ? "text-pine-950" : "text-pine-900"
                       }`}
                   >
@@ -544,7 +544,7 @@ export function SourceComparisonSection({
                           : "bg-white hover:bg-pine-50 text-pine-700"
                           }`}
                   >
-                    <span>{t.comparison.visitStore}</span>
+                    <span>{formatText(t.landing.buyOn, { platform: detectPlatform(source.platform || source.canonical_url).name })}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 ) : null}

@@ -117,7 +117,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-semibold text-marker-deep hover:bg-[#F8E1DC] transition-colors disabled:opacity-50"
+          className="inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-semibold text-marker-deep hover:bg-[#FBE3E4] transition-colors disabled:opacity-50"
           title={t.common.delete}
         >
           <Trash2 className="w-3.5 h-3.5" />

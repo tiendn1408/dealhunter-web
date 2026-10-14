@@ -10,7 +10,7 @@ import {
 } from "@/lib/hooks";
 import { useLanguage } from "@/lib/i18n";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatVND, formatRelativeTime } from "@/lib/formatting";
+import { detectPlatform, formatVND, formatRelativeTime } from "@/lib/formatting";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { StruckPrice, WrittenPrice } from "@/components/PriceTag";
 import {
@@ -20,6 +20,7 @@ import {
   CheckCheck,
   Check,
   ArrowUpRight,
+  ArrowDown,
   AlertCircle,
 } from "lucide-react";
 
@@ -92,9 +93,9 @@ export default function NotificationsPage() {
     if (status === "sent")
       return <span className="bg-pine-50 px-2 py-0.5 text-[13px] font-semibold text-pine-700">{t.notifications.statusSent}</span>;
     if (status === "failed")
-      return <span className="bg-[#F8E1DC] px-2 py-0.5 text-[13px] font-semibold text-marker-deep">{t.notifications.statusFailed}</span>;
+      return <span className="bg-[#FBE3E4] px-2 py-0.5 text-[13px] font-semibold text-marker-deep">{t.notifications.statusFailed}</span>;
     if (status === "queued")
-      return <span className="bg-kraft-light px-2 py-0.5 text-[13px] font-semibold text-kraft-ink">{t.notifications.statusQueued}</span>;
+      return <span className="bg-warn-soft px-2 py-0.5 text-[13px] font-semibold text-warn-ink">{t.notifications.statusQueued}</span>;
     return null;
   };
 
@@ -103,7 +104,7 @@ export default function NotificationsPage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-marker text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight text-pine-900">
+            <h1 className="text-[clamp(32px,4.4vw,52px)] font-extrabold leading-none tracking-tight text-pine-900">
               {t.notifications.title}
             </h1>
             {unreadCount > 0 && (
@@ -168,7 +169,7 @@ export default function NotificationsPage() {
       </div>
 
       {actionError && (
-        <div className="flex items-center gap-2 bg-[#F8E1DC] p-3 text-[15px] font-semibold text-marker-deep">
+        <div className="flex items-center gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{actionError}</span>
         </div>
@@ -185,7 +186,7 @@ export default function NotificationsPage() {
           ))}
         </div>
       ) : queryError ? (
-        <div className="space-y-4 bg-[#F8E1DC] p-6 text-center text-marker-deep">
+        <div className="space-y-4 bg-[#FBE3E4] p-6 text-center text-marker-deep">
           <AlertCircle className="mx-auto h-8 w-8" />
           <p className="text-[15px] font-semibold">{(queryError as Error).message}</p>
           <button
@@ -198,7 +199,7 @@ export default function NotificationsPage() {
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="bg-white p-8 text-center sm:p-12">
-          <h3 className="font-marker text-3xl font-extrabold text-pine-900">
+          <h3 className="text-3xl font-extrabold text-pine-900">
             {activeTab === "unread" ? t.notifications.emptyUnreadTitle : t.notifications.emptyTitle}
           </h3>
           <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-pine-700">
@@ -254,7 +255,7 @@ export default function NotificationsPage() {
                     )}
                     <WrittenPrice className="text-[28px] text-pine-900">{formatVND(notif.price_after)}</WrittenPrice>
                     {dropPercent > 0 && (
-                      <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-bold text-pine-950">↓ {dropPercent}%</span>
+                      <span className="inline-flex items-center gap-1 bg-teal-200 px-2 py-0.5 text-[13px] font-bold text-pine-950"><ArrowDown className="h-3.5 w-3.5" strokeWidth={3} />{dropPercent}%</span>
                     )}
                   </div>
                 </div>
@@ -265,11 +266,10 @@ export default function NotificationsPage() {
                     target="_blank"
                     rel="sponsored noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-teal-400 hover:text-pine-950"
-                    title={t.common.viewProduct}
-                    aria-label={t.common.viewProduct}
+                    className="cut inline-flex min-h-[44px] shrink-0 items-center gap-1.5 bg-teal-400 px-4 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
                   >
-                    <ArrowUpRight className="h-5 w-5" />
+                    {formatText(t.landing.buyOn, { platform: detectPlatform(notif.platform || notif.product_url).name })}
+                    <ArrowUpRight className="h-4 w-4" />
                   </a>
                 )}
               </li>

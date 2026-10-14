@@ -1,7 +1,16 @@
 import "./globals.css";
+import { Be_Vietnam_Pro } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { QueryProvider } from "@/components/QueryProvider";
 import { LanguageProvider } from "@/lib/i18n";
+
+// Designed for Vietnamese: every diacritic is drawn properly at every weight
+const sans = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
 export const metadata = {
   title: "DealHunter — Săn đúng giá trước khi mua",
@@ -20,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body className="min-h-screen flex flex-col bg-[#F8FAF9] text-slate-900 antialiased">
+    <html lang="vi" className={sans.variable}>
+      <body className="min-h-screen flex flex-col bg-[#F6F8F7] text-slate-900 antialiased">
         <QueryProvider>
           <LanguageProvider>
             <Navbar />

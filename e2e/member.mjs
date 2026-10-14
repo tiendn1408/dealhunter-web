@@ -9,7 +9,7 @@ const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 
 const userId = randomUUID();
-const email = `e2e-member-${userId.slice(0, 8)}@dealhunter.vn`;
+const email = `e2e-member-${userId.slice(0, 8)}@dealhunter.io.vn`;
 const raw = randomBytes(32).toString("base64url");
 const hash = createHash("sha256").update(raw).digest("hex");
 const tokenId = randomUUID();

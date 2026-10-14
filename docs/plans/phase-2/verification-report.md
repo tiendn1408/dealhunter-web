@@ -1,6 +1,6 @@
 # Deal Hunter Web — Phase 2: Báo Cáo Triển Khai & Kiểm Định Hoàn Thiện 100%
 
-> **Cập nhật 2026-10-07:** Các tính năng giả lập mô tả trong tài liệu này (nút "Giả lập giảm giá", nút "Dùng số thử nghiệm (Sandbox)", link sản phẩm mẫu `mock.dealhunter.vn`) **đã bị gỡ bỏ** theo nguyên tắc "dữ liệu thật, việc thật" — xem `dealhunter/docs/plans/hardening-before-phase-4.md` (nhóm NOMOCK). Tài liệu được giữ nguyên làm lịch sử.
+> **Cập nhật 2026-10-07:** Các tính năng giả lập mô tả trong tài liệu này (nút "Giả lập giảm giá", nút "Dùng số thử nghiệm (Sandbox)", link sản phẩm mẫu `mock.dealhunter.io.vn`) **đã bị gỡ bỏ** theo nguyên tắc "dữ liệu thật, việc thật" — xem `dealhunter/docs/plans/hardening-before-phase-4.md` (nhóm NOMOCK). Tài liệu được giữ nguyên làm lịch sử.
 
 # [Alert Engine UI & Zalo Notification Integration]
 

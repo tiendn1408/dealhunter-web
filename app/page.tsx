@@ -51,7 +51,7 @@ function HomeContent() {
       qc.invalidateQueries({ queryKey: ["trackings"] });
       setTarget({ id: res.id, productSourceId: res.product_source_id, url: clean });
       // Below the wide layout the card sits under the form: bring it into view
-      if (window.innerWidth < 1280) {
+      if (window.innerWidth < 900) {
         window.setTimeout(() => stageRef.current?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" }), 60);
       }
     } catch (err: unknown) {
@@ -97,11 +97,13 @@ function HomeContent() {
       <Reveal />
 
       {/* ── Hero: the statement, the paste field, and the product on the tag-shaped stage ── */}
-      <section ref={heroRef} aria-labelledby="hero-title" className="relative overflow-hidden bg-paper xl:min-h-[calc(100svh-64px)]">
-        <div className="mx-auto max-w-[1440px] px-5 pt-10 md:px-10 xl:pt-[110px]">
+      <section ref={heroRef} aria-labelledby="hero-title" className="relative overflow-hidden bg-paper">
+        {/* Two columns from 900px up: the words on the left, the stage on the right bleeding off the edge */}
+        <div className="mx-auto grid max-w-[1440px] min-[900px]:min-h-[calc(100svh-64px)] min-[900px]:grid-cols-2">
+        <div className="px-5 pb-4 pt-10 md:px-10 min-[900px]:self-center min-[900px]:pb-24 min-[900px]:pt-12">
           <h1
             id="hero-title"
-            className="text-[10vw] font-extrabold leading-[1.02] tracking-[-0.04em] text-pine-950 md:text-[clamp(52px,6.4vw,92px)]"
+            className="text-[10vw] font-extrabold leading-[1.02] tracking-[-0.04em] text-pine-950 md:text-[64px] min-[900px]:text-[clamp(44px,5.6vw,92px)]"
           >
             <span className="block overflow-hidden pb-[0.05em]">
               <span className="block animate-line-rise">{t.landing.boardLine1}</span>
@@ -119,7 +121,7 @@ function HomeContent() {
               e.preventDefault();
               check(url);
             }}
-            className="relative z-10 mt-8 max-w-[560px] animate-rise-in [animation-delay:550ms] xl:max-w-[440px]"
+            className="relative z-10 mt-8 max-w-[560px] animate-rise-in [animation-delay:550ms]"
           >
             <label htmlFor="dh-try-url" className="sr-only">
               {t.landing.inputLabel}
@@ -188,10 +190,10 @@ function HomeContent() {
         {/* The stage: the logo's tag at poster size, opening from its edge; the product stands on it */}
         <div
           ref={stageRef}
-          className="relative mt-10 scroll-mt-20 animate-shutter xl:absolute xl:bottom-0 xl:left-[36%] xl:right-0 xl:top-[38%] xl:mt-0"
+          className="relative mt-10 scroll-mt-20 animate-shutter min-[900px]:mr-[min(0px,calc((1440px-100vw)/2))] min-[900px]:mt-[16vh]"
         >
-          <div className="h-full bg-teal-400 px-4 pt-[88px] [clip-path:polygon(72px_0,100%_0,100%_100%,0_100%,0_72px)] sm:px-10 xl:px-14 xl:pt-14 xl:[clip-path:polygon(220px_0,100%_0,100%_100%,0_100%,0_220px)]">
-            <div className="w-full max-w-[620px] animate-settle pb-10 [animation-delay:350ms] xl:ml-[150px] xl:pb-0">
+          <div className="h-full bg-teal-400 px-4 pb-10 pt-[88px] [clip-path:polygon(72px_0,100%_0,100%_100%,0_100%,0_72px)] sm:px-10 min-[900px]:pb-0 min-[900px]:pl-[clamp(56px,7vw,120px)] min-[900px]:pr-10 min-[900px]:pt-[clamp(48px,6vw,88px)] min-[900px]:[clip-path:polygon(clamp(96px,11vw,200px)_0,100%_0,100%_100%,0_100%,0_clamp(96px,11vw,200px))]">
+            <div className="w-full max-w-[580px] animate-settle [animation-delay:350ms]">
               {target ? (
                 <>
                   <TryResult
@@ -229,6 +231,7 @@ function HomeContent() {
               )}
             </div>
           </div>
+        </div>
         </div>
       </section>
 

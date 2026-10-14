@@ -72,7 +72,7 @@ export default function Navbar() {
                   key={l.href}
                   href={l.href}
                   aria-current={active ? "page" : undefined}
-                  className={`relative px-3 py-2 text-[15px] font-semibold transition-colors ${
+                  className={`relative whitespace-nowrap px-2 py-2 text-[14px] font-semibold lg:px-3 lg:text-[15px] transition-colors ${
                     active ? "text-chalk" : "text-chalk/65 hover:text-chalk"
                   }`}
                 >

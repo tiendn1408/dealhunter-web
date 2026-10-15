@@ -200,19 +200,19 @@ export function ZaloConnectModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="zalo-title">
-      <div className="fixed inset-0 bg-pine-950/70 animate-fadeIn" onClick={handleClose} />
-      <div className="relative w-full max-w-md space-y-5 bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8">{/* taste-skill-ignore: dialog overlay */}
+      <div className="fixed inset-0 bg-pine-950/60 backdrop-blur-sm animate-fadeIn" onClick={handleClose} />
+      <div className="relative w-full max-w-md space-y-5 bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8 rounded-[2rem]">{/* taste-skill-ignore: dialog overlay */}
         <button
           type="button"
           onClick={handleClose}
           aria-label={t.common.close}
-          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100"
+          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100 rounded-full"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="flex items-center gap-3 pr-12">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-teal-400 text-pine-950">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-teal-400 text-pine-950">
             <MessageSquare className="h-6 w-6" />
           </div>
           <div>
@@ -228,7 +228,7 @@ export function ZaloConnectModal({
         ) : !isAuthenticated ? (
           /* Guests cannot link Zalo (the server answers 403): explain and offer the Google sign-in */
           <div className="space-y-4">
-            <div className="space-y-1 bg-warn-soft p-4 text-[15px] text-warn-ink">
+            <div className="space-y-1 bg-warn-soft p-4 text-[15px] text-warn-ink rounded-2xl">
               <p className="flex items-center gap-2 font-bold">
                 <ShieldCheck className="h-4 w-4" />
                 {t.settings.zaloMemberOnlyTitle}
@@ -252,13 +252,13 @@ export function ZaloConnectModal({
         ) : (
           <>
             {error && (
-              <div className="flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep">
+              <div className="flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep rounded-2xl">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
             {info && !error && (
-              <div className="flex items-start gap-2 bg-teal-200 p-3 text-[15px] font-semibold text-pine-950">
+              <div className="flex items-start gap-2 bg-teal-200 p-3 text-[15px] font-semibold text-pine-950 rounded-2xl">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{info}</span>
               </div>
@@ -286,7 +286,7 @@ export function ZaloConnectModal({
                   <p className="text-[14px] leading-relaxed text-pine-700">{t.settings.zaloPhoneDesc}</p>
                 </div>
 
-                <div className="space-y-1 bg-pine-50 p-4">
+                <div className="space-y-1 bg-pine-50 p-4 rounded-2xl">
                   <p className="flex items-center gap-2 text-[15px] font-bold">
                     <ShieldCheck className="h-4 w-4 text-teal-600" />
                     {t.settings.privacyTitle}
@@ -325,7 +325,7 @@ export function ZaloConnectModal({
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="123456"
-                      className={`${inputClass} font-bold tabular-nums tracking-[0.4em] disabled:cursor-not-allowed disabled:opacity-50`}
+                      className={` rounded-2xl ${inputClass} font-bold tabular-nums tracking-[0.4em] disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
                   <p className={`text-[14px] leading-relaxed ${codeUnusable ? "font-semibold text-marker-deep" : "text-pine-700"}`}>
@@ -357,7 +357,7 @@ export function ZaloConnectModal({
                     type="button"
                     onClick={() => sendCode(true)}
                     disabled={sending || verifying || resendWaitMs > 0}
-                    className="min-h-[44px] bg-pine-50 px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[44px] bg-pine-50 px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50 rounded-full"
                   >
                     {sending
                       ? t.settings.zaloSendingCode

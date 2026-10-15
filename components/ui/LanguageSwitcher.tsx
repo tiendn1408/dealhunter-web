@@ -22,7 +22,7 @@ export function LanguageSwitcher({
         <select
           value={locale}
           onChange={(e) => setLocale(e.target.value as "vi" | "en")}
-          className="h-10 bg-pine-50 px-3 text-sm font-semibold text-pine-900 hover:bg-pine-100"
+          className="h-10 rounded-full bg-pine-50 px-4 text-sm font-semibold text-pine-900 hover:bg-pine-100"
           aria-label="Language selection"
         >
           <option value="vi">Tiếng Việt (VI)</option>

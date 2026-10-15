@@ -1,9 +1,8 @@
 import React from "react";
 
 /**
- * The one shape of the whole site: the logo's price tag, a card with its top-left corner cut.
- * Every price DealHunter shows sits on one. A superseded price is struck through, the current one is
- * set large in tabular figures.
+ * The price card used across the site: a white core with a large concentric radius and soft depth.
+ * A superseded price is struck through, the current one is set large in tabular figures.
  */
 export function PriceTag({
   children,
@@ -18,14 +17,16 @@ export function PriceTag({
   const ground =
     tone === "pine" ? "bg-pine-900 text-chalk" : tone === "muted" ? "bg-pine-50 text-pine-800" : "bg-white text-pine-900";
   return (
-    <div className={`tag-shape relative h-full px-6 pb-6 pt-7 ${ground} ${className}`}>{children}</div>
+    <div className={`relative h-full rounded-[1.5rem] p-6 shadow-soft ring-1 ring-pine-900/[0.05] ${ground} ${className}`}>
+      {children}
+    </div>
   );
 }
 
 /** A superseded price, struck through. */
 export function StruckPrice({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className={`font-semibold tabular-nums line-through decoration-marker decoration-2 opacity-70 ${className}`}>
+    <span className={`font-semibold tabular-nums line-through decoration-marker decoration-2 opacity-60 ${className}`}>
       {children}
     </span>
   );

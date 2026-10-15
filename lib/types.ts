@@ -36,6 +36,8 @@ export interface PriceNotification {
   platform?: string;
   product_url?: string;
   affiliate_url?: string;
+  /** https image of the product; absent when unknown. */
+  product_image?: string;
 }
 
 export interface UserProfile {
@@ -75,6 +77,8 @@ export interface SourcePrice {
   seller_name: string;
   canonical_url: string;
   affiliate_url?: string;
+  /** null when the marketplace never stated a product image. */
+  image_url?: string | null;
   listed_price: number | null;
   shipping_fee: number | null;
   /** null (or 0 from older servers) when the source has no price yet. */

@@ -22,13 +22,13 @@ export function EmptyState({ title, description, actionText, actionHref = "/" }:
   const finalAction = actionText || t.tracking.trackPriceBtn;
 
   return (
-    <div className="grid items-center gap-10 bg-pine-900 p-8 text-chalk sm:p-12 md:grid-cols-[1fr_auto]">
+    <div className="relative grid items-center gap-10 overflow-hidden rounded-[2rem] bg-pine-900 p-8 text-chalk shadow-soft sm:p-12 md:grid-cols-[1fr_auto]">
       <div>
         <h3 className="text-[clamp(28px,3.2vw,40px)] font-extrabold leading-tight">{finalTitle}</h3>
         <p className="mt-3 max-w-[46ch] text-[17px] leading-relaxed text-chalk/90">{finalDesc}</p>
         <Link
           href={actionHref}
-          className="mt-7 inline-flex min-h-[48px] items-center gap-2 bg-teal-400 px-6 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+          className="mt-7 inline-flex min-h-[48px] items-center gap-2 bg-teal-400 px-6 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 rounded-full"
         >
           {finalAction}
           <ArrowRight className="h-4 w-4" />

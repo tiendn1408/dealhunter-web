@@ -73,20 +73,20 @@ export function LinkSourceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-pine-950/70 flex items-center justify-center p-4">
-      <div className="bg-white p-6 sm:p-8 max-w-md w-full space-y-5 animate-scaleUp relative">
+    <div className="fixed inset-0 z-50 bg-pine-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white p-6 sm:p-8 max-w-md w-full space-y-5 animate-scaleUp relative rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         {/* Close Button */}
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900 transition-colors"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900 transition-colors rounded-full"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
         <div className="space-y-1">
-          <div className="w-10 h-10 bg-pine-50 text-pine-900 flex items-center justify-center mb-2">
+          <div className="w-10 h-10 rounded-full bg-pine-50 text-pine-900 flex items-center justify-center mb-2">
             <Link2 className="w-5 h-5 text-pine-900" />
           </div>
           <h3 className="text-xl font-bold text-pine-900 tracking-tight">
@@ -99,7 +99,7 @@ export function LinkSourceModal({
 
         {/* Error Alert */}
         {localError && (
-          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-start gap-2">
+          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-start gap-2 rounded-2xl">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep mt-0.5" />
             <span className="leading-relaxed">{localError}</span>
           </div>
@@ -120,13 +120,13 @@ export function LinkSourceModal({
                 if (localError) setLocalError(null);
               }}
               placeholder={t.comparison.urlPlaceholder}
-              className="w-full px-4 py-3 text-[15px] bg-pine-50 text-pine-900 placeholder:text-pine-700 focus:bg-white focus:outline-none transition-colors"
+              className="w-full px-4 py-3 text-[15px] bg-pine-50 text-pine-900 placeholder:text-pine-700 focus:bg-white focus:outline-none transition-colors rounded-2xl"
             />
           </div>
 
           {/* Real-time Platform Recognition */}
           {detectedPlatform && detectedPlatform.id !== "other" && (
-            <div className="flex items-center gap-2 text-[13px] text-pine-700 bg-pine-50 p-3">
+            <div className="flex items-center gap-2 text-[13px] text-pine-700 bg-pine-50 p-3 rounded-2xl">
               <span className="text-pine-700 font-medium">{t.comparison.detectedLabel}</span>
               <PlatformBadge platformOrUrl={url} />
             </div>
@@ -136,7 +136,7 @@ export function LinkSourceModal({
           <button
             type="submit"
             disabled={linkMutation.isPending || !url.trim()}
-            className="w-full py-3.5 bg-pine-900 hover:bg-pine-800 disabled:bg-pine-100 text-chalk font-bold text-[15px] transition-colors flex items-center justify-center gap-2"
+            className="w-full rounded-full py-3.5 bg-pine-900 hover:bg-pine-800 disabled:bg-pine-100 text-chalk font-bold text-[15px] transition-colors flex items-center justify-center gap-2"
           >
             {linkMutation.isPending ? (
               <span>{t.comparison.linkingInProgress}</span>
@@ -150,7 +150,7 @@ export function LinkSourceModal({
         </form>
 
         {/* Helpful Tip */}
-        <div className="bg-pine-50/80 p-3.5 text-[13px] text-pine-900 flex items-start gap-2.5">
+        <div className="rounded-2xl bg-pine-50/80 p-3.5 text-[13px] text-pine-900 flex items-start gap-2.5">
           <Sparkles className="w-4 h-4 text-pine-800 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-bold block">{t.comparison.autoUpdateTipTitle}</span>

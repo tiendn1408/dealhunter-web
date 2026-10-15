@@ -11,7 +11,7 @@ interface PriceChangePillProps {
 
 /** A drop is written in teal chalk, a rise in red marker, no change plainly. */
 export function PriceChangePill({ changePercent, className = "", labelPrefix = "" }: PriceChangePillProps) {
-  const base = `inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-bold ${className}`;
+  const base = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold ${className}`;
   if (changePercent < 0) {
     const absVal = Math.abs(changePercent);
     return (

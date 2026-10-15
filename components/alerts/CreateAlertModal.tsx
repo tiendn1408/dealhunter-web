@@ -103,12 +103,12 @@ export function CreateAlertModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-pine-950/70 flex items-center justify-center p-4">
-      <div className="bg-white p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scaleUp relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-pine-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scaleUp relative max-h-[90vh] overflow-y-auto rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900 rounded-full"
         >
           <X className="w-5 h-5" />
         </button>
@@ -123,7 +123,7 @@ export function CreateAlertModal({
         </div>
 
         {error && (
-          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center gap-2">
+          <div className="p-3.5 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center gap-2 rounded-2xl">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
             <span>{error}</span>
           </div>
@@ -209,7 +209,7 @@ export function CreateAlertModal({
 
           {/* Condition Specific Inputs */}
           {conditionType === "drop_percent" && (
-            <div className="space-y-3 bg-pine-50 p-4">
+            <div className="space-y-3 bg-pine-50 p-4 rounded-2xl">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-bold text-pine-700">
                   {t.alerts.minDropPercent}
@@ -231,7 +231,7 @@ export function CreateAlertModal({
                   max="99"
                   value={dropPercent}
                   onChange={(e) => setDropPercent(Number(e.target.value))}
-                  className="w-full px-4 py-3 text-2xl font-bold bg-white text-pine-900 focus:outline-none text-center"
+                  className="w-full px-4 py-3 text-2xl font-bold bg-white text-pine-900 focus:outline-none text-center rounded-2xl"
                 />
                 <span className="absolute right-4 top-3.5 text-lg font-bold text-pine-700">
                   %
@@ -258,7 +258,7 @@ export function CreateAlertModal({
           )}
 
           {conditionType === "target_price" && (
-            <div className="space-y-3 bg-pine-50 p-4">
+            <div className="space-y-3 bg-pine-50 p-4 rounded-2xl">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-bold text-pine-700">
                   {t.alerts.desiredPriceLabel}
@@ -277,7 +277,7 @@ export function CreateAlertModal({
                 min="1000"
                 value={targetPrice > 0 ? targetPrice : ""}
                 onChange={(e) => setTargetPrice(Number(e.target.value))}
-                className="w-full px-4 py-3 text-2xl font-bold bg-white text-pine-900 focus:outline-none text-center"
+                className="w-full px-4 py-3 text-2xl font-bold bg-white text-pine-900 focus:outline-none text-center rounded-2xl"
               />
 
               {targetPrice > 0 && (
@@ -311,7 +311,7 @@ export function CreateAlertModal({
           )}
 
           {conditionType === "lowest_in_days" && (
-            <div className="space-y-3 bg-pine-50 p-4">
+            <div className="space-y-3 bg-pine-50 p-4 rounded-2xl">
               <span className="text-[13px] font-bold text-pine-700 block">
                 {t.alerts.comparisonPeriod}
               </span>
@@ -369,7 +369,7 @@ export function CreateAlertModal({
           </div>
 
           {/* Channels Preview */}
-          <div className="bg-pine-50/70 p-3.5 space-y-2">
+          <div className="rounded-2xl bg-pine-50/70 p-3.5 space-y-2">
             <span className="text-[13px] font-bold text-pine-900 block">
               {t.alerts.channelsSection}
             </span>
@@ -389,7 +389,7 @@ export function CreateAlertModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-pine-900 hover:bg-pine-800 disabled:bg-pine-100 text-chalk font-bold text-[15px] transition-colors flex items-center justify-center gap-2"
+            className="w-full rounded-full py-3.5 bg-pine-900 hover:bg-pine-800 disabled:bg-pine-100 text-chalk font-bold text-[15px] transition-colors flex items-center justify-center gap-2"
           >
             {loading ? (
               <span>{t.alerts.creatingBtn}</span>

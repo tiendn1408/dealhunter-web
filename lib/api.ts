@@ -422,6 +422,8 @@ export interface TrackedProduct {
   CanonicalURL?: string;
   AffiliateURL?: string;
   SellerName?: string;
+  /** https product image as the marketplace states it; absent when it never stated one. */
+  ImageURL?: string;
   LastPrice?: number;
   LastEffectivePrice?: number;
   LastInStock?: boolean;

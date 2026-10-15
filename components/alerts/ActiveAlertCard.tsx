@@ -79,9 +79,9 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
   const Icon = details.icon;
 
   return (
-    <div className="bg-pine-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+    <div className="bg-pine-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors rounded-2xl">
       <div className="flex items-start gap-3.5">
-        <div className="w-10 h-10 bg-white text-pine-900 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-10 h-10 rounded-full bg-white text-pine-900 flex items-center justify-center shrink-0 mt-0.5">
           <Icon className="w-5 h-5 text-pine-900" />
         </div>
 
@@ -89,7 +89,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-[15px] font-bold text-pine-900">{details.title}</h4>
             <span
-              className={`text-[13px] font-semibold px-2 py-0.5 ${details.badgeColor}`}
+              className={`text-[13px] font-semibold rounded-full px-2.5 py-1 ${details.badgeColor}`}
             >
               {t.alerts.activeBadge}
             </span>
@@ -117,7 +117,7 @@ export function ActiveAlertCard({ rule, onRuleDeleted }: ActiveAlertCardProps) {
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-semibold text-marker-deep hover:bg-[#FBE3E4] transition-colors disabled:opacity-50"
+          className="inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-semibold text-marker-deep hover:bg-[#FBE3E4] transition-colors disabled:opacity-50 rounded-full"
           title={t.common.delete}
         >
           <Trash2 className="w-3.5 h-3.5" />

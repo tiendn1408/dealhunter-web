@@ -10,5 +10,5 @@ export function Shell({ children }: { children: React.ReactNode }) {
   if (pathname === "/") {
     return <main className="flex-1 w-full pb-20 md:pb-0">{children}</main>;
   }
-  return <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-10 pb-24 md:pb-10">{children}</main>;
+  return <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 pb-24 md:px-8 md:pb-10 lg:py-10">{children}</main>;
 }

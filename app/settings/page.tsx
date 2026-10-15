@@ -11,10 +11,10 @@ import { formatPhoneLocal } from "@/lib/formatting";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { Bookmark, MessageSquare, LineChart, HelpCircle, FileText, LogOut, LogIn, ChevronRight, Clock, Unlink, Globe } from "lucide-react";
 
-const panel = "bg-white";
+const panel = "overflow-hidden rounded-[1.75rem] bg-white shadow-soft ring-1 ring-pine-900/[0.06]";
 const row = "flex min-h-[64px] items-center justify-between gap-4 px-5 py-4";
 const rowLink = `${row} transition-colors hover:bg-pine-50`;
-const rowIcon = "flex h-10 w-10 shrink-0 items-center justify-center bg-pine-50 text-pine-900";
+const rowIcon = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-900";
 const rowTitle = "block text-[15px] font-semibold text-pine-900";
 const rowNote = "block text-[14px] leading-snug text-pine-700";
 
@@ -94,7 +94,7 @@ export default function SettingsPage() {
                     {isAuthenticated ? user?.name || t.settings.userTitle : t.auth.guestUser}
                   </p>
                   {isAuthenticated && (
-                    <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-semibold capitalize text-pine-950">
+                    <span className="bg-teal-200 rounded-full px-2.5 py-1 text-[13px] font-semibold capitalize text-pine-950">
                       {user?.auth_provider || "Member"}
                     </span>
                   )}
@@ -109,7 +109,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => logout().catch((err: any) => alert(err?.message || "Đăng xuất thất bại"))}
-                className="inline-flex min-h-[44px] items-center gap-2 bg-marker px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-marker-deep"
+                className="inline-flex min-h-[44px] items-center gap-2 bg-marker px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-marker-deep rounded-full"
               >
                 <LogOut className="h-4 w-4" />
                 {t.auth.logout}
@@ -118,7 +118,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowLoginModal(true)}
-                className="inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+                className="inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 rounded-full"
               >
                 <LogIn className="h-4 w-4" />
                 {t.auth.login}
@@ -126,7 +126,7 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {!isAuthenticated && <p className="mt-4 bg-pine-50 p-4 text-[15px] leading-relaxed text-pine-900">{t.auth.guestTip}</p>}
+          {!isAuthenticated && <p className="mt-4 bg-pine-50 p-4 text-[15px] leading-relaxed text-pine-900 rounded-2xl">{t.auth.guestTip}</p>}
         </div>
       </section>
 
@@ -143,7 +143,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => refetchZalo()}
-                className="min-h-[44px] shrink-0 bg-pine-50 px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100"
+                className="min-h-[44px] shrink-0 bg-pine-50 px-4 text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 rounded-full"
               >
                 {t.common.retry}
               </button>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
           ) : zaloProfile?.zalo_connected ? (
             <div className={`${row} flex-wrap bg-white`}>
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-teal-400 text-pine-950">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-400 text-pine-950">
                   <MessageSquare className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                         identifier: formatPhoneLocal(zaloProfile.phone) || t.settings.zaloIdentifierUnknown,
                       })}
                     </span>
-                    <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-semibold text-pine-950">{t.settings.zaloConnected}</span>
+                    <span className="bg-teal-200 rounded-full px-2.5 py-1 text-[13px] font-semibold text-pine-950">{t.settings.zaloConnected}</span>
                   </div>
                   <span className={rowNote}>{t.settings.zaloActiveDesc}</span>
                 </div>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleDisconnectZalo}
                 disabled={zaloDisconnecting}
-                className="inline-flex min-h-[44px] items-center gap-2 bg-[#FBE3E4] px-4 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center gap-2 bg-[#FBE3E4] px-4 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk disabled:cursor-not-allowed disabled:opacity-50 rounded-full"
                 title={t.settings.disconnectZaloBtn}
               >
                 <Unlink className="h-4 w-4" />
@@ -193,7 +193,7 @@ export default function SettingsPage() {
                   <span className={rowNote}>{t.settings.zaloDesc}</span>
                 </div>
               </div>
-              <span className="inline-flex min-h-[40px] shrink-0 items-center bg-teal-400 px-4 text-[14px] font-bold text-pine-950">
+              <span className="inline-flex min-h-[40px] shrink-0 items-center bg-teal-400 px-4 text-[14px] font-bold text-pine-950 rounded-full">
                 {t.settings.connectNow}
               </span>
             </button>
@@ -229,7 +229,7 @@ export default function SettingsPage() {
         <h2 id="set-list" className="text-xl font-bold text-pine-900">
           {t.settings.listGroup}
         </h2>
-        <div className="space-y-px bg-pine-50">
+        <div className="space-y-px overflow-hidden rounded-[1.75rem] bg-pine-50 shadow-soft ring-1 ring-pine-900/[0.06]">
           <Link href="/tracking" className={`${rowLink} group bg-white`}>
             <div className="flex items-center gap-3">
               <div className={rowIcon}>
@@ -259,7 +259,7 @@ export default function SettingsPage() {
         <h2 id="set-lang" className="text-xl font-bold text-pine-900">
           {t.settings.languageSection}
         </h2>
-        <div className={`${row} flex-wrap bg-white`}>
+        <div className={`${row} flex-wrap rounded-[1.75rem] bg-white shadow-soft ring-1 ring-pine-900/[0.06]`}>
           <div className="flex min-w-0 items-center gap-3">
             <div className={rowIcon}>
               <Globe className="h-5 w-5" />
@@ -275,7 +275,7 @@ export default function SettingsPage() {
         <h2 id="set-help" className="text-xl font-bold text-pine-900">
           {t.settings.helpGroup}
         </h2>
-        <div className="space-y-px bg-pine-50">
+        <div className="space-y-px overflow-hidden rounded-[1.75rem] bg-pine-50 shadow-soft ring-1 ring-pine-900/[0.06]">
           <div className={`${row} bg-white`}>
             <div className="flex items-center gap-3">
               <div className={rowIcon}>
@@ -299,7 +299,7 @@ export default function SettingsPage() {
       <button
         type="button"
         onClick={handleResetUser}
-        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 bg-[#FBE3E4] px-5 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk sm:w-auto"
+        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 bg-[#FBE3E4] px-5 text-[15px] font-bold text-marker-deep transition-colors hover:bg-marker hover:text-chalk sm:w-auto rounded-full"
       >
         <LogOut className="h-4 w-4" />
         {t.settings.resetUserId}

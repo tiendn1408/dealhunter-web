@@ -48,7 +48,7 @@ export default function Navbar() {
     <>
       {sessionExpired && !isAuthenticated && (
         <div className="bg-warn-soft text-warn-ink text-sm">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-4 py-2 md:px-8">
             <span>Phiên đăng nhập đã hết hạn. Bạn đang xem với tư cách khách: đăng nhập lại để xem dữ liệu của mình.</span>
             <button type="button" onClick={() => setShowLoginModal(true)} className="shrink-0 font-semibold underline">
               {t.auth.loginTitle}
@@ -58,7 +58,7 @@ export default function Navbar() {
       )}
 
       <header className="sticky top-0 z-40 bg-pine-950 text-chalk">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-3 px-4 md:px-8">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Image src="/icon.png" alt="" width={34} height={34} className="h-[34px] w-[34px]" priority />
             <span className="text-xl font-extrabold leading-none tracking-tight sm:text-2xl">DealHunter</span>
@@ -78,11 +78,11 @@ export default function Navbar() {
                 >
                   {l.name}
                   {l.href === "/notifications" && unreadCount > 0 && (
-                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center bg-marker px-1 text-xs font-bold text-chalk">
+                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-marker px-1.5 text-[12px] font-bold text-chalk">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
-                  {active && <span aria-hidden className="absolute inset-x-3 -bottom-[13px] h-[3px] bg-teal-400" />}
+                  {active && <span aria-hidden className="absolute inset-x-3 -bottom-[13px] h-[3px] rounded-full bg-teal-400" />}
                 </Link>
               );
             })}
@@ -96,16 +96,16 @@ export default function Navbar() {
                   type="button"
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   aria-expanded={showUserMenu}
-                  className="hidden h-9 items-center gap-2 bg-pine-800 px-3 text-sm font-semibold text-chalk transition-colors hover:bg-pine-700 sm:inline-flex"
+                  className="hidden h-10 items-center gap-2 rounded-full bg-pine-800 pl-1.5 pr-3 text-sm font-semibold text-chalk transition-colors duration-300 ease-spring hover:bg-pine-700 sm:inline-flex"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center bg-teal-400 text-xs font-bold text-pine-950">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-400 text-[13px] font-bold text-pine-950">
                     {user?.name ? user.name[0].toUpperCase() : "U"}
                   </span>
                   <span className="max-w-[120px] truncate">{user?.name || "Thành viên"}</span>
                   <ChevronDown className="h-4 w-4 text-chalk/60" />
                 </button>
                 {showUserMenu && (
-                  <div className="absolute right-0 z-50 mt-2 w-56 bg-paper py-1 text-pine-900 shadow-xl shadow-pine-950/30 animate-fadeIn">{/* taste-skill-ignore: open menu is an overlay */}
+                  <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl bg-white p-1.5 text-pine-900 shadow-float ring-1 ring-pine-900/[0.06] animate-fadeIn">{/* taste-skill-ignore: open menu is an overlay */}
                     <div className="px-4 py-3">
                       <p className="truncate text-sm font-bold">{user?.name}</p>
                       <p className="truncate text-sm text-pine-700">{user?.email}</p>
@@ -113,7 +113,7 @@ export default function Navbar() {
                     <Link
                       href="/settings"
                       onClick={() => setShowUserMenu(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium hover:bg-pine-50"
+                      className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-300 hover:bg-pine-50"
                     >
                       <User className="h-4 w-4" />
                       {t.nav.settings}
@@ -121,7 +121,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-marker-deep hover:bg-pine-50"
+                      className="flex w-full items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium text-marker-deep transition-colors duration-300 hover:bg-pine-50"
                     >
                       <LogOut className="h-4 w-4" />
                       {t.auth.logout}
@@ -133,7 +133,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowLoginModal(true)}
-                className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap bg-pine-800 px-3.5 text-sm font-bold text-chalk transition-colors hover:bg-pine-700"
+                className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-pine-800 px-4 text-sm font-bold text-chalk transition-colors duration-300 ease-spring hover:bg-pine-700"
               >
                 <LogIn className="hidden h-4 w-4 sm:block" />
                 <span>{t.auth.login}</span>
@@ -159,11 +159,11 @@ export default function Navbar() {
                 active ? "text-teal-300" : "text-chalk/65"
               }`}
             >
-              {active && <span aria-hidden className="absolute inset-x-6 top-0 h-[3px] bg-teal-400" />}
+              {active && <span aria-hidden className="absolute inset-x-6 top-0 h-[3px] rounded-full bg-teal-400" />}
               <span className="relative">
                 <Icon className="h-5 w-5" />
                 {tab.href === "/notifications" && unreadCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1 h-2.5 w-2.5 bg-marker" />
+                  <span className="absolute -right-1.5 -top-1 h-2.5 w-2.5 rounded-full bg-marker" />
                 )}
               </span>
               {tab.name}

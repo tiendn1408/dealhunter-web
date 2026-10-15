@@ -36,10 +36,10 @@ export function VoucherBox({
 
   if (isLoading) {
     return (
-      <div className="bg-white p-6 chalk-skeleton space-y-4">
+      <div className="bg-white p-6 chalk-skeleton space-y-4 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="h-6 bg-pine-100 w-1/3"></div>
-        <div className="h-4 bg-pine-50 w-2/3"></div>
-        <div className="h-24 bg-pine-50"></div>
+        <div className="h-4 rounded-full bg-pine-50 w-2/3"></div>
+        <div className="h-24 rounded-2xl bg-pine-50"></div>
       </div>
     );
   }
@@ -47,11 +47,11 @@ export function VoucherBox({
   // A failed load is shown as an error, not hidden like "no vouchers"
   if (error) {
     return (
-      <div className="bg-white p-6 sm:p-8 space-y-3">
+      <div className="bg-white p-6 sm:p-8 space-y-3 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <h2 className="text-xl font-bold text-pine-900">
           {t.voucher.sectionTitle}
         </h2>
-        <div className="p-4 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2">
+        <div className="p-4 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2 rounded-2xl">
           <span className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
             <span>{(error as Error).message}</span>
@@ -107,21 +107,21 @@ export function VoucherBox({
     switch (type) {
       case "shop_voucher":
         return (
-          <span className="inline-flex items-center gap-1 text-[13px] font-bold px-2 py-0.5 bg-teal-200 text-pine-900">
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold rounded-full px-2.5 py-1 bg-teal-200 text-pine-900">
             <Tag className="w-3 h-3" />
             {t.voucher.shopVoucherBadge}
           </span>
         );
       case "platform_voucher":
         return (
-          <span className="inline-flex items-center gap-1 text-[13px] font-bold px-2 py-0.5 bg-warn-soft text-warn-ink">
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold rounded-full px-2.5 py-1 bg-warn-soft text-warn-ink">
             <Sparkles className="w-3 h-3" />
             {t.voucher.platformVoucherBadge}
           </span>
         );
       case "freeship_voucher":
         return (
-          <span className="inline-flex items-center gap-1 text-[13px] font-bold px-2 py-0.5 bg-teal-200 text-pine-950">
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold rounded-full px-2.5 py-1 bg-teal-200 text-pine-950">
             <Layers className="w-3 h-3" />
             {t.voucher.freeshipBadge}
           </span>
@@ -132,12 +132,12 @@ export function VoucherBox({
   };
 
   return (
-    <div className="bg-white p-6 sm:p-8 space-y-6">
+    <div className="bg-white p-6 sm:p-8 space-y-6 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-teal-200 text-pine-950 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-teal-200 text-pine-950 flex items-center justify-center">
               <Ticket className="w-5 h-5" />
             </div>
             <h2 className="text-xl font-bold text-pine-900">
@@ -150,7 +150,7 @@ export function VoucherBox({
         </div>
 
         {totalSavings > 0 && (
-          <div className="shrink-0 bg-teal-200 text-pine-950 px-3 py-1.5 text-right">
+          <div className="shrink-0 bg-teal-200 text-pine-950 px-3 py-1.5 text-right rounded-2xl">
             <span className="text-[13px] font-bold block text-teal-600">
               {t.voucher.totalSavingsLabel}
             </span>
@@ -164,10 +164,10 @@ export function VoucherBox({
       {/* 2-Step Workflow Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Step 1: Collect Vouchers */}
-        <div className="bg-pine-50 p-5 flex flex-col justify-between space-y-4">
+        <div className="bg-pine-50 p-5 flex flex-col justify-between space-y-4 rounded-2xl">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 bg-teal-400 text-pine-950 font-bold text-[13px] flex items-center justify-center shrink-0">
+              <span className="w-6 h-6 rounded-full bg-teal-400 text-pine-950 font-bold text-[13px] flex items-center justify-center shrink-0">
                 1
               </span>
               <h3 className="text-[17px] font-bold text-pine-900">
@@ -189,7 +189,7 @@ export function VoucherBox({
                 return (
                   <div
                     key={voucher.id}
-                    className="bg-white p-3.5 space-y-2 transition-colors"
+                    className="bg-white p-3.5 space-y-2 transition-colors rounded-2xl"
                   >
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       {getVoucherBadge(voucher.voucher_type)}
@@ -219,7 +219,7 @@ export function VoucherBox({
                         <button
                           type="button"
                           onClick={() => handleCopyCode(voucher.voucher_code!)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors rounded-2xl"
                         >
                           {copiedCode === voucher.voucher_code ? (
                             <>
@@ -242,7 +242,7 @@ export function VoucherBox({
                         target="_blank"
                         rel="sponsored noopener noreferrer"
                         onClick={() => handleCollectClick(voucher.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-teal-200 hover:bg-teal-200 text-pine-950 text-[13px] font-bold transition-colors ml-auto"
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-teal-200 hover:bg-teal-200 text-pine-950 text-[13px] font-bold transition-colors ml-auto rounded-2xl"
                       >
                         {openedCollectId === voucher.id ? (
                           <>
@@ -265,10 +265,10 @@ export function VoucherBox({
         </div>
 
         {/* Step 2: Open Product & Apply Code */}
-        <div className="bg-pine-50 p-5 flex flex-col justify-between space-y-4">
+        <div className="bg-pine-50 p-5 flex flex-col justify-between space-y-4 rounded-2xl">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 bg-teal-400 text-pine-950 font-bold text-[13px] flex items-center justify-center shrink-0">
+              <span className="w-6 h-6 rounded-full bg-teal-400 text-pine-950 font-bold text-[13px] flex items-center justify-center shrink-0">
                 2
               </span>
               <h3 className="text-[17px] font-bold text-pine-900">
@@ -280,7 +280,7 @@ export function VoucherBox({
             </p>
 
             {/* Price calculation summary */}
-            <div className="bg-white p-4 space-y-2.5">
+            <div className="bg-white p-4 space-y-2.5 rounded-2xl">
               <div className="flex items-center justify-between text-[13px] text-pine-700">
                 <span>{t.voucher.listedPriceLabel}</span>
                 <span className="font-semibold text-pine-900">
@@ -342,7 +342,7 @@ export function VoucherBox({
               href={primaryOutboundUrl}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-teal-400 hover:bg-teal-400 text-pine-950 text-sm font-bold transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full py-3 px-4 bg-teal-400 hover:bg-teal-300 text-pine-950 text-sm font-bold transition-colors"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>

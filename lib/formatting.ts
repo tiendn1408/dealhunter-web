@@ -232,7 +232,7 @@ export function detectPlatform(platformOrUrl?: string): {
 } {
   const str = (platformOrUrl || "").toLowerCase();
 
-  if (str.includes("shopee")) {
+  if (str.includes("shopee") || str.includes("shp.ee") || str.includes("shope.ee")) {
     return {
       id: "shopee",
       name: "Shopee",
@@ -241,7 +241,7 @@ export function detectPlatform(platformOrUrl?: string): {
       badgeBorder: "border-orange-200",
     };
   }
-  if (str.includes("lazada")) {
+  if (str.includes("lazada") || str.includes("lzd.co")) {
     return {
       id: "lazada",
       name: "Lazada",

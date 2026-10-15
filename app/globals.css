@@ -59,15 +59,15 @@ a {
 
 /* The one shape: the logo's price tag, its top-left corner cut. --cut sets the size of the cut. */
 @layer components {
+  /* Buttons and chips: a pill. (Kept as .cut so every existing button follows the new shape.) */
   .cut {
-    --cut: 14px;
-    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+    border-radius: 9999px;
+  }
+  /* Cards: generous concentric radius (kept as .tag-shape for existing cards) */
+  .tag-shape {
+    border-radius: 1.5rem;
   }
 }
-.tag-shape {
-  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px);
-}
-
 
 /* Loading placeholder: a flat block that breathes (no gradient) */
 @keyframes chalk-breathe {
@@ -117,12 +117,15 @@ a {
 /* Section parts enter once as they scroll in (see components/home/Reveal.tsx); visible without script */
 .reveal-ready [data-reveal] {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(40px);
+  filter: blur(6px);
+  transition: opacity 0.9s cubic-bezier(0.32, 0.72, 0, 1), transform 0.9s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.9s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .reveal-ready [data-reveal].is-in {
   opacity: 1;
   transform: none;
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -139,6 +142,7 @@ a {
   .reveal-ready [data-reveal] {
     opacity: 1;
     transform: none;
+    filter: none;
   }
 }
 
@@ -150,4 +154,42 @@ a {
   .faq-drawer {
     --tab-w: 200px;
   }
+}
+
+/* Soft range slider (bento target card): the track and its filled part are drawn behind the input */
+.soft-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+.soft-range::-webkit-slider-runnable-track {
+  height: 8px;
+  background: transparent;
+}
+.soft-range::-moz-range-track {
+  height: 8px;
+  background: transparent;
+}
+.soft-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 0 0 6px rgba(60, 207, 176, 0.35), 0 6px 16px -4px rgba(10, 56, 50, 0.4);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.soft-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.soft-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 0 0 6px rgba(60, 207, 176, 0.35), 0 6px 16px -4px rgba(10, 56, 50, 0.4);
 }

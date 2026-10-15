@@ -22,7 +22,7 @@ export function PlatformBadge({ platformOrUrl, className = "" }: PlatformBadgePr
   const { id, name } = detectPlatform(platformOrUrl);
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-[13px] font-bold ${PLATFORM_FILL[id] || PLATFORM_FILL.other} ${className}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[13px] font-bold ${PLATFORM_FILL[id] || PLATFORM_FILL.other} ${className}`}>
       {name}
     </span>
   );
@@ -38,11 +38,11 @@ export function StatusBadge({ active, className = "" }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[13px] font-semibold ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold ${
         active ? "bg-teal-200 text-pine-950" : "bg-pine-50 text-pine-700"
       } ${className}`}
     >
-      <span className={`h-2 w-2 ${active ? "bg-teal-500" : "bg-pine-300"}`} />
+      <span className={`h-2 w-2 rounded-full ${active ? "bg-teal-500" : "bg-pine-300"}`} />
       {active ? t.tracking.statusTracking : t.tracking.statusPaused}
     </span>
   );

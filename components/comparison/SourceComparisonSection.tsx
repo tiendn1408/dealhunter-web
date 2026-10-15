@@ -10,6 +10,7 @@ import {
 } from "@/lib/hooks";
 import { MatchSuggestion } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { PlatformBadge } from "@/components/ui/Badge";
 import { detectPlatform, formatVND, formatRelativeTime, isKnownPrice } from "@/lib/formatting";
 import {
@@ -122,11 +123,11 @@ export function SourceComparisonSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white p-6 sm:p-8 space-y-4 chalk-skeleton">
+      <div className="bg-white p-6 sm:p-8 space-y-4 chalk-skeleton rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="h-5 w-44 bg-pine-100" />
-            <div className="h-3 w-64 bg-pine-50" />
+            <div className="h-3 w-64 rounded-full bg-pine-50" />
           </div>
           <div className="h-8 w-28 bg-pine-100" />
         </div>
@@ -134,7 +135,7 @@ export function SourceComparisonSection({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-16 w-full bg-pine-50"
+              className="h-16 w-full rounded-2xl bg-pine-50"
             />
           ))}
         </div>
@@ -144,7 +145,7 @@ export function SourceComparisonSection({
 
   if (error) {
     return (
-      <div className="bg-white p-6 sm:p-8 space-y-3">
+      <div className="bg-white p-6 sm:p-8 space-y-3 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-pine-900">
             {t.comparison.title}
@@ -152,13 +153,13 @@ export function SourceComparisonSection({
           <button
             type="button"
             onClick={onLinkSource}
-            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors"
+            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors rounded-full"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.comparison.addAnotherPlatform}</span>
           </button>
         </div>
-        <div className="p-4 bg-pine-50 text-pine-700 text-[13px] flex items-center gap-2">
+        <div className="p-4 bg-pine-50 text-pine-700 text-[13px] flex items-center gap-2 rounded-2xl">
           <AlertCircle className="w-4 h-4 shrink-0 text-pine-700" />
           <span>{t.comparison.loadError}</span>
         </div>
@@ -171,7 +172,7 @@ export function SourceComparisonSection({
     const errorMessage =
       suggestionActionError || (suggestionsError ? (suggestionsError as Error).message : null);
     const errorBox = errorMessage && (
-      <div className="p-3 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2">
+      <div className="p-3 bg-[#FBE3E4] text-marker-deep text-[13px] flex items-center justify-between gap-2 rounded-2xl">
         <span className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 text-marker-deep" />
           <span>{errorMessage}</span>
@@ -193,7 +194,7 @@ export function SourceComparisonSection({
     return (
       <>
         {errorBox}
-        <div className="bg-pine-50 p-4 sm:p-5 space-y-3">
+        <div className="bg-pine-50 p-4 sm:p-5 space-y-3 rounded-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-pine-900" />
@@ -201,7 +202,7 @@ export function SourceComparisonSection({
                 {t.comparison.suggestionsTitle}
               </h3>
             </div>
-            <span className="text-[13px] font-semibold text-pine-700 bg-white px-2 py-0.5">
+            <span className="text-[13px] font-semibold text-pine-700 bg-white rounded-full px-2.5 py-1">
               {suggestions.length}
             </span>
           </div>
@@ -213,12 +214,12 @@ export function SourceComparisonSection({
             {suggestions.map((sugg) => (
               <div
                 key={sugg.id}
-                className="bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                className="bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors rounded-2xl"
               >
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <PlatformBadge platformOrUrl={sugg.candidate_platform} />
-                    <span className="text-[13px] font-bold px-2 py-0.5 bg-teal-200 text-pine-950">
+                    <span className="text-[13px] font-bold rounded-full px-2.5 py-1 bg-teal-200 text-pine-950">
                       {formatText(t.comparison.matchConfidence, {
                         percent: Math.round(sugg.match_score * 100),
                       })}
@@ -244,7 +245,7 @@ export function SourceComparisonSection({
                     type="button"
                     onClick={() => handleAccept(sugg)}
                     disabled={acceptingId === sugg.id}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors disabled:opacity-50 rounded-full"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>
@@ -256,7 +257,7 @@ export function SourceComparisonSection({
                   <button
                     type="button"
                     onClick={() => handleDismiss(sugg)}
-                    className="flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900 hover:bg-pine-50 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center text-pine-700 hover:text-pine-900 hover:bg-pine-50 transition-colors rounded-full"
                     title={t.comparison.dismissSuggestionBtn}
                   >
                     <X className="w-4 h-4" />
@@ -275,10 +276,10 @@ export function SourceComparisonSection({
     const primarySource = sortedSources[0];
 
     return (
-      <div className="bg-white p-6 sm:p-8 space-y-4">
+      <div className="bg-white p-6 sm:p-8 space-y-4 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-full bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
               <Store className="w-5 h-5 text-pine-900" />
             </div>
             <div>
@@ -296,7 +297,7 @@ export function SourceComparisonSection({
               type="button"
               onClick={handleTriggerAutoMatch}
               disabled={isScanning}
-              className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors disabled:opacity-50 rounded-full"
             >
               <Search className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
               <span>{isScanning ? t.comparison.autoMatching : t.comparison.autoMatchBtn}</span>
@@ -304,7 +305,7 @@ export function SourceComparisonSection({
             <button
               type="button"
               onClick={onLinkSource}
-              className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors rounded-full"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t.comparison.linkSourceBtn}</span>
@@ -313,19 +314,19 @@ export function SourceComparisonSection({
         </div>
 
         {scanMessage && (
-          <div className="bg-teal-200 p-3 text-[15px] font-medium text-pine-950 flex items-center gap-2 animate-fadeIn">
+          <div className="bg-teal-200 p-3 text-[15px] font-medium text-pine-950 flex items-center gap-2 animate-fadeIn rounded-2xl">
             <Sparkles className="w-4 h-4 shrink-0" />
             <span>{scanMessage}</span>
           </div>
         )}
         {scanIncomplete && (
-          <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2">
+          <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2 rounded-2xl">
             <AlertCircle className="w-4 h-4 text-warn-ink shrink-0" />
             <span>{t.comparison.autoMatchIncomplete}</span>
           </div>
         )}
 
-        <div className="p-5 bg-pine-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-5 bg-pine-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap text-[13px] text-pine-700">
               <span>{t.comparison.singleSourceTracking}</span>
@@ -343,7 +344,7 @@ export function SourceComparisonSection({
           <button
             type="button"
             onClick={onLinkSource}
-            className="inline-flex min-h-[44px] items-center justify-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors shrink-0"
+            className="inline-flex min-h-[44px] items-center justify-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors shrink-0 rounded-full"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.comparison.linkSourceBtn}</span>
@@ -360,11 +361,11 @@ export function SourceComparisonSection({
   const bestDeal = comparison.best_deal;
 
   return (
-    <div className="bg-white p-6 sm:p-8 space-y-5">
+    <div className="bg-white p-6 sm:p-8 space-y-5 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full bg-pine-50 text-pine-900 flex items-center justify-center shrink-0">
             <Store className="w-5 h-5 text-pine-900" />
           </div>
           <div>
@@ -382,7 +383,7 @@ export function SourceComparisonSection({
             type="button"
             onClick={handleTriggerAutoMatch}
             disabled={isScanning}
-            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors disabled:opacity-50"
+            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-50 hover:bg-pine-100 text-pine-900 text-[13px] font-semibold transition-colors disabled:opacity-50 rounded-full"
           >
             <Search className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
             <span>{isScanning ? t.comparison.autoMatching : t.comparison.autoMatchBtn}</span>
@@ -390,7 +391,7 @@ export function SourceComparisonSection({
           <button
             type="button"
             onClick={onLinkSource}
-            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors self-start sm:self-auto"
+            className="inline-flex min-h-[44px] items-center gap-1.5 px-4 bg-pine-900 hover:bg-pine-800 text-chalk text-[13px] font-semibold transition-colors self-start sm:self-auto rounded-full"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.comparison.addAnotherPlatform}</span>
@@ -399,13 +400,13 @@ export function SourceComparisonSection({
       </div>
 
       {scanMessage && (
-        <div className="bg-teal-200 p-3 text-[15px] font-medium text-pine-950 flex items-center gap-2 animate-fadeIn">
+        <div className="bg-teal-200 p-3 text-[15px] font-medium text-pine-950 flex items-center gap-2 animate-fadeIn rounded-2xl">
           <Sparkles className="w-4 h-4 shrink-0" />
           <span>{scanMessage}</span>
         </div>
       )}
       {scanIncomplete && (
-        <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2">
+        <div className="p-3 bg-warn-soft text-warn-ink text-[13px] font-medium flex items-center gap-2 rounded-2xl">
           <AlertCircle className="w-4 h-4 text-warn-ink shrink-0" />
           <span>{t.comparison.autoMatchIncomplete}</span>
         </div>
@@ -416,10 +417,10 @@ export function SourceComparisonSection({
 
       {/* 3. Best Deal Summary Banner */}
       {bestDeal && bestDeal.saving_vs_most_expensive > 0 && (
-        <div className="bg-teal-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-teal-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-bold px-2 py-0.5 bg-teal-400 text-pine-950 flex items-center gap-1">
+              <span className="text-[13px] font-bold rounded-full px-2.5 py-1 bg-teal-400 text-pine-950 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 <span>{t.comparison.bestDealTitle}</span>
               </span>
@@ -453,24 +454,24 @@ export function SourceComparisonSection({
           return (
             <div
               key={source.source_id}
-              className={`p-4 sm:p-5 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                isWinningDeal
-                  ? "bg-teal-200"
-                    : "bg-pine-50 hover:bg-pine-50"
-                    }`}
+              className={`rounded-[1.5rem] p-4 sm:p-5 transition-colors duration-500 ease-spring flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                isWinningDeal ? "bg-teal-200/70 ring-1 ring-teal-400/40" : "bg-paper hover:bg-pine-50"
+              }`}
             >
-              {/* Left Column: Platform, Shop Name, Status */}
+              {/* Left Column: product photo, Platform, Shop Name, Status */}
+              <div className="flex min-w-0 flex-1 items-start gap-3.5">
+              <ProductImage src={source.image_url} alt={source.seller_name || source.platform} size={44} />
               <div className="space-y-1.5 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <PlatformBadge platformOrUrl={source.platform} />
                   {isWinningDeal && (
-                    <span className="text-[13px] font-bold px-2 py-0.5 bg-teal-200 text-pine-950 flex items-center gap-1">
+                    <span className="text-[13px] font-bold rounded-full px-2.5 py-1 bg-teal-200 text-pine-950 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3 text-teal-600" />
                       <span>{t.comparison.cheapest}</span>
                     </span>
                   )}
                   <span
-                    className={`text-[13px] font-semibold px-2 py-0.5 ${
+                    className={`text-[13px] font-semibold rounded-full px-2.5 py-1 ${
                       !hasPrice
                         ? "bg-warn-soft text-warn-ink"
                           : source.in_stock === false
@@ -517,6 +518,7 @@ export function SourceComparisonSection({
                   </div>
                 )}
               </div>
+              </div>
 
               {/* Right Column: Effective Price & Buy Link Button */}
               <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 ">
@@ -538,14 +540,14 @@ export function SourceComparisonSection({
                     href={source.affiliate_url || source.canonical_url}
                     target="_blank"
                     rel="sponsored noopener noreferrer"
-                    className={`inline-flex min-h-[44px] items-center gap-1.5 px-4 text-[13px] font-bold transition-colors ${
-                      isWinningDeal
-                        ? "bg-pine-900 hover:bg-pine-800 text-chalk"
-                          : "bg-white hover:bg-pine-50 text-pine-700"
-                          }`}
+                    className={`group/buy inline-flex min-h-[44px] items-center gap-2 rounded-full py-1 pl-4 pr-1 text-[14px] font-bold transition-[transform,background-color] duration-500 ease-spring active:scale-[0.98] ${
+                      isWinningDeal ? "bg-pine-900 text-chalk hover:bg-pine-800" : "bg-white text-pine-900 shadow-soft hover:bg-pine-50"
+                    }`}
                   >
                     <span>{formatText(t.landing.buyOn, { platform: detectPlatform(source.platform || source.canonical_url).name })}</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-500 ease-spring group-hover/buy:-translate-y-px group-hover/buy:translate-x-0.5 ${isWinningDeal ? "bg-white/10" : "bg-pine-900/[0.06]"}`}>
+                      <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
                   </a>
                 ) : null}
               </div>

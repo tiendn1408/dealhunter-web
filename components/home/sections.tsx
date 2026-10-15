@@ -3,345 +3,392 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowDown, ArrowRight, ArrowUp, MessageCircle, Target } from "lucide-react";
+import { ArrowDown, BellRing, Check, ChartNoAxesColumn, Link2, MessageCircle, Plus, Puzzle, UserRound } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { formatVND } from "@/lib/formatting";
-import { AlertFragment, Chip, ExampleLabel, LinkFragment, PriceCardFragment } from "@/components/home/fragments";
+import { Bezel, PillButton } from "@/components/ui/Bezel";
+import { StruckPrice, WrittenPrice } from "@/components/PriceTag";
+import { Chip, ExampleLabel, PLATFORM_CHIP, ProductThumb, StepChart } from "@/components/home/fragments";
 
-/* ── How it works: drag through the stages ─────────────────────────────────────────────────
-   One real range input drives both halves: the clause on the left, the product's own interface in
-   the matching state on the right. */
-export function HowItWorks() {
-  const { t } = useLanguage();
-  const [step, setStep] = useState(0);
-  const stages = [
-    { name: t.landing.howStage1, clause: t.landing.howClause1, desc: t.landing.howDesc1, fragment: <LinkFragment /> },
-    { name: t.landing.howStage2, clause: t.landing.howClause2, desc: t.landing.howDesc2, fragment: <PriceCardFragment stage="price" /> },
-    { name: t.landing.howStage3, clause: t.landing.howClause3, desc: t.landing.howDesc3, fragment: <PriceCardFragment stage="history" /> },
-    { name: t.landing.howStage4, clause: t.landing.howClause4, desc: t.landing.howDesc4, fragment: <AlertFragment /> },
-  ];
-  const fill = (step / (stages.length - 1)) * 100;
+/* Illustration data for the bento (labelled on every card that shows it). */
+const HEADPHONE_HISTORY = [1590000, 1590000, 1550000, 1550000, 1490000, 1490000, 1450000, 1390000, 1390000, 1290000];
+const RANGES = { d7: 3, d30: 6, d90: HEADPHONE_HISTORY.length } as const;
 
+function CardHead({ icon: Icon, title, text, dark }: { icon: typeof Link2; title: string; text: string; dark?: boolean }) {
   return (
-    <section aria-labelledby="how-title" className="relative grid md:grid-cols-2">
-      <h2 id="how-title" className="sr-only">
-        {t.landing.howTitle}
-      </h2>
-
-      {/* The product, in the state of the current stage */}
-      <div className="relative flex min-h-[46svh] items-center justify-center overflow-hidden bg-teal-400 px-5 py-12 md:order-2 md:min-h-[76svh] md:px-10">
-        <div className="grid w-full max-w-[480px] [grid-template-areas:'s'] [grid-template-columns:minmax(0,1fr)] *:min-w-0 *:[grid-area:s]">
-          {stages.map((s, i) => (
-            <div
-              key={i}
-              aria-hidden={i !== step}
-              className={`self-center transition-[opacity,transform,visibility] duration-200 ${
-                i === step ? "visible opacity-100" : "invisible pointer-events-none translate-y-2 opacity-0"
-              }`}
-            >
-              {s.fragment}
-            </div>
-          ))}
-        </div>
+    <div className="flex items-start gap-3.5">
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+          dark ? "bg-white/10 text-teal-300" : "bg-teal-200/60 text-pine-900"
+        }`}
+      >
+        <Icon className="h-5 w-5" strokeWidth={1.5} />
+      </span>
+      <div>
+        <h3 className="text-[19px] font-bold leading-snug tracking-[-0.01em]">{title}</h3>
+        <p className={`mt-1 text-[15px] leading-relaxed ${dark ? "text-chalk/80" : "text-pine-700"}`}>{text}</p>
       </div>
+    </div>
+  );
+}
 
-      {/* The slider sits on the seam on a phone and crosses both fields on a desktop */}
-      <div className="bg-pine-950 px-5 pb-3 pt-6 md:order-3 md:col-span-2 md:px-10 md:pb-6 md:pt-8">
-        <label htmlFor="how-range" className="sr-only">
-          {t.landing.howSlider}
-        </label>
-        <div className="relative">
-          <div aria-hidden className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 bg-pine-200">
-            <div className="h-full bg-teal-400 transition-[width] duration-200" style={{ width: `${fill}%` }} />
+/* ── Bento: each capability as a working piece of the product ────────────────────────────── */
+function HistoryCard() {
+  const { t } = useLanguage();
+  const [range, setRange] = useState<keyof typeof RANGES>("d90");
+  const checks = HEADPHONE_HISTORY.slice(-RANGES[range]);
+  const now = checks[checks.length - 1];
+  const tabs: [keyof typeof RANGES, string][] = [
+    ["d7", t.detail.range7d],
+    ["d30", t.detail.range30d],
+    ["d90", t.detail.range90d],
+  ];
+  return (
+    <Bezel className="md:col-span-2 lg:col-span-7 lg:row-span-2" coreClassName="flex flex-col p-6 sm:p-8">
+      <CardHead icon={ChartNoAxesColumn} title={t.landing.b1Title} text={t.landing.b1Text} />
+      <div className="mt-7 flex flex-1 flex-col rounded-[1.4rem] bg-paper p-5 sm:p-6">
+        <div className="flex items-center gap-4">
+          <ProductThumb src="/products/headphones.webp" alt={t.landing.prodHeadphones} size={72} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[16px] font-bold">{t.landing.prodHeadphones}</p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5">
+              <WrittenPrice className="text-[28px]">{formatVND(now)}</WrittenPrice>
+              <StruckPrice className="text-[15px]">{formatVND(checks[0])}</StruckPrice>
+            </div>
           </div>
-          <input
-            id="how-range"
-            type="range"
-            min={0}
-            max={stages.length - 1}
-            step={1}
-            value={step}
-            onChange={(e) => setStep(Number(e.target.value))}
-            aria-valuetext={stages[step].name}
-            className="stage-range relative w-full"
-          />
+          <ExampleLabel className="hidden sm:inline-flex" />
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-y-1 md:grid-cols-4">
-          {stages.map((s, i) => (
+        <div className="mt-5 inline-flex w-fit rounded-full bg-white p-1 shadow-soft" role="tablist">
+          {tabs.map(([k, label]) => (
             <button
-              key={i}
+              key={k}
               type="button"
-              onClick={() => setStep(i)}
-              className={`min-h-[44px] text-left text-[15px] font-semibold transition-colors md:text-base ${
-                i === step ? "text-chalk" : "text-chalk/70 hover:text-chalk"
+              role="tab"
+              aria-selected={range === k}
+              onClick={() => setRange(k)}
+              className={`min-h-[36px] whitespace-nowrap rounded-full px-3 text-[14px] font-semibold transition-colors duration-300 ease-spring sm:px-4 ${
+                range === k ? "bg-pine-900 text-chalk" : "text-pine-700 hover:text-pine-950"
               }`}
             >
-              {s.name}
+              {label}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* The clause: the heading of the current stage */}
-      <div className="bg-pine-900 px-5 pb-14 pt-10 text-chalk md:order-1 md:px-10 md:pb-16 md:pt-24">
-        <div className="grid [grid-template-areas:'s'] [grid-template-columns:minmax(0,1fr)] *:min-w-0 *:[grid-area:s]">
-          {stages.map((s, i) => (
-            <div
-              key={i}
-              aria-hidden={i !== step}
-              className={`transition-[opacity,visibility] duration-200 ${i === step ? "visible opacity-100" : "invisible pointer-events-none opacity-0"}`}
-            >
-              <p className="max-w-[13ch] text-[9vw] font-extrabold leading-[1.02] tracking-[-0.035em] md:text-[clamp(40px,4.6vw,72px)]">
-                {s.clause}
-              </p>
-              <p className="mt-6 max-w-[40ch] text-[17px] leading-relaxed text-chalk/90 md:text-lg">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 text-[15px] text-chalk/75">{t.landing.howNote}</p>
-      </div>
-    </section>
-  );
-}
-
-/* ── Features: one paragraph, the capabilities' own controls set inline ──────────────────── */
-function Slot({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={`cut mx-[0.08em] inline-flex h-[2em] items-center gap-[0.3em] px-[0.6em] align-[-0.3em] text-[max(13px,0.5em)] font-bold leading-none tracking-normal [--cut:0.5em] [&_svg]:h-[1.1em] [&_svg]:w-[1.1em] ${className}`}
-    >
-      {children}
-    </span>
-  );
-}
-
-export function FeatureParagraph({ onStart }: { onStart: () => void }) {
-  const { t } = useLanguage();
-  return (
-    <section aria-labelledby="feat-title" className="bg-paper py-24 md:pb-16 md:pt-36">
-      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <h2 id="feat-title" className="sr-only">
-          {t.landing.featuresTitle}
-        </h2>
-        <p
-          data-reveal
-          className="max-w-[30ch] text-[24px] font-semibold leading-[1.32] tracking-[-0.015em] text-pine-900 md:max-w-[52ch] md:text-[clamp(26px,2.5vw,36px)]"
-        >
-          {t.landing.featA}
-          <Slot className="bg-teal-200 text-pine-950">
-            <ArrowDown className="h-3.5 w-3.5" strokeWidth={3} />
-            12%
-          </Slot>
-          {t.landing.featB}
-          <Slot className="bg-pine-900 text-chalk">
-            <Target className="h-3.5 w-3.5" />
-            {formatVND(1300000)}
-          </Slot>
-          {t.landing.featC}
-          <Slot className="bg-teal-600 text-white">
-            <MessageCircle className="h-3.5 w-3.5" />
-            Zalo
-          </Slot>
-          {t.landing.featD}
-          <Slot className="bg-white text-pine-900">
-            <span className="bg-[#F6DCCB] px-1 py-0.5 text-[#8A3510]">Shopee</span>
-            <span className="bg-[#DCE3F5] px-1 py-0.5 text-[#22357A]">Lazada</span>
-          </Slot>
-          {t.landing.featE}
-        </p>
-        <div data-reveal data-reveal-delay={90} className="mt-[72px] md:ml-[50%]">
-          <p className="max-w-[40ch] text-lg leading-relaxed text-pine-800">{t.landing.featuresNote}</p>
-          <button
-            type="button"
-            onClick={onStart}
-            className="cut mt-6 inline-flex min-h-[52px] items-center gap-2 bg-pine-900 px-6 text-[16px] font-bold text-chalk transition-colors hover:bg-pine-800"
-          >
-            {t.landing.featuresBtn}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Showcase: the Chrome extension, one capability at a time on the tag shape ───────────── */
-function ExtensionFragment({ item }: { item: number }) {
-  const { t } = useLanguage();
-  if (item === 0) {
-    // On the marketplace product page: the selling price, and DealHunter's badge beside it
-    return (
-      <div data-ui className="tag-shape w-full bg-white p-6 text-pine-900">
-        <div className="flex items-center justify-between">
-          <Chip className="bg-[#F6DCCB] text-[#8A3510]">shopee.vn</Chip>
-          <ExampleLabel />
-        </div>
-        <p className="mt-3 text-[17px] font-bold">{t.landing.sampleName}</p>
-        <p className="mt-3 text-[34px] font-extrabold tracking-tight text-[#C2410C]">₫1.290.000</p>
-        <div className="mt-4 flex items-center gap-3 bg-pine-900 p-3 text-chalk">
-          <Image src="/icon.png" alt="" width={28} height={28} />
-          <div className="text-[14px] leading-snug">
-            <p className="font-bold">DealHunter</p>
-            <p className="text-teal-300">{t.detail.lowest90dBadge}</p>
+        <StepChart checks={checks} draw className="mt-4 flex-1" height={190} />
+        <div className="mt-4 grid grid-cols-2 gap-3 text-[14px]">
+          <div className="rounded-2xl bg-white px-4 py-3">
+            <p className="text-pine-700">{t.landing.b1Low}</p>
+            <p className="mt-0.5 text-[17px] font-bold tabular-nums">{formatVND(Math.min(...checks))}</p>
+          </div>
+          <div className="rounded-2xl bg-white px-4 py-3">
+            <p className="text-pine-700">{t.landing.b1High}</p>
+            <p className="mt-0.5 text-[17px] font-bold tabular-nums">{formatVND(Math.max(...checks))}</p>
           </div>
         </div>
       </div>
-    );
-  }
+    </Bezel>
+  );
+}
+
+function TargetCard() {
+  const { t, formatText } = useLanguage();
+  const price = 1090000;
+  const [target, setTarget] = useState(950000);
+  const reached = price <= target;
+  const fill = ((target - 800000) / (1300000 - 800000)) * 100;
+  return (
+    <Bezel className="lg:col-span-5" coreClassName="flex flex-col p-6 sm:p-8">
+      <CardHead icon={BellRing} title={t.landing.b2Title} text={t.landing.b2Text} />
+      <div className="mt-6 flex items-center gap-4">
+        <ProductThumb src="/products/sneaker.jpg" alt={t.landing.prodSneaker} size={60} />
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-bold">{t.landing.prodSneaker}</p>
+          <p className="text-[14px] text-pine-700">
+            {t.landing.priceNow}: <span className="font-bold tabular-nums text-pine-900">{formatVND(price)}</span>
+          </p>
+        </div>
+      </div>
+      <div className="mt-6">
+        <div className="flex items-baseline justify-between">
+          <label htmlFor="bento-target" className="text-[14px] font-medium text-pine-700">
+            {t.landing.b2Your}
+          </label>
+          <WrittenPrice className="text-[24px]">{formatVND(target)}</WrittenPrice>
+        </div>
+        <div className="relative mt-3 h-8">
+          <div aria-hidden className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-pine-100">
+            <div className="h-full rounded-full bg-teal-400" style={{ width: `${fill}%` }} />
+          </div>
+          <input
+            id="bento-target"
+            type="range"
+            min={800000}
+            max={1300000}
+            step={10000}
+            value={target}
+            onChange={(e) => setTarget(Number(e.target.value))}
+            className="soft-range relative w-full"
+          />
+        </div>
+        <div
+          aria-live="polite"
+          className={`mt-4 flex items-center gap-2 rounded-2xl px-4 py-3 text-[15px] font-semibold transition-colors duration-500 ease-spring ${
+            reached ? "bg-teal-400 text-pine-950" : "bg-paper text-pine-800"
+          }`}
+        >
+          {reached ? <Check className="h-4 w-4" strokeWidth={2.25} /> : <ArrowDown className="h-4 w-4" strokeWidth={1.75} />}
+          {reached ? t.landing.b2Reached : formatText(t.landing.b2Gap, { gap: formatVND(price - target) })}
+        </div>
+      </div>
+    </Bezel>
+  );
+}
+
+function ZaloCard() {
+  const { t, formatText } = useLanguage();
+  return (
+    <Bezel className="lg:col-span-5" tone="pine" coreClassName="relative flex flex-col overflow-hidden p-6 sm:p-8">
+      <CardHead icon={MessageCircle} title={t.landing.b3Title} text={t.landing.b3Text} dark />
+      {/* A phone notification arriving, again and again */}
+      <div className="relative mt-6 flex-1">
+        <div className="mx-auto max-w-[360px] animate-toast-in rounded-[1.4rem] bg-white/95 p-4 text-pine-900 shadow-float">
+          <div className="flex items-center gap-2 text-[13px] text-pine-700">
+            <Image src="/icon.png" alt="" width={20} height={20} className="rounded-md" />
+            <span className="font-semibold text-pine-900">Zalo · DealHunter</span>
+            <span className="ml-auto">{t.landing.b3Now}</span>
+          </div>
+          <div className="mt-3 flex items-center gap-3">
+            <ProductThumb src="/products/sunglasses.webp" alt={t.landing.prodSunglasses} size={52} />
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold">{formatText(t.landing.sampleAlert, { price: formatVND(349000) })}</p>
+              <p className="truncate text-[14px] text-pine-700">{t.landing.prodSunglasses}</p>
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto mt-2 h-3 max-w-[320px] rounded-b-[1.2rem] bg-white/15" aria-hidden />
+        <p className="mt-4 text-center text-[13px] text-chalk/60">{t.landing.exampleLabel}</p>
+      </div>
+    </Bezel>
+  );
+}
+
+function CompareCard() {
+  const { t } = useLanguage();
+  const rows = [
+    { p: "Shopee", price: 1450000 },
+    { p: "Lazada", price: 1390000, best: true },
+    { p: "TikTok Shop", price: 1520000 },
+  ];
+  return (
+    <Bezel className="lg:col-span-4" coreClassName="flex flex-col p-6 sm:p-7">
+      <CardHead icon={ChartNoAxesColumn} title={t.landing.b4Title} text={t.landing.b4Text} />
+      <div className="mt-5 flex items-center gap-3">
+        <ProductThumb src="/products/keyboard.jpg" alt={t.landing.prodKeyboard} size={52} />
+        <p className="min-w-0 truncate text-[15px] font-bold">{t.landing.prodKeyboard}</p>
+      </div>
+      <ul className="mt-4 space-y-2">
+        {rows.map((r) => (
+          <li
+            key={r.p}
+            className={`flex items-center justify-between rounded-2xl px-3.5 py-2.5 ${r.best ? "bg-teal-200/60" : "bg-paper"}`}
+          >
+            <span className="flex items-center gap-2">
+              <Chip className={PLATFORM_CHIP[r.p]}>{r.p}</Chip>
+              {r.best && <span className="text-[13px] font-semibold text-pine-900">{t.landing.b4Best}</span>}
+            </span>
+            <span className="text-[16px] font-bold tabular-nums">{formatVND(r.price)}</span>
+          </li>
+        ))}
+      </ul>
+      <ExampleLabel className="mt-4 self-start" />
+    </Bezel>
+  );
+}
+
+function GuestCard() {
+  const { t } = useLanguage();
+  return (
+    <Bezel className="lg:col-span-4" tone="teal" coreClassName="flex flex-col justify-between p-6 sm:p-7">
+      <div className="flex items-start gap-3.5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pine-950/10">
+          <UserRound className="h-5 w-5" strokeWidth={1.5} />
+        </span>
+        <div>
+          <h3 className="text-[19px] font-bold leading-snug tracking-[-0.01em]">{t.landing.b5Title}</h3>
+          <p className="mt-1 text-[15px] leading-relaxed text-pine-900">{t.landing.b5Text}</p>
+        </div>
+      </div>
+      {/* What a guest gets: paste, and the answer right under it */}
+      <div className="mt-6 space-y-2" aria-hidden>
+        <div className="flex items-center gap-2 rounded-full bg-white/80 p-1.5 pl-4 text-[14px] text-pine-800 shadow-inner">
+          <Link2 className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+          <span className="truncate">shopee.vn/…</span>
+          <span className="ml-auto rounded-full bg-pine-900 px-4 py-2 font-bold text-chalk">{t.landing.checkBtn}</span>
+        </div>
+        <div className="flex items-center gap-3 rounded-[1.25rem] bg-white p-3 shadow-soft">
+          <ProductThumb src="/products/headphones.webp" alt="" size={44} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[14px] font-semibold">{t.landing.prodHeadphones}</p>
+            <p className="text-[13px] text-pine-700">
+              {t.landing.priceNow} · {t.landing.justChecked}
+            </p>
+          </div>
+          <span className="text-[16px] font-extrabold tabular-nums">{formatVND(1290000)}</span>
+        </div>
+      </div>
+    </Bezel>
+  );
+}
+
+function ExtensionCard() {
+  const { t } = useLanguage();
   const rows = [
     { name: t.landing.ext2, time: "00:00:00" },
     { name: t.landing.ext3, time: "12:00:00" },
     { name: t.landing.ext4, time: "08:00:00" },
   ];
   return (
-    <div data-ui className="tag-shape w-full bg-white p-5 text-pine-900">
-      <div className="flex items-center justify-between gap-3 pb-3">
-        <div className="flex items-center gap-2">
-          <Image src="/icon.png" alt="" width={24} height={24} />
-          <span className="text-[15px] font-bold">DealHunter Assistant</span>
-        </div>
-        <ExampleLabel />
-      </div>
-      <ul className="space-y-1.5">
-        {rows.map((r, i) => {
-          const on = i === item - 1;
-          return (
-            <li key={r.name} className={`flex items-center justify-between gap-3 p-3 transition-colors ${on ? "bg-teal-200" : "bg-pine-50"}`}>
-              <div>
-                <p className="text-[15px] font-bold">{r.name}</p>
-                <p className="text-[14px] tabular-nums text-pine-700">{r.time}</p>
-              </div>
-              <span className={`relative h-7 w-12 shrink-0 rounded-full ${on ? "bg-pine-900" : "bg-pine-200"}`}>
-                <span
-                  className={`absolute left-0 top-1 h-5 w-5 rounded-full bg-white transition-transform ${on ? "translate-x-6" : "translate-x-1"}`}
-                />
-              </span>
-            </li>
-          );
-        })}
+    <Bezel className="lg:col-span-4" coreClassName="flex flex-col p-6 sm:p-7">
+      <CardHead icon={Puzzle} title={t.landing.b6Title} text={t.landing.b6Text} />
+      <ul className="mt-5 space-y-2">
+        {rows.map((r) => (
+          <li key={r.name} className="flex items-center justify-between rounded-2xl bg-paper px-3.5 py-2.5">
+            <span className="text-[15px] font-semibold">
+              {r.name} <span className="ml-1 font-normal tabular-nums text-pine-700">{r.time}</span>
+            </span>
+            <span aria-hidden className="relative h-6 w-10 rounded-full bg-pine-900">
+              <span className="absolute right-1 top-1 h-4 w-4 rounded-full bg-teal-300" />
+            </span>
+          </li>
+        ))}
       </ul>
-    </div>
+    </Bezel>
   );
 }
 
-export function ExtensionShowcase() {
+export function FeatureBento() {
   const { t } = useLanguage();
-  const items = [
-    { name: t.landing.ext1, fact: t.landing.ext1Fact, ground: "bg-teal-400" },
-    { name: t.landing.ext2, fact: t.landing.ext2Fact, ground: "bg-pine-900" },
-    { name: t.landing.ext3, fact: t.landing.ext3Fact, ground: "bg-teal-200" },
-    { name: t.landing.ext4, fact: t.landing.ext4Fact, ground: "bg-pine-700" },
-  ];
-  const [sel, setSel] = useState(0);
-
   return (
-    <section aria-labelledby="ext-title" className="relative overflow-hidden bg-paper py-16 md:min-h-[100svh] md:py-0">
-      <div className="mx-auto max-w-[1440px] px-5 md:min-h-[100svh] md:px-10">
-        {/* The tag shape at stage size, the extension's own interface standing in front of it */}
-        <div className="relative mx-auto mt-10 aspect-square w-[86vw] md:absolute md:left-[58%] md:top-1/2 md:mt-0 md:w-[60vh] md:-translate-x-1/2 md:-translate-y-[46%]">
-          <div
-            className={`absolute inset-0 transition-colors duration-300 [clip-path:polygon(22%_0,100%_0,100%_100%,0_100%,0_22%)] ${items[sel].ground}`}
-          />
-          <div className="absolute inset-x-[5%] -top-[10%] grid [grid-template-areas:'s'] [grid-template-columns:minmax(0,1fr)] *:min-w-0 *:[grid-area:s]">
-            {items.map((_, i) => (
-              <div
-                key={i}
-                aria-hidden={i !== sel}
-                className={`transition-[opacity,transform,visibility] duration-300 ${i === sel ? "visible opacity-100" : "invisible pointer-events-none translate-y-3 opacity-0"}`}
-              >
-                <ExtensionFragment item={i} />
-              </div>
-            ))}
-          </div>
-          <p className="absolute left-[104%] top-[62%] hidden w-[260px] text-[17px] leading-relaxed text-pine-800 md:block">{items[sel].fact}</p>
-        </div>
-
-        <div className="mt-8 md:absolute md:bottom-[12vh] md:left-10 md:mt-0">
-          <h2 id="ext-title" className="text-[26px] font-bold leading-[1.15] tracking-tight text-pine-600 md:text-[clamp(28px,2.6vw,40px)]">
-            {t.landing.extTitle}
+    <section aria-labelledby="bento-title" className="py-24 md:py-32">
+      <div className="mx-auto max-w-[1240px] px-4 md:px-8">
+        <div data-reveal className="max-w-[640px]">
+          <h2 id="bento-title" className="text-[clamp(32px,4vw,52px)] font-extrabold leading-[1.05] tracking-[-0.035em] text-pine-950">
+            {t.landing.benTitle}
           </h2>
-          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1 md:block" role="tablist">
-            {items.map((it, i) => (
-              <li key={i} className="shrink-0">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={i === sel}
-                  onClick={() => setSel(i)}
-                  className={`flex min-h-[44px] items-center gap-3 py-1 text-left text-[24px] font-bold leading-[1.15] tracking-tight transition-colors md:text-[clamp(28px,2.6vw,40px)] ${
-                    i === sel ? "text-pine-950" : "text-pine-500 hover:text-pine-800"
-                  }`}
-                >
-                  <span aria-hidden className={`cut h-[0.42em] w-[0.42em] shrink-0 [--cut:0.14em] ${i === sel ? "bg-teal-400" : "bg-pine-200"}`} />
-                  {it.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-base leading-relaxed text-pine-800 md:hidden">{items[sel].fact}</p>
+          <p className="mt-4 text-[17px] leading-relaxed text-pine-800 md:text-lg">{t.landing.benSentence}</p>
+        </div>
+        <div data-reveal data-reveal-delay={120} className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 lg:grid-cols-12 lg:gap-5 [&>*]:min-w-0">
+          <HistoryCard />
+          <TargetCard />
+          <ZaloCard />
+          <CompareCard />
+          <GuestCard />
+          <ExtensionCard />
         </div>
       </div>
     </section>
   );
 }
 
-/* ── FAQ: index cards filed in a drawer, each with its own tab ───────────────────────────── */
+/* ── Three steps, on one dark panel ──────────────────────────────────────────────────────── */
+export function Steps() {
+  const { t } = useLanguage();
+  const steps = [
+    { icon: Link2, title: t.landing.step1, desc: t.landing.step1Desc },
+    { icon: ChartNoAxesColumn, title: t.landing.step2, desc: t.landing.step2Desc },
+    { icon: BellRing, title: t.landing.step3, desc: t.landing.step3Desc },
+  ];
+  return (
+    <section aria-labelledby="steps-title" className="px-4 md:px-8">
+      <div className="mx-auto max-w-[1240px] overflow-hidden rounded-[2.5rem] bg-pine-900 px-6 py-16 text-chalk md:px-14 md:py-20">
+        <h2 id="steps-title" data-reveal className="text-[clamp(30px,3.4vw,44px)] font-extrabold tracking-[-0.03em]">
+          {t.landing.howTitle}
+        </h2>
+        <ol className="mt-10 grid gap-4 md:grid-cols-3">
+          {steps.map((s, i) => (
+            <li
+              key={s.title}
+              data-reveal
+              data-reveal-delay={i * 90}
+              className="rounded-[1.75rem] bg-white/[0.06] p-6 ring-1 ring-white/10 transition-colors duration-500 ease-spring hover:bg-white/[0.09]"
+            >
+              <div className="flex items-center justify-between">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-400 text-pine-950">
+                  <s.icon className="h-5 w-5" strokeWidth={1.75} />
+                </span>
+                <span className="text-[15px] font-semibold tabular-nums text-chalk/50">{i + 1}/3</span>
+              </div>
+              <h3 className="mt-6 text-[20px] font-bold">{s.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-chalk/80">{s.desc}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/* ── FAQ: heading on the left, answers open in place on the right ─────────────────────────── */
 export function Faq() {
   const { t } = useLanguage();
   const items = [
-    [t.landing.faqTab1, t.landing.q1, t.landing.a1],
-    [t.landing.faqTab2, t.landing.q2, t.landing.a2],
-    [t.landing.faqTab3, t.landing.q3, t.landing.a3],
-    [t.landing.faqTab4, t.landing.q4, t.landing.a4],
-    [t.landing.faqTab5, t.landing.q5, t.landing.a5],
-    [t.landing.faqTab6, t.landing.q6, t.landing.a6],
-    [t.landing.faqTab7, t.landing.q7, t.landing.a7],
+    [t.landing.q1, t.landing.a1],
+    [t.landing.q2, t.landing.a2],
+    [t.landing.q3, t.landing.a3],
+    [t.landing.q4, t.landing.a4],
+    [t.landing.q5, t.landing.a5],
+    [t.landing.q6, t.landing.a6],
+    [t.landing.q7, t.landing.a7],
   ];
-  const tones = ["bg-pine-900 text-chalk", "bg-teal-400 text-pine-950", "bg-pine-100 text-pine-950"];
   const [open, setOpen] = useState(0);
-  const last = items.length - 1;
-
   return (
-    <section aria-labelledby="faq-title" className="faq-drawer bg-white py-24 md:py-36">
-      <div className="mx-auto max-w-[960px] px-5 md:px-10">
+    <section aria-labelledby="faq-title" className="py-24 md:py-32">
+      <div className="mx-auto grid max-w-[1240px] gap-10 px-4 md:px-8 lg:grid-cols-12">
         <h2
           id="faq-title"
           data-reveal
-          className="text-[9vw] font-extrabold leading-none tracking-[-0.035em] text-pine-900 md:text-[clamp(40px,4vw,60px)]"
+          className="text-[clamp(30px,3.4vw,44px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-pine-950 lg:sticky lg:top-28 lg:col-span-4 lg:self-start"
         >
           {t.landing.faqTitle}
         </h2>
-        <div className="mt-12">
-          {items.map(([tab, q, a], i) => {
+        <div className="space-y-3 lg:col-span-8">
+          {items.map(([q, a], i) => {
             const isOpen = open === i;
-            const tone = tones[i % tones.length];
             return (
-              <div key={i} data-reveal data-reveal-delay={i * 50}>
-                {/* the tab steps right card by card, like index cards filed in a drawer */}
-                <div
-                  className={`cut flex h-10 w-[var(--tab-w)] items-center px-4 text-[15px] font-bold [--cut:12px] md:text-base ${tone}`}
-                  style={{ marginLeft: `calc(${i} * (100% - var(--tab-w)) / ${last})` }}
+              // The reveal class lives on a wrapper whose className never changes: React rewriting the
+              // card's className on open would otherwise drop it and hide the card again.
+              <div key={i} data-reveal data-reveal-delay={i * 40}>
+              <div
+                className={`rounded-[1.5rem] ring-1 transition-colors duration-500 ease-spring ${
+                  isOpen ? "bg-white shadow-soft ring-pine-900/[0.06]" : "bg-white/60 ring-pine-900/[0.05] hover:bg-white"
+                }`}
+              >
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-a-${i}`}
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  className="flex min-h-[64px] w-full items-center justify-between gap-4 px-6 py-4 text-left text-[17px] font-semibold text-pine-950"
                 >
-                  <span className="truncate">{tab}</span>
-                </div>
-                <div className={tone}>
-                  <button
-                    type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={`faq-a-${i}`}
-                    onClick={() => setOpen(isOpen ? -1 : i)}
-                    className="flex min-h-[56px] w-full items-center justify-between gap-4 px-5 py-3 text-left text-[17px] font-semibold md:px-7 md:text-xl"
+                  {q}
+                  <span
+                    aria-hidden
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-[transform,background-color] duration-500 ease-spring ${
+                      isOpen ? "rotate-45 bg-pine-900 text-chalk" : "bg-pine-50 text-pine-900"
+                    }`}
                   >
-                    {q}
-                    <span aria-hidden className={`text-2xl font-light transition-transform duration-200 ${isOpen ? "rotate-45" : ""}`}>
-                      +
-                    </span>
-                  </button>
-                  <div id={`faq-a-${i}`} hidden={!isOpen} className="px-5 pb-7 md:px-7">
-                    <p className="max-w-[50ch] text-base leading-relaxed md:text-[17px]">{a}</p>
+                    <Plus className="h-4 w-4" strokeWidth={1.75} />
+                  </span>
+                </button>
+                <div
+                  id={`faq-a-${i}`}
+                  className={`grid transition-[grid-template-rows] duration-500 ease-spring ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                >
+                  <div className="overflow-hidden">
+                    <p className="max-w-[60ch] px-6 pb-6 text-[16px] leading-relaxed text-pine-800">{a}</p>
                   </div>
                 </div>
+              </div>
               </div>
             );
           })}
@@ -351,55 +398,65 @@ export function Faq() {
   );
 }
 
-/* ── Close: a sentence with a blank, and the blank is the paste field ────────────────────── */
+/* ── Closing: the question again, with the paste field ───────────────────────────────────── */
 export function Closing({ onSubmit }: { onSubmit: (url: string) => void }) {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
   return (
-    <section aria-labelledby="close-title" className="bg-pine-950 pb-8 pt-24 text-chalk md:pb-12 md:pt-40">
-      <form
-        className="mx-auto max-w-[1440px] px-5 md:px-10"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (value.trim()) onSubmit(value.trim());
-        }}
-      >
-        <h2 id="close-title" className="text-[9vw] font-extrabold leading-[1.05] tracking-[-0.035em] md:text-[clamp(44px,5.6vw,88px)]">
-          {t.landing.ctaLead}
-        </h2>
-        <div className="mt-6 flex flex-col gap-2 text-[9vw] font-extrabold leading-none tracking-[-0.035em] md:flex-row md:text-[clamp(44px,5.6vw,88px)]">
-          <label htmlFor="close-url" className="sr-only">
-            {t.landing.inputLabel}
-          </label>
-          <input
-            id="close-url"
-            type="url"
-            inputMode="url"
-            required
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={t.landing.inputPlaceholder}
-            className="cut h-14 w-full bg-pine-800 px-5 text-[17px] font-semibold tracking-normal text-chalk placeholder:text-chalk/70 focus:outline-none md:h-[1.2em] md:w-[min(640px,52vw)] md:text-[max(17px,0.3em)] [--cut:16px]"
-          />
-          <button
-            type="submit"
-            className="cut h-[1.2em] bg-teal-400 px-[0.35em] text-left text-pine-950 transition-colors hover:bg-teal-300 [--cut:0.25em]"
+    <section aria-labelledby="close-title" className="px-4 pb-24 md:px-8 md:pb-32">
+      <div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[2.5rem] bg-teal-400 px-6 py-16 text-pine-950 md:px-14 md:py-20">
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-teal-200/60 blur-3xl" />
+        <div className="relative grid items-end gap-8 lg:grid-cols-2">
+          <div>
+            <h2 id="close-title" data-reveal className="text-[clamp(30px,3.6vw,48px)] font-extrabold leading-[1.08] tracking-[-0.03em]">
+              {t.landing.ctaTitle}
+            </h2>
+            <p data-reveal data-reveal-delay={80} className="mt-4 text-[17px] text-pine-900">
+              {t.landing.ctaSentence}
+            </p>
+          </div>
+          <form
+            data-reveal
+            data-reveal-delay={140}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (value.trim()) onSubmit(value.trim());
+            }}
+            className="flex flex-col gap-2 rounded-[2rem] bg-white p-2 shadow-float sm:flex-row sm:items-center sm:rounded-full"
           >
-            {t.landing.ctaBtn}
-          </button>
+            <label htmlFor="close-url" className="sr-only">
+              {t.landing.inputLabel}
+            </label>
+            <input
+              id="close-url"
+              type="url"
+              inputMode="url"
+              required
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={t.landing.inputPlaceholder}
+              className="h-12 min-w-0 flex-1 rounded-full bg-transparent px-4 text-[16px] text-pine-950 placeholder:text-pine-700 focus:outline-none"
+            />
+            <PillButton type="submit" tone="pine">
+              {t.landing.checkBtn}
+            </PillButton>
+          </form>
         </div>
-        <p className="mt-6 text-base text-chalk/75">{t.landing.ctaSentence}</p>
-      </form>
+      </div>
     </section>
   );
 }
 
-/* ── Footer: the name built from tag-shaped blocks ───────────────────────────────────────── */
+const CREDITS = [
+  { title: "Isolated Headphones", by: "rawpixel", licence: "CC0", href: "https://www.rawpixel.com/image/5967923/isolated-headphones" },
+  { title: "Michael Kors Colby Sneaker", by: "SPERA.de", licence: "CC BY 2.0", href: "https://commons.wikimedia.org/w/index.php?curid=39515465" },
+  { title: "Keychron K4 mechanical keyboard", by: "iMoD Official", licence: "CC BY 3.0", href: "https://commons.wikimedia.org/w/index.php?curid=135813879" },
+  { title: "Free sunglasses isolated white background", by: "rawpixel", licence: "CC0", href: "https://www.rawpixel.com/image/5914424/photo-image-white-background-public-domain-free" },
+];
+
+/* ── Footer ──────────────────────────────────────────────────────────────────────────────── */
 export function SiteFooter() {
   const { t } = useLanguage();
-  const letters = "DEALHUNTER".split("");
-  const heights = [100, 72, 86, 64, 94, 78, 100, 68, 88, 74];
-  const grounds = ["bg-teal-400", "bg-teal-300", "bg-teal-500", "bg-teal-200", "bg-teal-400"];
   const menu = [
     { href: "/", label: t.nav.home },
     { href: "/tracking", label: t.nav.tracking },
@@ -407,46 +464,37 @@ export function SiteFooter() {
     { href: "/settings", label: t.nav.settings },
   ];
   return (
-    <footer className="bg-pine-950 pb-28 pt-16 text-chalk md:pb-10 md:pt-24">
-      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div aria-label="DealHunter" role="img" className="flex h-[22svh] items-end gap-1 md:h-[34svh]">
-          {letters.map((l, i) => (
-            <div
-              key={i}
-              data-reveal
-              data-reveal-delay={i * 40}
-              className={`cut flex flex-1 items-end justify-center pb-[0.4vw] text-[8.4vw] font-extrabold leading-[0.8] text-pine-950 [--cut:1.4vw] ${grounds[i % grounds.length]}`}
-              style={{ height: `${heights[i]}%` }}
-            >
-              <span aria-hidden>{l}</span>
+    <footer className="bg-pine-950 pb-28 pt-16 text-chalk md:pb-12">
+      <div className="mx-auto max-w-[1240px] px-4 md:px-8">
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <Image src="/icon.png" alt="" width={36} height={36} />
+              <span className="text-xl font-extrabold tracking-tight">DealHunter</span>
             </div>
-          ))}
-        </div>
-
-        <div className="mt-14 grid gap-10 md:grid-cols-12">
-          <nav aria-label="Chân trang" className="grid grid-cols-2 gap-x-6 gap-y-3 md:col-span-8 md:grid-cols-4">
+            <p className="mt-3 text-[15px] text-chalk/75">{t.landing.footerTagline}</p>
+          </div>
+          <nav aria-label="Chân trang" className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-4">
             {menu.map((m) => (
-              <Link key={m.href} href={m.href} className="w-fit text-[15px] font-semibold text-chalk/85 transition-colors hover:text-teal-300">
+              <Link key={m.href} href={m.href} className="text-[15px] font-medium text-chalk/80 transition-colors duration-300 hover:text-teal-300">
                 {m.label}
               </Link>
             ))}
           </nav>
-          <div className="space-y-1 text-[15px] text-chalk/85 md:col-span-4">
-            <p className="font-semibold text-chalk">{t.landing.footerTagline}</p>
-            <p>dealhunter.io.vn</p>
-          </div>
         </div>
-
-        <div className="mt-14 flex items-center justify-between gap-4 text-[14px] text-chalk/70">
-          <p>© {new Date().getFullYear()} DealHunter</p>
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            aria-label="Lên đầu trang"
-            className="cut inline-flex h-11 w-11 items-center justify-center bg-teal-400 text-pine-950 transition-colors hover:bg-teal-300 [--cut:10px]"
-          >
-            <ArrowUp className="h-5 w-5" />
-          </button>
+        <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-chalk/60 md:flex-row md:items-start md:justify-between">
+          <p>© {new Date().getFullYear()} DealHunter · dealhunter.io.vn</p>
+          <p className="max-w-[720px] md:text-right">
+            {t.landing.footerCredits}:{" "}
+            {CREDITS.map((c, i) => (
+              <span key={c.href}>
+                <a href={c.href} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-chalk hover:underline">
+                  {c.title}
+                </a>{" "}
+                ({c.by}, {c.licence}){i < CREDITS.length - 1 ? " · " : ""}
+              </span>
+            ))}
+          </p>
         </div>
       </div>
     </footer>

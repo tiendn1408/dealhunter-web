@@ -32,6 +32,7 @@ import {
 import { PlatformBadge } from "@/components/ui/Badge";
 import { DetailSkeleton } from "@/components/ui/LoadingSkeleton";
 import { PriceTag, StruckPrice, WrittenPrice } from "@/components/PriceTag";
+import { ProductImage } from "@/components/ui/ProductImage";
 import {
   AreaChart,
   Area,
@@ -238,7 +239,7 @@ export default function ProductDetailPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/tracking"
-          className="-ml-2 inline-flex min-h-[44px] items-center gap-2 px-2 text-[15px] font-semibold text-pine-900 transition-colors hover:bg-white"
+          className="-ml-2 inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 text-[15px] font-semibold text-pine-900 transition-colors hover:bg-white"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>{t.detail.backToList}</span>
@@ -246,12 +247,12 @@ export default function ProductDetailPage() {
 
         <div className="flex items-center gap-2">
           {copyNotice && (
-            <span className="bg-teal-200 px-2 py-1 text-[13px] font-semibold text-pine-950">{t.detail.copiedLink}</span>
+            <span className="rounded-full bg-teal-200 px-2.5 py-1 text-[13px] font-semibold text-pine-950">{t.detail.copiedLink}</span>
           )}
           <button
             type="button"
             onClick={handleShare}
-            className="flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white"
+            className="flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white rounded-full"
             title={t.detail.shareProduct}
             aria-label={t.detail.shareProduct}
           >
@@ -261,20 +262,21 @@ export default function ProductDetailPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep">
+        <div className="flex items-center gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep rounded-2xl">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* The product's own board: what it is on the left, its price tag on the right */}
-      <section className="grid gap-8 bg-pine-900 px-5 py-8 text-chalk sm:px-8 sm:py-10 lg:grid-cols-12 lg:items-center">
-        <div className="space-y-4 lg:col-span-7">
+      <section className="relative grid gap-8 overflow-hidden rounded-[2rem] bg-pine-900 px-5 py-8 text-chalk shadow-soft sm:px-8 sm:py-10 lg:grid-cols-12 lg:items-center">
+        <div aria-hidden className="pointer-events-none absolute -left-20 -top-24 h-80 w-80 rounded-full bg-teal-400/20 blur-3xl" />
+        <div className="relative space-y-4 lg:col-span-7">
           <div className="flex flex-wrap items-center gap-2">
             <PlatformBadge platformOrUrl={tracking?.Platform || tracking?.CanonicalURL} />
             {tracking?.LastInStock !== undefined && (
               <span
-                className={`px-2 py-0.5 text-[13px] font-semibold ${
+                className={`rounded-full px-2.5 py-1 text-[13px] font-semibold ${
                   tracking.LastInStock ? "bg-teal-200 text-pine-950" : "bg-marker text-chalk"
                 }`}
               >
@@ -282,19 +284,25 @@ export default function ProductDetailPage() {
               </span>
             )}
             {changePercent !== undefined && changePercent < 0 && (
-              <span className="bg-teal-200 px-2 py-0.5 text-[13px] font-semibold text-pine-950">{t.detail.justDropped}</span>
+              <span className="bg-teal-200 rounded-full px-2.5 py-1 text-[13px] font-semibold text-pine-950">{t.detail.justDropped}</span>
             )}
             {stats90 && currentPrice && currentPrice <= stats90.lowest && (
-              <span className="bg-teal-400 px-2 py-0.5 text-[13px] font-semibold text-pine-950">{t.detail.lowest90dBadge}</span>
+              <span className="bg-teal-400 rounded-full px-2.5 py-1 text-[13px] font-semibold text-pine-950">{t.detail.lowest90dBadge}</span>
             )}
           </div>
-          <h1 className="line-clamp-3 text-[clamp(22px,2.6vw,32px)] font-bold leading-snug">{title}</h1>
-          <p className="text-[15px] text-chalk/80">
-            {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
-          </p>
+          <div className="flex items-start gap-4 sm:gap-5">
+            <ProductImage src={tracking?.ImageURL} alt={title || ""} size={88} className="sm:hidden" />
+            <ProductImage src={tracking?.ImageURL} alt={title || ""} size={120} className="hidden sm:flex" />
+            <div className="min-w-0">
+              <h1 className="line-clamp-3 text-[clamp(22px,2.6vw,32px)] font-bold leading-snug">{title}</h1>
+              <p className="mt-2 text-[15px] text-chalk/80">
+                {tracking?.SellerName ? formatText(t.detail.shopLabel, { name: tracking.SellerName }) : t.detail.officialStore}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="lg:col-span-5">
+        <div className="relative lg:col-span-5">
           <PriceTag className="mx-auto max-w-[400px]">
             <p className="text-sm font-semibold">{t.landing.priceNow}</p>
             {oldPrice && <StruckPrice className="mt-2 text-2xl">{formatVND(oldPrice)}</StruckPrice>}
@@ -304,7 +312,7 @@ export default function ProductDetailPage() {
               </WrittenPrice>
               {changePercent !== undefined && changePercent !== 0 && (
                 <span
-                  className={`mb-1 inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-bold ${
+                  className={`mb-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold ${
                     changePercent < 0 ? "bg-teal-200 text-pine-950" : "bg-[#FBE3E4] text-marker-deep"
                   }`}
                 >
@@ -319,10 +327,12 @@ export default function ProductDetailPage() {
               href={buyHref}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              className="mx-auto mt-5 flex min-h-[52px] max-w-[400px] items-center justify-center gap-2 bg-teal-400 px-5 text-[17px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+              className="group mx-auto mt-5 flex min-h-[56px] max-w-[400px] items-center justify-between gap-3 rounded-full bg-teal-400 py-1.5 pl-6 pr-1.5 text-[17px] font-bold text-pine-950 transition-[transform,background-color] duration-500 ease-spring hover:bg-teal-300 active:scale-[0.98]"
             >
               {formatText(t.landing.buyOn, { platform: platformName })}
-              <ArrowUpRight className="h-5 w-5" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-pine-950/10 transition-transform duration-500 ease-spring group-hover:-translate-y-px group-hover:translate-x-0.5">
+                <ArrowUpRight className="h-5 w-5" strokeWidth={1.75} />
+              </span>
             </a>
           )}
         </div>
@@ -330,7 +340,7 @@ export default function ProductDetailPage() {
 
       {/* Target price and the 90-day numbers */}
       <div className="grid gap-4 lg:grid-cols-12">
-        <section className="space-y-4 bg-white p-5 sm:p-6 lg:col-span-7">
+        <section className="space-y-4 bg-white p-5 sm:p-6 lg:col-span-7 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <span className="block text-sm font-semibold text-pine-700">{t.detail.targetPrice}</span>
@@ -352,9 +362,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="h-3 w-full bg-pine-50">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-pine-50">
             <div
-              className="h-full origin-left bg-teal-400 transition-[width] duration-500"
+              className="h-full origin-left rounded-full bg-teal-400 transition-[width] duration-500 ease-spring"
               style={{ width: `${targetProgress}%` }}
             />
           </div>
@@ -364,16 +374,16 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={() => openTargetModal()}
-              className="min-h-[44px] px-2 font-bold text-pine-900 underline-offset-4 hover:underline"
+              className="min-h-[44px] rounded-full bg-pine-50 px-4 font-bold text-pine-900 transition-colors duration-300 ease-spring hover:bg-pine-100"
             >
               {t.detail.editTarget}
             </button>
           </div>
         </section>
 
-        <section className="grid grid-cols-3 gap-px bg-paper lg:col-span-5 lg:grid-cols-1">
+        <section className="grid grid-cols-3 gap-3 lg:col-span-5 lg:grid-cols-1">
           {statTiles.map((s) => (
-            <div key={s.label} className="flex flex-col justify-center bg-white p-4 sm:p-5">
+            <div key={s.label} className="flex flex-col justify-center rounded-[1.5rem] bg-white p-4 shadow-soft ring-1 ring-pine-900/[0.06] sm:p-5">
               <span className="block text-sm font-semibold text-pine-700">{s.label}</span>
               <span className="mt-1 block text-base font-bold text-pine-900 sm:text-lg">{s.value}</span>
             </div>
@@ -382,14 +392,14 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Price history */}
-      <section className="space-y-6 bg-white p-5 sm:p-6">
+      <section className="space-y-6 bg-white p-5 sm:p-6 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-xl font-bold text-pine-900">{t.detail.priceHistoryTitle}</h2>
             <p className="mt-0.5 text-[15px] text-pine-700">{t.detail.priceHistorySubtitle}</p>
           </div>
 
-          <div className="flex w-fit items-center">
+          <div className="flex w-fit items-center gap-1 rounded-full bg-pine-50 p-1">
             {[
               { id: "7d", label: t.detail.range7d },
               { id: "30d", label: t.detail.range30d },
@@ -401,8 +411,8 @@ export default function ProductDetailPage() {
                 type="button"
                 aria-pressed={timeRange === tab.id}
                 onClick={() => setTimeRange(tab.id as any)}
-                className={`min-h-[44px] px-4 text-[15px] font-semibold transition-colors ${
-                  timeRange === tab.id ? "bg-pine-900 text-chalk" : "bg-pine-50 text-pine-900 hover:bg-pine-100"
+                className={`min-h-[40px] whitespace-nowrap rounded-full px-3 text-[14px] font-semibold transition-colors duration-300 ease-spring sm:px-4 sm:text-[15px] ${
+                  timeRange === tab.id ? "bg-pine-900 text-chalk shadow-soft" : "text-pine-800 hover:bg-white"
                 }`}
               >
                 {tab.label}
@@ -413,16 +423,16 @@ export default function ProductDetailPage() {
 
         <div className="h-64 w-full sm:h-80">
           {rangeError ? (
-            <div className="flex h-full items-center justify-center gap-2 bg-[#FBE3E4] px-4 text-center text-[15px] text-marker-deep">
+            <div className="flex h-full items-center justify-center gap-2 bg-[#FBE3E4] px-4 text-center text-[15px] text-marker-deep rounded-2xl">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{formatText(t.detail.historyRangeError, { message: rangeError })}</span>
             </div>
           ) : rangeLoading ? (
-            <div className="chalk-skeleton flex h-full items-center justify-center bg-pine-50 text-[15px] text-pine-700">
+            <div className="chalk-skeleton flex h-full items-center justify-center rounded-2xl bg-pine-50 text-[15px] text-pine-700">
               {t.common.loading}
             </div>
           ) : chartData.length === 0 ? (
-            <div className="flex h-full items-center justify-center bg-pine-50 px-4 text-center text-[15px] text-pine-700">
+            <div className="flex h-full items-center justify-center bg-pine-50 px-4 text-center text-[15px] text-pine-700 rounded-2xl">
               {(timeRange === "all" ? allSnapshots : snapshots).length === 0
                 ? t.detail.accumulatingData
                 : t.detail.noDataInRange}
@@ -452,7 +462,7 @@ export default function ProductDetailPage() {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="space-y-1 bg-pine-950 p-3 text-[13px] text-chalk">
+                        <div className="space-y-1 bg-pine-950 p-3 text-[13px] text-chalk rounded-2xl">
                           <p className="text-chalk/75">{formatDateTime(data.rawDate)}</p>
                           <p className="text-lg font-extrabold">{formatVND(data.effectivePrice)}</p>
                           <p className="text-chalk/75">
@@ -488,6 +498,7 @@ export default function ProductDetailPage() {
                   stroke="#1A9988"
                   strokeWidth={3}
                   fill="none"
+                  isAnimationActive={false}
                   dot={{ r: 3, fill: "#1A9988", strokeWidth: 0 }}
                   activeDot={{ r: 6, fill: "#0A3832", stroke: "#ffffff", strokeWidth: 2 }}
                 />
@@ -520,7 +531,7 @@ export default function ProductDetailPage() {
                 note: t.detail.milestoneMedian,
               },
             ].map((m) => (
-              <div key={m.label} className="flex items-center justify-between gap-3 bg-pine-50 px-4 py-3 text-[15px]">
+              <div key={m.label} className="flex items-center justify-between gap-3 bg-pine-50 px-4 py-3 text-[15px] rounded-2xl">
                 <div className="flex items-center gap-2.5">
                   <span aria-hidden className={`h-2.5 w-2.5 shrink-0 ${m.dot}`} />
                   <span className="font-semibold text-pine-900">{m.label}</span>
@@ -543,10 +554,10 @@ export default function ProductDetailPage() {
       />
 
       {/* Alerts */}
-      <section className="space-y-4 bg-white p-5 sm:p-6">
+      <section className="space-y-4 bg-white p-5 sm:p-6 rounded-[1.75rem] shadow-soft ring-1 ring-pine-900/[0.06]">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-pine-50 text-pine-900">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-900">
               <BellRing className="h-5 w-5" />
             </span>
             <div>
@@ -558,7 +569,7 @@ export default function ProductDetailPage() {
           <button
             type="button"
             onClick={() => setShowCreateAlertModal(true)}
-            className="inline-flex min-h-[44px] items-center gap-2 self-start bg-pine-900 px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800 sm:self-auto"
+            className="inline-flex min-h-[44px] items-center gap-2 self-start bg-pine-900 px-5 text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800 sm:self-auto rounded-full"
           >
             <Plus className="h-4 w-4" />
             <span>{t.detail.addAlertBtn}</span>
@@ -566,7 +577,7 @@ export default function ProductDetailPage() {
         </div>
 
         {alertsErrorMessage && alerts.length === 0 ? (
-          <div className="flex items-center justify-between gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep">
+          <div className="flex items-center justify-between gap-2 bg-[#FBE3E4] p-4 text-[15px] text-marker-deep rounded-2xl">
             <span className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{alertsErrorMessage}</span>
@@ -576,13 +587,13 @@ export default function ProductDetailPage() {
             </button>
           </div>
         ) : alerts.length === 0 ? (
-          <div className="space-y-2 bg-pine-50 p-6 text-center">
+          <div className="space-y-2 bg-pine-50 p-6 text-center rounded-2xl">
             <p className="text-[15px] font-semibold text-pine-900">{t.detail.noAlertsTitle}</p>
             <p className="mx-auto max-w-sm text-[15px] text-pine-700">{t.detail.noAlertsDesc}</p>
             <button
               type="button"
               onClick={() => setShowCreateAlertModal(true)}
-              className="mt-2 inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300"
+              className="mt-2 inline-flex min-h-[44px] items-center gap-2 bg-teal-400 px-5 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 rounded-full"
             >
               <Plus className="h-4 w-4" />
               <span>{t.detail.createFirstRuleBtn}</span>
@@ -615,7 +626,7 @@ export default function ProductDetailPage() {
         <button
           type="button"
           onClick={() => openTargetModal()}
-          className="pointer-events-auto flex min-h-[52px] w-full items-center justify-center gap-2 bg-pine-900 text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800"
+          className="pointer-events-auto flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-pine-900 shadow-float text-[15px] font-bold text-chalk transition-colors hover:bg-pine-800"
         >
           <Target className="h-5 w-5" />
           <span>{savedTarget ? t.detail.updateTargetButton : t.detail.setTargetButton}</span>
@@ -624,17 +635,17 @@ export default function ProductDetailPage() {
 
       {/* Target price dialog */}
       {showTargetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-pine-950/70 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-pine-950/60 backdrop-blur-sm p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="target-title"
-            className="relative w-full max-w-md space-y-5 bg-paper p-6 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8" /* taste-skill-ignore: dialog overlay */
+            className="relative w-full max-w-md space-y-5 bg-paper p-6 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8 rounded-[2rem]" /* taste-skill-ignore: dialog overlay */
           >
             <button
               type="button"
               onClick={() => setShowTargetModal(false)}
-              className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white"
+              className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-pine-900 transition-colors hover:bg-white rounded-full"
               aria-label={t.common.close}
             >
               <X className="h-5 w-5" />
@@ -654,7 +665,7 @@ export default function ProductDetailPage() {
                   value={targetInput > 0 ? targetInput : ""}
                   onChange={(e) => setTargetInput(Number(e.target.value))}
                   placeholder="6.000.000"
-                  className="h-16 w-full bg-white px-4 text-center text-3xl font-extrabold text-pine-950 placeholder:text-pine-700/50 focus:outline-none"
+                  className="h-16 w-full bg-white px-4 text-center text-3xl font-extrabold text-pine-950 placeholder:text-pine-700/50 focus:outline-none rounded-2xl"
                 />
                 {targetInput > 0 && (
                   <span className="mt-1 block text-center text-[13px] font-semibold text-pine-700">
@@ -670,25 +681,25 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={() => handleQuickPercent(pct)}
                     disabled={!currentPrice}
-                    className="min-h-[44px] bg-white text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[44px] rounded-full bg-white text-[15px] font-bold text-pine-900 transition-colors hover:bg-pine-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     -{pct}%
                   </button>
                 ))}
               </div>
 
-              {targetError && <p className="bg-[#FBE3E4] p-3 text-[15px] text-marker-deep">{targetError}</p>}
+              {targetError && <p className="bg-[#FBE3E4] p-3 text-[15px] text-marker-deep rounded-2xl">{targetError}</p>}
 
               <button
                 type="submit"
                 disabled={savingTarget}
-                className="min-h-[52px] w-full bg-teal-400 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-[52px] w-full rounded-full bg-teal-400 text-[15px] font-bold text-pine-950 transition-colors hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {savingTarget ? t.common.loading : t.detail.startTrackingBtn}
               </button>
             </form>
 
-            <div className="flex items-start gap-3 bg-warn-soft p-4 text-[15px] text-warn-ink">
+            <div className="flex items-start gap-3 bg-warn-soft p-4 text-[15px] text-warn-ink rounded-2xl">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
                 <span className="mb-0.5 block font-bold">{t.detail.tipTitle}</span>

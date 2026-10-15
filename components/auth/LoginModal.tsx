@@ -33,14 +33,14 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
-      <div className="fixed inset-0 bg-pine-950/70 animate-fadeIn" onClick={onClose} />
+      <div className="fixed inset-0 bg-pine-950/60 backdrop-blur-sm animate-fadeIn" onClick={onClose} />
 
-      <div className="relative w-full max-w-md bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8">{/* taste-skill-ignore: dialog overlay */}
+      <div className="relative w-full max-w-md bg-paper p-6 text-pine-900 shadow-2xl shadow-pine-950/30 animate-scaleUp sm:p-8 rounded-[2rem]">{/* taste-skill-ignore: dialog overlay */}
         <button
           type="button"
           onClick={onClose}
           aria-label={t.common.close}
-          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100"
+          className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center bg-pine-50 text-pine-900 transition-colors hover:bg-pine-100 rounded-full"
         >
           <X className="h-5 w-5" />
         </button>
@@ -52,13 +52,13 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         <p className="mt-2 text-[15px] leading-relaxed text-pine-700">{t.auth.loginSubtitle}</p>
 
         {/* Guest data moves to the account automatically */}
-        <div className="mt-6 bg-teal-200 p-4 text-[15px] text-pine-950">
+        <div className="mt-6 bg-teal-200 p-4 text-[15px] text-pine-950 rounded-2xl">
           <p className="font-bold">{t.auth.guestNotice}</p>
           <p className="mt-1 leading-relaxed">{t.auth.guestTip}</p>
         </div>
 
         {error && (
-          <div className="mt-4 flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep">
+          <div className="mt-4 flex items-start gap-2 bg-[#FBE3E4] p-3 text-[15px] font-semibold text-marker-deep rounded-2xl">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -71,7 +71,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               {isLoggingIn && <p className="mt-3 text-center text-[14px] text-pine-700">{t.common.loading}</p>}
             </div>
           ) : (
-            <div className="flex items-start gap-2 bg-warn-soft p-3 text-[14px] text-warn-ink">
+            <div className="flex items-start gap-2 bg-warn-soft p-3 text-[14px] text-warn-ink rounded-2xl">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
                 Đăng nhập Google chưa được cấu hình. Cần đặt NEXT_PUBLIC_GOOGLE_CLIENT_ID (trùng GOOGLE_CLIENT_ID của backend).
